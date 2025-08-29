@@ -11,7 +11,7 @@ export const useAuth = () => {
     return context;
 };
 
-const API_BASE_URL = 'http://localhost:5001/api';
+const API_BASE_URL = 'http://31.97.138.23:5001/api';
 
 export const AuthProvider = ({ children }) => {
     const [user, setUser] = useState(null);

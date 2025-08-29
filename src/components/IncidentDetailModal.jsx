@@ -77,7 +77,7 @@ const IncidentDetailModal = ({
 
 
     const handleViewFile = (attachment) => {
-        const baseURL = 'http://localhost:5001';
+        const baseURL = 'http://31.97.138.23:5001';
         const fileUrl = `${baseURL}${attachment.file_url}`;
         window.open(fileUrl, '_blank');
     };
