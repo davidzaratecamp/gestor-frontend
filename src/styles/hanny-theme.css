@@ -1,0 +1,109 @@
+/* Tema especial para Hanny - Negro y morado con efectos de corazón */
+
+@keyframes heartFloat {
+    0% {
+        opacity: 1;
+        transform: translateY(0) scale(1) rotate(0deg);
+    }
+    50% {
+        transform: translateY(-15px) scale(1.2) rotate(10deg);
+    }
+    100% {
+        opacity: 0;
+        transform: translateY(-30px) scale(0.8) rotate(20deg);
+    }
+}
+
+/* Animación adicional para el hover en elementos del tema de Hanny */
+.hanny-theme .hanny-hover:hover {
+    transform: scale(1.02);
+    transition: transform 0.2s ease-in-out;
+}
+
+/* Efecto de brillo sutil para elementos activos en el tema de Hanny */
+.hanny-theme .hanny-active {
+    box-shadow: 0 0 20px rgba(147, 51, 234, 0.3);
+}
+
+/* Gradiente especial para botones importantes */
+.hanny-gradient {
+    background: linear-gradient(135deg, #6b46c1 0%, #9333ea 100%);
+}
+
+.hanny-gradient:hover {
+    background: linear-gradient(135deg, #7c3aed 0%, #a855f7 100%);
+}
+
+/* Efecto de partículas de corazón para clics */
+.heart-burst {
+    position: relative;
+    overflow: visible;
+}
+
+.heart-burst::after {
+    content: '💜';
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    opacity: 0;
+    pointer-events: none;
+    animation: heartBurst 0.6s ease-out;
+}
+
+@keyframes heartBurst {
+    0% {
+        opacity: 1;
+        transform: translate(-50%, -50%) scale(0.5);
+    }
+    50% {
+        opacity: 1;
+        transform: translate(-50%, -50%) scale(1.2);
+    }
+    100% {
+        opacity: 0;
+        transform: translate(-50%, -50%) scale(0.8) translateY(-20px);
+    }
+}
+
+/* Personalización del scrollbar para el tema de Hanny */
+.hanny-theme ::-webkit-scrollbar {
+    width: 8px;
+}
+
+.hanny-theme ::-webkit-scrollbar-track {
+    background: #1f2937;
+}
+
+.hanny-theme ::-webkit-scrollbar-thumb {
+    background: #8b5cf6;
+    border-radius: 4px;
+}
+
+.hanny-theme ::-webkit-scrollbar-thumb:hover {
+    background: #a78bfa;
+}
+
+/* Efecto de glow en inputs para el tema de Hanny */
+.hanny-theme input:focus,
+.hanny-theme select:focus,
+.hanny-theme textarea:focus {
+    border-color: #8b5cf6;
+    box-shadow: 0 0 0 3px rgba(139, 92, 246, 0.1), 0 0 10px rgba(139, 92, 246, 0.2);
+}
+
+/* Animación sutil de entrada para elementos del tema de Hanny */
+.hanny-theme .fade-in-up {
+    animation: fadeInUp 0.5s ease-out;
+}
+
+@keyframes fadeInUp {
+    from {
+        opacity: 0;
+        transform: translateY(20px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
