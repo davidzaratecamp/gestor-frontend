@@ -1,16 +1,20 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { MessageCircle, X, Send, Bell, Users } from 'lucide-react';
+import { MessageCircle, X, Send, Bell, Users, Minimize2, Maximize2 } from 'lucide-react';
 import { chatService } from '../services/api';
 import { useAuth } from '../context/AuthContext';
 import io from 'socket.io-client';
 
 const AdminChatBox = () => {
     const { user } = useAuth();
+    const [isOpen, setIsOpen] = useState(false);
+    const [isMinimized, setIsMinimized] = useState(false);
     const [conversations, setConversations] = useState([]);
     const [activeConversation, setActiveConversation] = useState(null);
     const [messages, setMessages] = useState([]);
     const [newMessage, setNewMessage] = useState('');
     const [loading, setLoading] = useState(false);
+    const [unreadCount, setUnreadCount] = useState(0);
+    const [hasNewMessage, setHasNewMessage] = useState(false);
     const messagesEndRef = useRef(null);
     const socketRef = useRef(null);
 
@@ -67,7 +71,12 @@ const AdminChatBox = () => {
                         // Actualizar lista de conversaciones
                         loadConversations();
                         
-                        // Chat siempre visible - no necesita abrirse
+                        // Si el chat está cerrado, mostrar notificación y abrir automáticamente
+                        if (!isOpen) {
+                            setHasNewMessage(true);
+                            setIsOpen(true);
+                            setUnreadCount(prev => prev + 1);
+                        }
                     } catch (error) {
                         console.error('Error procesando mensaje nuevo:', error);
                     }
@@ -93,13 +102,13 @@ const AdminChatBox = () => {
     }, [messages]);
 
     useEffect(() => {
-        // Scroll al final cuando cambia conversación
-        if (activeConversation) {
+        // Scroll al final cuando se abre el chat
+        if (isOpen && !isMinimized) {
             setTimeout(() => {
                 scrollToBottom();
             }, 100);
         }
-    }, [activeConversation]);
+    }, [isOpen, isMinimized]);
 
     const loadConversations = async () => {
         try {
@@ -159,6 +168,16 @@ const AdminChatBox = () => {
         messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
     };
 
+    const handleOpen = () => {
+        setIsOpen(true);
+        setIsMinimized(false);
+        setHasNewMessage(false);
+        if (conversations.length > 0 && !activeConversation) {
+            setActiveConversation(conversations[0]);
+            loadMessages(conversations[0].anonymous_user_id);
+        }
+    };
+
     const handleKeyPress = (e) => {
         if (e.key === 'Enter' && !e.shiftKey) {
             e.preventDefault();
@@ -175,88 +194,118 @@ const AdminChatBox = () => {
     };
 
 
-    // Si no hay conversaciones, no mostrar nada
-    if (!Array.isArray(conversations) || conversations.length === 0) {
-        return null;
-    }
-
-    // Auto-seleccionar la primera conversación si no hay una activa
-    const currentConversation = activeConversation || conversations[0];
-
     return (
         <div className="fixed bottom-4 right-20 z-50">
-            {/* Chat directo sin modal - siempre visible cuando hay conversaciones */}
-            <div className="bg-white rounded-lg shadow-xl border w-80 h-96 flex flex-col">
-                {/* Header simple */}
-                <div className="bg-blue-600 text-white p-3 rounded-t-lg flex items-center justify-between">
-                    <div className="flex items-center space-x-2">
-                        <MessageCircle className="h-5 w-5" />
-                        <span className="font-medium text-sm">
-                            Chat con {currentConversation?.anonymous_user_name || 'Usuario'}
+            {/* Botón flotante */}
+            {!isOpen && (
+                <button
+                    onClick={handleOpen}
+                    className={`bg-blue-600 hover:bg-blue-700 text-white rounded-full p-3 shadow-lg transition-all duration-300 relative ${
+                        hasNewMessage ? 'animate-bounce' : ''
+                    }`}
+                >
+                    <MessageCircle className="h-6 w-6" />
+                    {hasNewMessage && (
+                        <Bell className="absolute -top-1 -left-1 h-4 w-4 text-yellow-400 animate-pulse" />
+                    )}
+                    {unreadCount > 0 && (
+                        <span className="absolute -top-2 -right-2 bg-red-500 text-white text-xs rounded-full h-5 w-5 flex items-center justify-center animate-pulse">
+                            {unreadCount > 9 ? '9+' : unreadCount}
                         </span>
-                    </div>
-                </div>
+                    )}
+                </button>
+            )}
 
-                {/* Mensajes */}
-                <div className="flex-1 overflow-y-auto p-3 space-y-2 bg-white">
-                    {loading ? (
-                        <div className="flex items-center justify-center py-4">
-                            <div className="animate-spin rounded-full h-6 w-6 border-b-2 border-blue-600"></div>
+            {/* Ventana de chat */}
+            {isOpen && (
+                <div className={`bg-white rounded-lg shadow-xl border transition-all duration-300 ${
+                    isMinimized ? 'w-80 h-12' : 'w-80 h-96'
+                }`}>
+                    {/* Header */}
+                    <div className="bg-blue-600 text-white p-3 rounded-t-lg flex items-center justify-between">
+                        <div className="flex items-center space-x-2">
+                            <div className="w-2 h-2 bg-green-400 rounded-full"></div>
+                            <span className="font-medium text-sm">
+                                Chat con {activeConversation?.anonymous_user_name || 'Usuario Anónimo'}
+                            </span>
                         </div>
-                    ) : messages.length === 0 ? (
-                        <div className="text-center text-gray-500 text-sm py-8">
-                            <MessageCircle className="h-8 w-8 mx-auto mb-2 text-gray-300" />
-                            <p>No hay mensajes aún</p>
-                        </div>
-                    ) : (
-                        messages.map((message) => (
-                            <div
-                                key={message.id}
-                                className={`flex ${
-                                    message.from_user_id === user.id ? 'justify-end' : 'justify-start'
-                                }`}
+                        <div className="flex items-center space-x-2">
+                            <button
+                                onClick={() => setIsMinimized(!isMinimized)}
+                                className="text-blue-200 hover:text-white"
                             >
-                                <div
-                                    className={`max-w-xs px-3 py-2 rounded-lg text-sm ${
-                                        message.from_user_id === user.id
-                                            ? 'bg-blue-600 text-white'
-                                            : 'bg-gray-200 text-gray-900'
-                                    }`}
-                                >
-                                    <div className="whitespace-pre-wrap">{message.message}</div>
-                                    <div className={`text-xs mt-1 ${
-                                        message.from_user_id === user.id ? 'text-blue-100' : 'text-gray-500'
-                                    }`}>
-                                        {formatTime(message.created_at)}
+                                {isMinimized ? <Maximize2 className="h-4 w-4" /> : <Minimize2 className="h-4 w-4" />}
+                            </button>
+                            <button
+                                onClick={() => setIsOpen(false)}
+                                className="text-blue-200 hover:text-white"
+                            >
+                                <X className="h-4 w-4" />
+                            </button>
+                        </div>
+                    </div>
+
+                    {/* Contenido del chat */}
+                    {!isMinimized && (
+                        <>
+                            {/* Mensajes */}
+                            <div className="h-64 overflow-y-auto p-3 space-y-2 bg-white">
+                                {messages.length === 0 ? (
+                                    <div className="text-center text-gray-500 text-sm mt-8">
+                                        <MessageCircle className="h-8 w-8 mx-auto mb-2 text-gray-300" />
+                                        <p>¡Hola! Aquí aparecerán los mensajes de los usuarios anónimos.</p>
                                     </div>
+                                ) : (
+                                    messages.map((message) => (
+                                        <div
+                                            key={message.id}
+                                            className={`flex ${message.from_user_id === user.id ? 'justify-end' : 'justify-start'}`}
+                                        >
+                                            <div
+                                                className={`max-w-xs px-3 py-2 rounded-lg text-sm ${
+                                                    message.from_user_id === user.id
+                                                        ? 'bg-blue-600 text-white'
+                                                        : 'bg-gray-200 text-gray-800'
+                                                }`}
+                                            >
+                                                <p className="whitespace-pre-wrap">{message.message}</p>
+                                                <p className={`text-xs mt-1 ${
+                                                    message.from_user_id === user.id ? 'text-blue-200' : 'text-gray-500'
+                                                }`}>
+                                                    {formatTime(message.created_at)}
+                                                </p>
+                                            </div>
+                                        </div>
+                                    ))
+                                )}
+                                <div ref={messagesEndRef} />
+                            </div>
+
+                            {/* Input de mensaje */}
+                            <div className="border-t p-3">
+                                <div className="flex space-x-2">
+                                    <input
+                                        type="text"
+                                        value={newMessage}
+                                        onChange={(e) => setNewMessage(e.target.value)}
+                                        onKeyPress={handleKeyPress}
+                                        placeholder="Escribe tu respuesta..."
+                                        className="flex-1 border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                                        disabled={!activeConversation}
+                                    />
+                                    <button
+                                        onClick={sendMessage}
+                                        disabled={!newMessage.trim() || !activeConversation || loading}
+                                        className="bg-blue-600 text-white px-3 py-2 rounded-lg hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed"
+                                    >
+                                        <Send className="h-4 w-4" />
+                                    </button>
                                 </div>
                             </div>
-                        ))
+                        </>
                     )}
-                    <div ref={messagesEndRef} />
                 </div>
-
-                {/* Input para enviar mensaje */}
-                <div className="border-t p-3">
-                    <div className="flex space-x-2">
-                        <input
-                            type="text"
-                            value={newMessage}
-                            onChange={(e) => setNewMessage(e.target.value)}
-                            onKeyPress={handleKeyPress}
-                            placeholder="Escribe tu respuesta..."
-                            className="flex-1 border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-                        />
-                        <button
-                            onClick={sendMessage}
-                            disabled={!newMessage.trim() || !currentConversation}
-                            className="bg-blue-600 text-white px-3 py-2 rounded-lg hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed"
-                        >
-                            <Send className="h-4 w-4" />
-                        </button>
-                    </div>
-                </div>
-            </div>
+            )}
         </div>
     );
 };
