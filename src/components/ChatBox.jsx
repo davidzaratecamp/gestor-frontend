@@ -52,12 +52,7 @@ const ChatBox = () => {
                         markAsRead();
                     }
                     
-                    // Reproducir sonido de notificación
-                    try {
-                        new Audio('/notification.mp3').play().catch(() => {});
-                    } catch (error) {
-                        console.log('No se pudo reproducir sonido de notificación');
-                    }
+                    // Notificación silenciosa - sin sonido
                 } catch (error) {
                     console.error('Error procesando mensaje nuevo:', error);
                 }
