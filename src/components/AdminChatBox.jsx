@@ -54,6 +54,9 @@ const AdminChatBox = () => {
                     try {
                         console.log('Admin recibió nuevo mensaje:', data);
                         
+                        // Agregar mensaje a la lista
+                        setMessages(prev => [...prev, data.message]);
+                        
                         // Si no hay conversación activa, seleccionar automáticamente
                         if (!activeConversation) {
                             loadConversations().then((conversationsData) => {
@@ -61,11 +64,9 @@ const AdminChatBox = () => {
                                 const conv = conversationsData.find(c => c.anonymous_user_id === data.message.from_user_id);
                                 if (conv) {
                                     setActiveConversation(conv);
-                                    loadMessages(conv.anonymous_user_id);
+                                    // No llamar loadMessages aquí porque ya agregamos el mensaje arriba
                                 }
                             });
-                        } else if (data.message.from_user_id === activeConversation.anonymous_user_id) {
-                            setMessages(prev => [...prev, data.message]);
                         }
                         
                         // Actualizar lista de conversaciones
@@ -200,7 +201,7 @@ const AdminChatBox = () => {
             {!isOpen && (
                 <button
                     onClick={handleOpen}
-                    className={`bg-blue-600 hover:bg-blue-700 text-white rounded-full p-3 shadow-lg transition-all duration-300 relative ${
+                    className={`bg-purple-600 hover:bg-purple-700 text-white rounded-full p-3 shadow-lg transition-all duration-300 relative ${
                         hasNewMessage ? 'animate-bounce' : ''
                     }`}
                 >
@@ -222,7 +223,7 @@ const AdminChatBox = () => {
                     isMinimized ? 'w-80 h-12' : 'w-80 h-96'
                 }`}>
                     {/* Header */}
-                    <div className="bg-blue-600 text-white p-3 rounded-t-lg flex items-center justify-between">
+                    <div className="bg-purple-600 text-white p-3 rounded-t-lg flex items-center justify-between">
                         <div className="flex items-center space-x-2">
                             <div className="w-2 h-2 bg-green-400 rounded-full"></div>
                             <span className="font-medium text-sm">
@@ -232,13 +233,13 @@ const AdminChatBox = () => {
                         <div className="flex items-center space-x-2">
                             <button
                                 onClick={() => setIsMinimized(!isMinimized)}
-                                className="text-blue-200 hover:text-white"
+                                className="text-purple-200 hover:text-white"
                             >
                                 {isMinimized ? <Maximize2 className="h-4 w-4" /> : <Minimize2 className="h-4 w-4" />}
                             </button>
                             <button
                                 onClick={() => setIsOpen(false)}
-                                className="text-blue-200 hover:text-white"
+                                className="text-purple-200 hover:text-white"
                             >
                                 <X className="h-4 w-4" />
                             </button>
@@ -264,13 +265,13 @@ const AdminChatBox = () => {
                                             <div
                                                 className={`max-w-xs px-3 py-2 rounded-lg text-sm ${
                                                     message.from_user_id === user.id
-                                                        ? 'bg-blue-600 text-white'
+                                                        ? 'bg-purple-600 text-white'
                                                         : 'bg-gray-200 text-gray-800'
                                                 }`}
                                             >
                                                 <p className="whitespace-pre-wrap">{message.message}</p>
                                                 <p className={`text-xs mt-1 ${
-                                                    message.from_user_id === user.id ? 'text-blue-200' : 'text-gray-500'
+                                                    message.from_user_id === user.id ? 'text-purple-200' : 'text-gray-500'
                                                 }`}>
                                                     {formatTime(message.created_at)}
                                                 </p>
@@ -290,13 +291,13 @@ const AdminChatBox = () => {
                                         onChange={(e) => setNewMessage(e.target.value)}
                                         onKeyPress={handleKeyPress}
                                         placeholder="Escribe tu respuesta..."
-                                        className="flex-1 border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                                        className="flex-1 border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-purple-500"
                                         disabled={!activeConversation}
                                     />
                                     <button
                                         onClick={sendMessage}
                                         disabled={!newMessage.trim() || !activeConversation || loading}
-                                        className="bg-blue-600 text-white px-3 py-2 rounded-lg hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed"
+                                        className="bg-purple-600 text-white px-3 py-2 rounded-lg hover:bg-purple-700 disabled:opacity-50 disabled:cursor-not-allowed"
                                     >
                                         <Send className="h-4 w-4" />
                                     </button>
