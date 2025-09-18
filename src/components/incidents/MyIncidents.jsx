@@ -19,7 +19,7 @@ import {
 import StarRating from '../StarRating';
 
 const MyIncidents = () => {
-    const { user } = useAuth();
+    const { user, isAdmin } = useAuth();
     const [incidents, setIncidents] = useState([]);
     const [loading, setLoading] = useState(true);
     const [showResolveModal, setShowResolveModal] = useState(false);
@@ -442,6 +442,16 @@ const MyIncidents = () => {
                                 <p className="text-sm text-gray-600">
                                     <strong>Descripción:</strong> {selectedIncident?.description}
                                 </p>
+                                {selectedIncident?.anydesk_address && (
+                                    <p className="text-sm text-gray-600">
+                                        <strong>AnyDesk:</strong> <span className="font-mono text-blue-600">{selectedIncident.anydesk_address}</span>
+                                    </p>
+                                )}
+                                {selectedIncident?.advisor_cedula && (
+                                    <p className="text-sm text-gray-600">
+                                        <strong>Cédula del Agente:</strong> <span className="font-mono">{selectedIncident.advisor_cedula}</span>
+                                    </p>
+                                )}
                             </div>
 
                             <div className="mb-4">
@@ -490,8 +500,8 @@ const MyIncidents = () => {
                                                             </div>
                                                         )}
 
-                                                        {/* Mostrar calificación si existe (solo para acciones de aprobación) */}
-                                                        {entry.action.includes('Aprobado') && entry.technician_rating && (
+                                                        {/* Mostrar calificación si existe (solo para admins para evitar conflictos) */}
+                                                        {isAdmin && entry.action.includes('Aprobado') && entry.technician_rating && (
                                                             <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-3 mt-2">
                                                                 <div className="flex items-center space-x-2 mb-2">
                                                                     <Star className="h-4 w-4 text-yellow-600" />

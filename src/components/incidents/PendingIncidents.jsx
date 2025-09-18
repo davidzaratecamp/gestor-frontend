@@ -36,12 +36,16 @@ const PendingIncidents = () => {
     const [technicians, setTechnicians] = useState([]);
     const [loading, setLoading] = useState(true);
     const [showAssignModal, setShowAssignModal] = useState(false);
+    const [showReassignModal, setShowReassignModal] = useState(false);
     const [selectedIncident, setSelectedIncident] = useState(null);
     const [selectedTechnician, setSelectedTechnician] = useState('');
     const [assignLoading, setAssignLoading] = useState(false);
+    const [reassignReason, setReassignReason] = useState('');
     const [filters, setFilters] = useState({
         departamento: '',
-        sede: ''
+        sede: '',
+        coordinador: '',
+        fecha: ''
     });
     const [fromDashboard, setFromDashboard] = useState(false);
     const [highlightedIncident, setHighlightedIncident] = useState(null);
@@ -50,6 +54,8 @@ const PendingIncidents = () => {
     const [showTop3Only, setShowTop3Only] = useState(false);
     const [originalIncidents, setOriginalIncidents] = useState([]);
     const [incidentAttachments, setIncidentAttachments] = useState({});
+    const [currentStatus, setCurrentStatus] = useState('pendiente');
+    const [coordinators, setCoordinators] = useState([]); // Track current status
     
     const allDepartamentos = [
         { value: 'obama', label: 'Obama' },
@@ -61,6 +67,13 @@ const PendingIncidents = () => {
         { value: 'bogota', label: 'Bogotá' },
         { value: 'barranquilla', label: 'Barranquilla' },
         { value: 'villavicencio', label: 'Villavicencio' }
+    ];
+    
+    const dateFilters = [
+        { value: 'hoy', label: 'Hoy' },
+        { value: 'ayer', label: 'Ayer' },
+        { value: '3dias', label: 'Últimos 3 días' },
+        { value: 'semana', label: 'Última semana' }
     ];
     
     // Obtener sedes disponibles según el rol y sede del usuario
@@ -97,9 +110,14 @@ const PendingIncidents = () => {
         const searchParams = new URLSearchParams(location.search);
         const sedeParam = searchParams.get('sede');
         const departamentoParam = searchParams.get('departamento');
+        const statusParam = searchParams.get('status');
         const highlightParam = searchParams.get('highlight');
         
-        if (sedeParam || departamentoParam) {
+        // Establecer el status actual
+        const status = statusParam || 'pendiente';
+        setCurrentStatus(status);
+        
+        if (sedeParam || departamentoParam || statusParam) {
             setFromDashboard(true);
             const urlFilters = {
                 sede: sedeParam || '',
@@ -111,10 +129,11 @@ const PendingIncidents = () => {
             const filterParams = {};
             if (urlFilters.departamento) filterParams.departamento = urlFilters.departamento;
             if (urlFilters.sede && isAdmin) filterParams.sede = urlFilters.sede;
+            if (statusParam) filterParams.status = statusParam;
             
-            loadData(filterParams);
+            loadData(filterParams, status);
         } else {
-            loadData();
+            loadData({}, status);
         }
         
         // Configurar resaltado de incidencia específica
@@ -132,11 +151,11 @@ const PendingIncidents = () => {
             const filterParams = {};
             if (filters.departamento) filterParams.departamento = filters.departamento;
             if (filters.sede && isAdmin) filterParams.sede = filters.sede;
-            loadData(filterParams);
+            loadData(filterParams, currentStatus);
         }, 60000); // Cada minuto
         
         return () => clearInterval(interval);
-    }, [filters, isAdmin]);
+    }, [filters, isAdmin, currentStatus]);
 
     // Filtrar por Top 3 cuando cambia showTop3Only
     useEffect(() => {
@@ -148,18 +167,81 @@ const PendingIncidents = () => {
         }
     }, [showTop3Only, originalIncidents]);
 
-    const loadData = async (filterParams = {}) => {
+    const loadData = async (filterParams = {}, status = 'pendiente') => {
         try {
             setLoading(true);
-            const [incidentsRes, techniciansRes] = await Promise.all([
-                incidentService.getPending(filterParams),
-                isAdmin ? userService.getTechnicians() : Promise.resolve({ data: [] })
-            ]);
             
-            setIncidents(incidentsRes.data);
-            setAllIncidents(incidentsRes.data);
-            setOriginalIncidents(incidentsRes.data);
+            // Usar el endpoint apropiado según el status
+            let incidentsPromise;
+            if (status === 'en_proceso') {
+                // Para incidencias en proceso, agregar el status a los filtros
+                const processFilterParams = { ...filterParams, status: 'en_proceso' };
+                incidentsPromise = incidentService.getAll(processFilterParams);
+            } else {
+                incidentsPromise = incidentService.getPending(filterParams);
+            }
+            
+            const promises = [incidentsPromise];
+            
+            if (isAdmin) {
+                promises.push(userService.getTechnicians());
+            }
+            
+            // Cargar coordinadores si es jefe de operaciones
+            if (isJefeOperaciones) {
+                promises.push(userService.getCoordinators());
+            }
+            
+            const results = await Promise.all(promises);
+            const incidentsRes = results[0];
+            const techniciansRes = isAdmin ? results[1] : { data: [] };
+            const coordinatorsRes = isJefeOperaciones ? results[results.length - 1] : { data: [] };
+            
+            // Aplicar filtros de fecha y coordinador en el frontend
+            let filteredIncidents = incidentsRes.data;
+            
+            // Filtro por coordinador
+            if (filterParams.coordinador) {
+                filteredIncidents = filteredIncidents.filter(incident => 
+                    incident.reported_by_name?.toLowerCase().includes(filterParams.coordinador.toLowerCase())
+                );
+            }
+            
+            // Filtro por fecha
+            if (filterParams.fecha) {
+                const today = new Date();
+                today.setHours(0, 0, 0, 0);
+                
+                filteredIncidents = filteredIncidents.filter(incident => {
+                    const incidentDate = new Date(incident.created_at);
+                    incidentDate.setHours(0, 0, 0, 0);
+                    
+                    switch (filterParams.fecha) {
+                        case 'hoy':
+                            return incidentDate.getTime() === today.getTime();
+                        case 'ayer':
+                            const yesterday = new Date(today);
+                            yesterday.setDate(yesterday.getDate() - 1);
+                            return incidentDate.getTime() === yesterday.getTime();
+                        case '3dias':
+                            const threeDaysAgo = new Date(today);
+                            threeDaysAgo.setDate(threeDaysAgo.getDate() - 3);
+                            return incidentDate >= threeDaysAgo;
+                        case 'semana':
+                            const weekAgo = new Date(today);
+                            weekAgo.setDate(weekAgo.getDate() - 7);
+                            return incidentDate >= weekAgo;
+                        default:
+                            return true;
+                    }
+                });
+            }
+            
+            setIncidents(filteredIncidents);
+            setAllIncidents(filteredIncidents);
+            setOriginalIncidents(filteredIncidents);
             setTechnicians(techniciansRes.data);
+            setCoordinators(coordinatorsRes.data);
             
             // Cargar información de archivos adjuntos para cada incidencia
             const attachmentsInfo = {};
@@ -211,17 +293,19 @@ const PendingIncidents = () => {
         const filterParams = {};
         if (newFilters.departamento) filterParams.departamento = newFilters.departamento;
         if (newFilters.sede && isAdmin) filterParams.sede = newFilters.sede;
+        if (newFilters.coordinador) filterParams.coordinador = newFilters.coordinador;
+        if (newFilters.fecha) filterParams.fecha = newFilters.fecha;
         
-        loadData(filterParams);
+        loadData(filterParams, currentStatus);
     };
     
     const clearFilters = () => {
-        setFilters({ departamento: '', sede: '' });
+        setFilters({ departamento: '', sede: '', coordinador: '', fecha: '' });
         setShowTop3Only(false);
         setFromDashboard(false);
         // Limpiar parámetros de URL
         navigate('/incidents/pending', { replace: true });
-        loadData();
+        loadData({}, 'pendiente');
     };
 
     const handleBackToDashboard = () => {
@@ -243,6 +327,13 @@ const PendingIncidents = () => {
                                  filters.departamento === 'claro' ? 'Claro' : filters.departamento;
                 parts.push(`Departamento: ${deptLabel}`);
             }
+        }
+        if (filters.coordinador) {
+            parts.push(`Coordinador: ${filters.coordinador}`);
+        }
+        if (filters.fecha) {
+            const fechaLabel = dateFilters.find(f => f.value === filters.fecha)?.label || filters.fecha;
+            parts.push(`Fecha: ${fechaLabel}`);
         }
         if (showTop3Only) {
             parts.push('Top 3 con más retraso');
@@ -289,7 +380,7 @@ const PendingIncidents = () => {
         try {
             await incidentService.assignTechnician(selectedIncident.id, parseInt(technicianId));
             setShowAssignModal(false);
-            await loadData();
+            await loadData({}, currentStatus);
         } catch (error) {
             console.error('Error asignando técnico:', error);
             alert(error.response?.data?.msg || 'Error al asignar técnico');
@@ -302,11 +393,42 @@ const PendingIncidents = () => {
         if (window.confirm(`¿Estás seguro de que quieres tomar la incidencia de ${incident.station_code}?`)) {
             try {
                 await incidentService.assignTechnician(incident.id, user.id);
-                await loadData();
+                await loadData({}, currentStatus);
             } catch (error) {
                 console.error('Error auto-asignándose:', error);
                 alert(error.response?.data?.msg || 'Error al asignarse la incidencia');
             }
+        }
+    };
+
+    const handleReassign = (incident) => {
+        setSelectedIncident(incident);
+        setSelectedTechnician('');
+        setReassignReason('');
+        setShowReassignModal(true);
+    };
+
+    const confirmReassign = async () => {
+        if (!selectedTechnician) {
+            alert('Por favor selecciona un técnico');
+            return;
+        }
+
+        setAssignLoading(true);
+        try {
+            await incidentService.reassignTechnician(
+                selectedIncident.id, 
+                parseInt(selectedTechnician),
+                reassignReason
+            );
+            setShowReassignModal(false);
+            await loadData({}, currentStatus);
+            alert('Técnico reasignado exitosamente');
+        } catch (error) {
+            console.error('Error reasignando técnico:', error);
+            alert(error.response?.data?.msg || 'Error al reasignar técnico');
+        } finally {
+            setAssignLoading(false);
         }
     };
 
@@ -341,125 +463,180 @@ const PendingIncidents = () => {
     }
 
     return (
-        <div className="space-y-6">
-            <div className="flex items-center justify-between">
-                <div>
-                    <div className="flex items-center space-x-3">
+        <div className="space-y-4 md:space-y-6">
+            {/* Header responsivo */}
+            <div className="flex flex-col space-y-4 lg:flex-row lg:items-center lg:justify-between lg:space-y-0">
+                <div className="space-y-3">
+                    <div className="flex flex-col space-y-3 sm:flex-row sm:items-center sm:space-y-0 sm:space-x-3">
                         {fromDashboard && (
                             <button
                                 onClick={handleBackToDashboard}
-                                className="inline-flex items-center px-3 py-2 border border-gray-300 shadow-sm text-sm leading-4 font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500"
+                                className="inline-flex items-center px-3 py-2 border border-gray-300 shadow-sm text-sm leading-4 font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 self-start"
                             >
                                 <ArrowLeft className="h-4 w-4 mr-1" />
-                                Volver al Dashboard
+                                <span className="hidden sm:inline">Volver al Dashboard</span>
+                                <span className="sm:hidden">Volver</span>
                             </button>
                         )}
                         <div>
-                            <h1 className="text-2xl font-bold text-gray-900">
-                                Incidencias Pendientes{getFilterDisplayText()}
+                            <h1 className="text-xl md:text-2xl font-bold text-gray-900 break-words">
+                                {currentStatus === 'en_proceso' ? 'Incidencias En Proceso' : 'Incidencias Pendientes'}{getFilterDisplayText()}
                             </h1>
-                            <p className="text-gray-600">
-                                {isAdmin 
-                                    ? 'Asigna técnicos a las incidencias reportadas' 
-                                    : 'Incidencias disponibles para auto-asignarse'
+                            <p className="text-sm md:text-base text-gray-600 mt-1">
+                                {currentStatus === 'en_proceso' 
+                                    ? 'Incidencias que están siendo trabajadas por técnicos'
+                                    : isAdmin 
+                                        ? 'Asigna técnicos a las incidencias reportadas' 
+                                        : 'Incidencias disponibles para auto-asignarse'
                                 }
                             </p>
                         </div>
                     </div>
                 </div>
-                <div className="bg-yellow-50 px-4 py-2 rounded-lg">
-                    <span className="text-yellow-700 font-medium">
-                        {incidents.length} incidencia(s) pendiente(s)
+                <div className={`px-3 py-2 md:px-4 rounded-lg self-start lg:self-auto ${
+                    currentStatus === 'en_proceso' ? 'bg-blue-50' : 'bg-yellow-50'
+                }`}>
+                    <span className={`font-medium text-sm md:text-base ${
+                        currentStatus === 'en_proceso' ? 'text-blue-700' : 'text-yellow-700'
+                    }`}>
+                        {incidents.length} incidencia(s) {currentStatus === 'en_proceso' ? 'en proceso' : 'pendiente(s)'}
                     </span>
                 </div>
             </div>
 
-            {/* Filtros - Visible para admin, técnicos y jefes de operaciones */}
+            {/* Filtros responsivos */}
             {(isAdmin || isTechnician || isJefeOperaciones) && (
-                <div className="bg-white p-4 rounded-lg shadow">
-                    <div className="flex items-center space-x-4">
+                <div className="bg-white p-3 md:p-4 rounded-lg shadow">
+                    <div className="space-y-3">
+                        {/* Título de filtros */}
                         <div className="flex items-center space-x-2">
                             <Filter className="h-4 w-4 text-gray-500" />
                             <span className="text-sm font-medium text-gray-700">Filtros:</span>
                         </div>
                         
-                        {/* Filtro por Campaña - Dinámico según sede (No visible para jefe_operaciones) */}
-                        {!isJefeOperaciones && (
-                            <div>
-                                <select
-                                    value={filters.departamento}
-                                    onChange={(e) => handleFilterChange('departamento', e.target.value)}
-                                    className="text-sm border border-gray-300 rounded-md px-3 py-1 focus:outline-none focus:ring-1 focus:ring-blue-500 focus:border-blue-500"
-                                >
-                                    <option value="">Todas las campañas</option>
-                                    {getAvailableDepartments(filters.sede).map(dept => (
-                                        <option key={dept.value} value={dept.value}>
-                                            {dept.label}
-                                        </option>
-                                    ))}
-                                </select>
+                        {/* Contenedor de filtros flexibles */}
+                        <div className="flex flex-col space-y-3 sm:flex-row sm:flex-wrap sm:items-center sm:gap-3 sm:space-y-0">
+                            
+                            {/* Filtros para Jefe de Operaciones */}
+                            {isJefeOperaciones && (
+                                <>
+                                    {/* Filtro por Coordinador */}
+                                    <div className="flex-shrink-0">
+                                        <select
+                                            value={filters.coordinador}
+                                            onChange={(e) => handleFilterChange('coordinador', e.target.value)}
+                                            className="w-full sm:w-auto text-xs sm:text-sm border border-gray-300 rounded-md px-2 sm:px-3 py-1 focus:outline-none focus:ring-1 focus:ring-blue-500 focus:border-blue-500"
+                                        >
+                                            <option value="">Todos los coordinadores</option>
+                                            {coordinators.map(coord => (
+                                                <option key={coord.id} value={coord.full_name}>
+                                                    {coord.full_name}
+                                                </option>
+                                            ))}
+                                        </select>
+                                    </div>
+
+                                    {/* Filtro por Fecha */}
+                                    <div className="flex-shrink-0">
+                                        <select
+                                            value={filters.fecha}
+                                            onChange={(e) => handleFilterChange('fecha', e.target.value)}
+                                            className="w-full sm:w-auto text-xs sm:text-sm border border-gray-300 rounded-md px-2 sm:px-3 py-1 focus:outline-none focus:ring-1 focus:ring-blue-500 focus:border-blue-500"
+                                        >
+                                            <option value="">Todas las fechas</option>
+                                            {dateFilters.map(date => (
+                                                <option key={date.value} value={date.value}>
+                                                    {date.label}
+                                                </option>
+                                            ))}
+                                        </select>
+                                    </div>
+                                </>
+                            )}
+                            
+                            {/* Filtro por Campaña */}
+                            {!isJefeOperaciones && (
+                                <div className="flex-shrink-0">
+                                    <select
+                                        value={filters.departamento}
+                                        onChange={(e) => handleFilterChange('departamento', e.target.value)}
+                                        className="w-full sm:w-auto text-xs sm:text-sm border border-gray-300 rounded-md px-2 sm:px-3 py-1 focus:outline-none focus:ring-1 focus:ring-blue-500 focus:border-blue-500"
+                                    >
+                                        <option value="">Todas las campañas</option>
+                                        {getAvailableDepartments(filters.sede).map(dept => (
+                                            <option key={dept.value} value={dept.value}>
+                                                {dept.label}
+                                            </option>
+                                        ))}
+                                    </select>
+                                </div>
+                            )}
+                            
+                            {/* Filtro por Sede */}
+                            {isAdmin && (
+                                <div className="flex-shrink-0">
+                                    <select
+                                        value={filters.sede}
+                                        onChange={(e) => handleFilterChange('sede', e.target.value)}
+                                        className="w-full sm:w-auto text-xs sm:text-sm border border-gray-300 rounded-md px-2 sm:px-3 py-1 focus:outline-none focus:ring-1 focus:ring-blue-500 focus:border-blue-500"
+                                    >
+                                        <option value="">Todas las sedes</option>
+                                        {getAvailableSedes().map(sede => (
+                                            <option key={sede.value} value={sede.value}>
+                                                {sede.label}
+                                            </option>
+                                        ))}
+                                    </select>
+                                </div>
+                            )}
+                            
+                            {/* Filtro Top 3 */}
+                            <div className="flex items-center space-x-2 flex-shrink-0">
+                                <input
+                                    type="checkbox"
+                                    id="showTop3Only"
+                                    checked={showTop3Only}
+                                    onChange={(e) => setShowTop3Only(e.target.checked)}
+                                    className="h-4 w-4 text-red-600 focus:ring-red-500 border-gray-300 rounded"
+                                />
+                                <label htmlFor="showTop3Only" className="flex items-center text-xs sm:text-sm font-medium text-gray-700 cursor-pointer">
+                                    <Trophy className="h-3 w-3 sm:h-4 sm:w-4 mr-1 text-yellow-500" />
+                                    <span className="hidden sm:inline">Top 3 con más retraso</span>
+                                    <span className="sm:hidden">Top 3</span>
+                                </label>
                             </div>
-                        )}
-                        
-                        {/* Filtro por Sede - Solo admin puede filtrar por sede */}
-                        {isAdmin && (
-                            <div>
-                                <select
-                                    value={filters.sede}
-                                    onChange={(e) => handleFilterChange('sede', e.target.value)}
-                                    className="text-sm border border-gray-300 rounded-md px-3 py-1 focus:outline-none focus:ring-1 focus:ring-blue-500 focus:border-blue-500"
+                            
+                            {/* Botón limpiar filtros */}
+                            {(filters.departamento || filters.sede || filters.coordinador || filters.fecha || showTop3Only) && (
+                                <button
+                                    onClick={clearFilters}
+                                    className="text-xs sm:text-sm text-gray-500 hover:text-gray-700 flex items-center space-x-1 px-2 py-1 rounded hover:bg-gray-100 flex-shrink-0"
                                 >
-                                    <option value="">Todas las sedes</option>
-                                    {getAvailableSedes().map(sede => (
-                                        <option key={sede.value} value={sede.value}>
-                                            {sede.label}
-                                        </option>
-                                    ))}
-                                </select>
-                            </div>
-                        )}
-                        
-                        {/* Filtro Top 3 con más retraso */}
-                        <div className="flex items-center space-x-2">
-                            <input
-                                type="checkbox"
-                                id="showTop3Only"
-                                checked={showTop3Only}
-                                onChange={(e) => setShowTop3Only(e.target.checked)}
-                                className="h-4 w-4 text-red-600 focus:ring-red-500 border-gray-300 rounded"
-                            />
-                            <label htmlFor="showTop3Only" className="flex items-center text-sm font-medium text-gray-700 cursor-pointer">
-                                <Trophy className="h-4 w-4 mr-1 text-yellow-500" />
-                                Top 3 con más retraso
-                            </label>
+                                    <X className="h-3 w-3" />
+                                    <span>Limpiar</span>
+                                </button>
+                            )}
                         </div>
                         
-                        {/* Botón para limpiar filtros */}
-                        {(filters.departamento || filters.sede || showTop3Only) && (
-                            <button
-                                onClick={clearFilters}
-                                className="text-sm text-gray-500 hover:text-gray-700 flex items-center space-x-1"
-                            >
-                                <X className="h-3 w-3" />
-                                <span>Limpiar</span>
-                            </button>
-                        )}
-                        
-                        {/* Mostrar filtros activos y contexto para técnicos y jefes */}
-                        <div className="text-sm text-gray-500">
-                            {incidents.length} de {allIncidents.length} incidencia(s)
-                            {isTechnician && (
-                                <span className="ml-2 text-xs">
-                                    ({user?.sede === 'bogota' ? 'Bogotá + Barranquilla' : 
-                                      user?.sede === 'villavicencio' ? 'Villavicencio + Barranquilla' : 
-                                      user?.sede})
-                                </span>
-                            )}
-                            {isJefeOperaciones && (
-                                <span className="ml-2 text-xs">
-                                    ({user?.sede?.toUpperCase()} - {user?.departamento?.toUpperCase()})
-                                </span>
-                            )}
+                        {/* Contador y contexto */}
+                        <div className="flex flex-col space-y-1 sm:flex-row sm:items-center sm:justify-between sm:space-y-0">
+                            <div className="text-xs sm:text-sm text-gray-500">
+                                <strong>{incidents.length}</strong> de <strong>{allIncidents.length}</strong> incidencia(s)
+                            </div>
+                            <div className="text-xs text-gray-500">
+                                {isTechnician && (
+                                    <span>
+                                        Visible: {user?.sede === 'bogota' ? 'Bogotá + Barranquilla' : 
+                                                 user?.sede === 'villavicencio' ? 'Villavicencio + Barranquilla' : 
+                                                 user?.sede?.toUpperCase()}
+                                    </span>
+                                )}
+                                {isJefeOperaciones && (
+                                    <span>
+                                        {user?.sede?.toUpperCase()} - {user?.departamento?.toUpperCase()}
+                                    </span>
+                                )}
+                            </div>
                         </div>
                     </div>
                 </div>
@@ -490,7 +667,7 @@ const PendingIncidents = () => {
                                 <div 
                                     key={incident.id} 
                                     className={`
-                                        border rounded-lg p-4 transition-colors relative cursor-pointer
+                                        border rounded-lg p-3 sm:p-4 transition-colors relative cursor-pointer
                                         ${isHighlighted ? 
                                             'border-blue-500 bg-blue-50 border-2 ring-2 ring-blue-300 ring-opacity-50' :
                                             alertInfo ? 
@@ -501,9 +678,9 @@ const PendingIncidents = () => {
                                     `}
                                     onClick={() => handleIncidentClick(incident)}
                                 >
-                                    <div className="flex items-center justify-between">
+                                    <div className="flex flex-col space-y-3 sm:flex-row sm:items-center sm:justify-between sm:space-y-0">
                                         <div className="flex-1">
-                                            <div className="flex items-center space-x-4 mb-2">
+                                            <div className="flex flex-col space-y-2 sm:flex-row sm:items-center sm:space-x-4 sm:space-y-0 mb-2">
                                                 <div className="flex items-center text-sm text-gray-500">
                                                     <Monitor className="h-4 w-4 mr-1" />
                                                     <span className="font-medium">{incident.station_code}</span>
@@ -530,9 +707,9 @@ const PendingIncidents = () => {
                                                 <span className={`inline-flex px-2 py-1 text-xs font-semibold rounded-full ${getFailureTypeColor(incident.failure_type)}`}>
                                                     {getFailureTypeLabel(incident.failure_type)}
                                                 </span>
-                                                <div className="flex items-center text-sm text-gray-500">
+                                                <div className="flex items-center text-sm text-gray-500 mt-1 sm:mt-0">
                                                     <User className="h-4 w-4 mr-1" />
-                                                    <span>Reportado por: {incident.reported_by_name}</span>
+                                                    <span className="truncate">Reportado por: {incident.reported_by_name}</span>
                                                 </div>
                                             </div>
                                             
@@ -543,7 +720,7 @@ const PendingIncidents = () => {
                                                 </p>
                                             </div>
                                             
-                                            <div className="flex items-center space-x-4 text-sm text-gray-500">
+                                            <div className="flex flex-col space-y-2 sm:flex-row sm:items-center sm:space-x-4 sm:space-y-0 text-sm text-gray-500">
                                                 <div className="flex items-center">
                                                     <Calendar className="h-4 w-4 mr-1" />
                                                     <span>
@@ -590,31 +767,54 @@ const PendingIncidents = () => {
                                             </div>
                                         </div>
 
-                                        <div className="ml-4">
-                                            {isAdmin ? (
-                                                <button
-                                                    onClick={(e) => {
-                                                        e.stopPropagation();
-                                                        handleAssign(incident);
-                                                    }}
-                                                    className="inline-flex items-center px-3 py-2 border border-transparent text-sm font-medium rounded-md text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500"
-                                                >
-                                                    <UserPlus className="h-4 w-4 mr-1" />
-                                                    Asignar Técnico
-                                                </button>
-                                            ) : (
-                                                <button
-                                                    onClick={(e) => {
-                                                        e.stopPropagation();
-                                                        handleSelfAssign(incident);
-                                                    }}
-                                                    className="inline-flex items-center px-3 py-2 border border-transparent text-sm font-medium rounded-md text-white bg-green-600 hover:bg-green-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-green-500"
-                                                >
-                                                    <UserPlus className="h-4 w-4 mr-1" />
-                                                    Tomar Incidencia
-                                                </button>
-                                            )}
-                                        </div>
+                                        {currentStatus === 'pendiente' && (isAdmin || isTechnician) && (
+                                            <div className="ml-0 sm:ml-4 flex-shrink-0">
+                                                {isAdmin ? (
+                                                    <button
+                                                        onClick={(e) => {
+                                                            e.stopPropagation();
+                                                            handleAssign(incident);
+                                                        }}
+                                                        className="inline-flex items-center px-3 py-2 border border-transparent text-xs sm:text-sm font-medium rounded-md text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 w-full sm:w-auto justify-center"
+                                                    >
+                                                        <UserPlus className="h-4 w-4 mr-1" />
+                                                        Asignar Técnico
+                                                    </button>
+                                                ) : (
+                                                    <button
+                                                        onClick={(e) => {
+                                                            e.stopPropagation();
+                                                            handleSelfAssign(incident);
+                                                        }}
+                                                        className="inline-flex items-center px-3 py-2 border border-transparent text-xs sm:text-sm font-medium rounded-md text-white bg-green-600 hover:bg-green-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-green-500 w-full sm:w-auto justify-center"
+                                                    >
+                                                        <UserPlus className="h-4 w-4 mr-1" />
+                                                        Tomar Incidencia
+                                                    </button>
+                                                )}
+                                            </div>
+                                        )}
+                                        
+                                        {currentStatus === 'en_proceso' && incident.assigned_to_name && (
+                                            <div className="ml-0 sm:ml-4 flex-shrink-0 flex flex-col sm:flex-row gap-2">
+                                                <div className="inline-flex items-center px-3 py-2 border border-gray-300 text-xs sm:text-sm font-medium rounded-md text-gray-700 bg-gray-50 w-full sm:w-auto justify-center">
+                                                    <User className="h-4 w-4 mr-1" />
+                                                    Asignado a: {incident.assigned_to_name}
+                                                </div>
+                                                {isAdmin && (
+                                                    <button
+                                                        onClick={(e) => {
+                                                            e.stopPropagation();
+                                                            handleReassign(incident);
+                                                        }}
+                                                        className="inline-flex items-center px-3 py-2 border border-transparent text-xs sm:text-sm font-medium rounded-md text-white bg-orange-600 hover:bg-orange-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-orange-500 w-full sm:w-auto justify-center"
+                                                    >
+                                                        <UserPlus className="h-4 w-4 mr-1" />
+                                                        Reasignar
+                                                    </button>
+                                                )}
+                                            </div>
+                                        )}
                                     </div>
                                 </div>
                                 );
@@ -642,7 +842,7 @@ const PendingIncidents = () => {
             {/* Modal para asignar técnico */}
             {showAssignModal && (
                 <div className="fixed inset-0 bg-gray-600 bg-opacity-50 overflow-y-auto h-full w-full z-50">
-                    <div className="relative top-20 mx-auto p-5 border w-96 shadow-lg rounded-md bg-white">
+                    <div className="relative top-20 mx-auto p-5 border w-11/12 max-w-md shadow-lg rounded-md bg-white">
                         <div className="mt-3">
                             <div className="flex items-center mb-4">
                                 <UserPlus className="h-6 w-6 text-blue-600 mr-2" />
@@ -706,6 +906,87 @@ const PendingIncidents = () => {
                                     className="px-4 py-2 border border-transparent rounded-md text-sm font-medium text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 disabled:opacity-50"
                                 >
                                     {assignLoading ? (isAdmin ? 'Asignando...' : 'Tomando...') : (isAdmin ? 'Asignar' : 'Tomar Incidencia')}
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            )}
+
+            {/* Modal para reasignar técnico */}
+            {showReassignModal && (
+                <div className="fixed inset-0 bg-gray-600 bg-opacity-50 overflow-y-auto h-full w-full z-50">
+                    <div className="relative top-20 mx-auto p-5 border w-96 shadow-lg rounded-md bg-white">
+                        <div className="mt-3">
+                            <div className="flex items-center mb-4">
+                                <UserPlus className="h-6 w-6 text-orange-600 mr-2" />
+                                <h3 className="text-lg font-medium text-gray-900">
+                                    Reasignar Técnico
+                                </h3>
+                            </div>
+                            
+                            <div className="mb-4 p-3 bg-gray-50 rounded">
+                                <p className="text-sm text-gray-600">
+                                    <strong>Estación:</strong> {selectedIncident?.station_code}
+                                </p>
+                                <p className="text-sm text-gray-600">
+                                    <strong>Técnico actual:</strong> {selectedIncident?.assigned_to_name}
+                                </p>
+                                <p className="text-sm text-gray-600">
+                                    <strong>Tipo:</strong> {getFailureTypeLabel(selectedIncident?.failure_type)}
+                                </p>
+                                <p className="text-sm text-gray-600">
+                                    <strong>Descripción:</strong> {selectedIncident?.description}
+                                </p>
+                            </div>
+
+                            <div className="mb-4">
+                                <label className="block text-sm font-medium text-gray-700 mb-2">
+                                    Nuevo Técnico *
+                                </label>
+                                <select
+                                    value={selectedTechnician}
+                                    onChange={(e) => setSelectedTechnician(e.target.value)}
+                                    className="w-full border border-gray-300 rounded-md px-3 py-2 focus:outline-none focus:ring-2 focus:ring-orange-500 focus:border-orange-500"
+                                >
+                                    <option value="">Seleccionar nuevo técnico...</option>
+                                    {technicians
+                                        .filter(tech => tech.id !== selectedIncident?.assigned_to_id)
+                                        .map((tech) => (
+                                            <option key={tech.id} value={tech.id}>
+                                                {tech.full_name}
+                                            </option>
+                                        ))}
+                                </select>
+                            </div>
+
+                            <div className="mb-4">
+                                <label className="block text-sm font-medium text-gray-700 mb-2">
+                                    Motivo de la reasignación (opcional)
+                                </label>
+                                <textarea
+                                    value={reassignReason}
+                                    onChange={(e) => setReassignReason(e.target.value)}
+                                    className="w-full border border-gray-300 rounded-md px-3 py-2 focus:outline-none focus:ring-2 focus:ring-orange-500 focus:border-orange-500"
+                                    rows="3"
+                                    placeholder="Ej: Cambio de turno, técnico no disponible, especialización requerida..."
+                                />
+                            </div>
+
+                            <div className="flex justify-end space-x-3">
+                                <button
+                                    onClick={() => setShowReassignModal(false)}
+                                    className="px-4 py-2 border border-gray-300 rounded-md text-sm font-medium text-gray-700 hover:bg-gray-50"
+                                    disabled={assignLoading}
+                                >
+                                    Cancelar
+                                </button>
+                                <button
+                                    onClick={confirmReassign}
+                                    disabled={assignLoading}
+                                    className="px-4 py-2 border border-transparent rounded-md text-sm font-medium text-white bg-orange-600 hover:bg-orange-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-orange-500 disabled:opacity-50"
+                                >
+                                    {assignLoading ? 'Reasignando...' : 'Reasignar'}
                                 </button>
                             </div>
                         </div>

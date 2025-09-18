@@ -1,6 +1,7 @@
 import axios from 'axios';
 
-const API_BASE_URL = 'http://31.97.138.23:5001/api';
+// Configuración dinámica de la URL de la API
+const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || 'http://localhost:5001/api';
 
 const api = axios.create({
     baseURL: API_BASE_URL,
@@ -35,7 +36,9 @@ api.interceptors.response.use(
 // === SERVICIOS DE USUARIOS ===
 export const userService = {
     getTechnicians: () => api.get('/users/technicians'),
+    getCoordinators: () => api.get('/users/coordinators'),
     getAll: () => api.get('/users'),
+    getUsers: () => api.get('/users'), // Alias para compatibilidad
     getById: (id) => api.get(`/users/${id}`),
     create: (userData) => api.post('/users', userData),
     update: (id, userData) => api.put(`/users/${id}`, userData),
@@ -71,11 +74,16 @@ export const incidentService = {
         }
     }),
     assignTechnician: (id, technicianId) => api.put(`/incidents/${id}/assign`, { technician_id: technicianId }),
+    reassignTechnician: (id, technicianId, reason) => api.put(`/incidents/${id}/reassign`, { technician_id: technicianId, reason }),
     markAsResolved: (id, resolutionNotes) => api.put(`/incidents/${id}/resolve`, { resolution_notes: resolutionNotes }),
     approve: (id, data) => api.put(`/incidents/${id}/approve`, data),
     reject: (id, rejectionReason) => api.put(`/incidents/${id}/reject`, { rejection_reason: rejectionReason }),
     getMyRatings: () => api.get('/incidents/my-ratings'),
-    getTechnicianRatings: (technicianId) => api.get(`/incidents/ratings/${technicianId}`)
+    getTechnicianRatings: (technicianId) => api.get(`/incidents/ratings/${technicianId}`),
+    sendApprovalAlerts: (incident_ids, alert_message) => api.post('/incidents/send-alerts', { incident_ids, alert_message }),
+    getMyAlerts: () => api.get('/incidents/my-alerts'),
+    markAlertAsRead: (alertId) => api.put(`/incidents/alerts/${alertId}/read`),
+    dismissAlert: (alertId) => api.put(`/incidents/alerts/${alertId}/dismiss`)
 };
 
 export default api;

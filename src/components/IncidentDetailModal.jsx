@@ -13,7 +13,9 @@ import {
     Building,
     Paperclip,
     Eye,
-    FileImage
+    FileImage,
+    MonitorSpeaker,
+    CreditCard
 } from 'lucide-react';
 import { 
     getAlertLevel, 
@@ -177,6 +179,29 @@ const IncidentDetailModal = ({
                             </p>
                         </div>
                     </div>
+
+                    {/* AnyDesk (solo para Barranquilla o cuando esté presente) */}
+                    {incident.anydesk_address && (
+                        <div className="bg-gray-50 p-4 rounded-lg">
+                            <div className="flex items-center space-x-2 mb-2">
+                                <MonitorSpeaker className="h-5 w-5 text-gray-600" />
+                                <span className="font-semibold text-gray-900">AnyDesk</span>
+                            </div>
+                            <p className="text-lg font-mono text-blue-600">{incident.anydesk_address}</p>
+                        </div>
+                    )}
+
+                    {/* Cédula del Agente */}
+                    {incident.advisor_cedula && (
+                        <div className="bg-gray-50 p-4 rounded-lg">
+                            <div className="flex items-center space-x-2 mb-2">
+                                <CreditCard className="h-5 w-5 text-gray-600" />
+                                <span className="font-semibold text-gray-900">Cédula del Agente</span>
+                            </div>
+                            <p className="text-lg font-mono text-gray-800">{incident.advisor_cedula}</p>
+                        </div>
+                    )}
+
 
                     {/* Tipo de Falla */}
                     <div className="bg-gray-50 p-4 rounded-lg">

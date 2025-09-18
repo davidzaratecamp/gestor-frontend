@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
-import { incidentService } from '../../services/api';
+import { incidentService, userService } from '../../services/api';
 import { useAuth } from '../../context/AuthContext';
 import { 
     Eye, 
@@ -16,7 +16,14 @@ import {
     MessageCircle,
     Settings,
     ArrowLeft,
-    Star
+    Star,
+    UserPlus,
+    Filter,
+    Bell,
+    Calendar,
+    Users,
+    ChevronDown,
+    ChevronUp
 } from 'lucide-react';
 import StarRating from '../StarRating';
 
@@ -38,9 +45,23 @@ const IncidentsSupervision = () => {
     const [historyLoading, setHistoryLoading] = useState(false);
     const [filters, setFilters] = useState({
         departamento: '',
-        sede: ''
+        sede: '',
+        creador: '',  // coordinador, jefe_operaciones, administrativo
+        tiempo_supervision: ''  // hoy, 3dias, semana, mes
     });
     const [fromDashboard, setFromDashboard] = useState(false);
+    const [technicians, setTechnicians] = useState([]);
+    const [showReassignModal, setShowReassignModal] = useState(false);
+    const [selectedIncidentForReassign, setSelectedIncidentForReassign] = useState(null);
+    const [selectedTechnician, setSelectedTechnician] = useState('');
+    const [reassignReason, setReassignReason] = useState('');
+    const [reassignLoading, setReassignLoading] = useState(false);
+    const [creators, setCreators] = useState([]);
+    const [showAlertModal, setShowAlertModal] = useState(false);
+    const [selectedIncidentsForAlert, setSelectedIncidentsForAlert] = useState([]);
+    const [alertMessage, setAlertMessage] = useState('');
+    const [alertLoading, setAlertLoading] = useState(false);
+    const [showFilters, setShowFilters] = useState(false);
 
     useEffect(() => {
         // Procesar parámetros de URL al cargar el componente
@@ -55,10 +76,19 @@ const IncidentsSupervision = () => {
                 departamento: departamentoParam || ''
             };
             setFilters(urlFilters);
+            
+            // Llamar loadIncidents con los filtros directamente
+            loadIncidentsWithFilters(urlFilters);
+        } else {
+            loadIncidents();
         }
-        
-        loadIncidents();
-    }, [location.search]);
+
+        // Cargar técnicos y creadores para filtros si es admin
+        if (user?.role === 'admin') {
+            loadTechnicians();
+            loadCreators();
+        }
+    }, [location.search, user]);
 
     const loadIncidents = async () => {
         try {
@@ -68,9 +98,88 @@ const IncidentsSupervision = () => {
             const filterParams = {};
             if (filters.departamento) filterParams.departamento = filters.departamento;
             if (filters.sede && isAdmin) filterParams.sede = filters.sede;
+            if (filters.creador) filterParams.creador = filters.creador;
+            if (filters.tiempo_supervision) filterParams.tiempo_supervision = filters.tiempo_supervision;
             
             const response = await incidentService.getInSupervision(filterParams);
-            setIncidents(response.data);
+            
+            // Aplicar filtros adicionales del lado cliente si es necesario
+            let filteredIncidents = response.data;
+            
+            // Agregar información de tiempo en supervisión
+            filteredIncidents = filteredIncidents.map(incident => {
+                const resolvedAt = new Date(incident.resolved_at || incident.updated_at);
+                const now = new Date();
+                const hoursInSupervision = Math.floor((now - resolvedAt) / (1000 * 60 * 60));
+                
+                return {
+                    ...incident,
+                    hoursInSupervision,
+                    daysInSupervision: Math.floor(hoursInSupervision / 24),
+                    isOverdue: hoursInSupervision > 3, // Más de 3 horas es "atrasado"
+                    isUrgent: hoursInSupervision > 168 // Más de 7 días es "urgente"
+                };
+            });
+            
+            setIncidents(filteredIncidents);
+        } catch (error) {
+            console.error('Error cargando incidencias:', error);
+        } finally {
+            setLoading(false);
+        }
+    };
+
+    const loadTechnicians = async () => {
+        try {
+            const response = await userService.getTechnicians();
+            setTechnicians(response.data);
+        } catch (error) {
+            console.error('Error cargando técnicos:', error);
+        }
+    };
+
+    const loadCreators = async () => {
+        try {
+            // Cargar usuarios que pueden crear incidencias
+            const response = await userService.getUsers();
+            const supervisors = response.data.filter(user => 
+                ['coordinador', 'jefe_operaciones', 'administrativo'].includes(user.role)
+            );
+            setCreators(supervisors);
+        } catch (error) {
+            console.error('Error cargando creadores:', error);
+        }
+    };
+
+    const loadIncidentsWithFilters = async (customFilters) => {
+        try {
+            setLoading(true);
+            
+            // Construir filtros para la API
+            const filterParams = {};
+            if (customFilters.departamento) filterParams.departamento = customFilters.departamento;
+            if (customFilters.sede && isAdmin) filterParams.sede = customFilters.sede;
+            if (customFilters.creador) filterParams.creador = customFilters.creador;
+            if (customFilters.tiempo_supervision) filterParams.tiempo_supervision = customFilters.tiempo_supervision;
+            
+            const response = await incidentService.getInSupervision(filterParams);
+            
+            // Agregar información de tiempo en supervisión
+            let filteredIncidents = response.data.map(incident => {
+                const resolvedAt = new Date(incident.resolved_at || incident.updated_at);
+                const now = new Date();
+                const hoursInSupervision = Math.floor((now - resolvedAt) / (1000 * 60 * 60));
+                
+                return {
+                    ...incident,
+                    hoursInSupervision,
+                    daysInSupervision: Math.floor(hoursInSupervision / 24),
+                    isOverdue: hoursInSupervision > 3, // Más de 3 horas es "atrasado"
+                    isUrgent: hoursInSupervision > 168 // Más de 7 días es "urgente"
+                };
+            });
+            
+            setIncidents(filteredIncidents);
         } catch (error) {
             console.error('Error cargando incidencias:', error);
         } finally {
@@ -117,8 +226,8 @@ const IncidentsSupervision = () => {
             return;
         }
         
-        // Para coordinadores, la calificación es obligatoria al aprobar
-        if (actionType === 'approve' && user?.role === 'coordinador' && technicianRating === 0) {
+        // Para coordinadores y administrativos, la calificación es obligatoria al aprobar
+        if (actionType === 'approve' && (user?.role === 'coordinador' || user?.role === 'administrativo') && technicianRating === 0) {
             alert('Debes calificar al técnico antes de aprobar la incidencia');
             return;
         }
@@ -160,6 +269,96 @@ const IncidentsSupervision = () => {
         } finally {
             setHistoryLoading(false);
         }
+    };
+
+    const handleReassign = (incident) => {
+        setSelectedIncidentForReassign(incident);
+        setSelectedTechnician('');
+        setReassignReason('');
+        setShowReassignModal(true);
+    };
+
+    const confirmReassign = async () => {
+        if (!selectedTechnician) {
+            alert('Por favor selecciona un técnico');
+            return;
+        }
+
+        setReassignLoading(true);
+        try {
+            await incidentService.reassignTechnician(
+                selectedIncidentForReassign.id, 
+                parseInt(selectedTechnician),
+                reassignReason
+            );
+            setShowReassignModal(false);
+            await loadIncidents();
+            alert('Técnico reasignado exitosamente');
+        } catch (error) {
+            console.error('Error reasignando técnico:', error);
+            alert(error.response?.data?.msg || 'Error al reasignar técnico');
+        } finally {
+            setReassignLoading(false);
+        }
+    };
+
+    const handleFilterChange = (filterName, value) => {
+        const newFilters = { ...filters, [filterName]: value };
+        setFilters(newFilters);
+        // Recargar incidencias inmediatamente con los nuevos filtros
+        loadIncidentsWithFilters(newFilters);
+    };
+
+    const handleSendAlert = (incident) => {
+        setSelectedIncidentsForAlert([incident]);
+        setAlertMessage('');
+        setShowAlertModal(true);
+    };
+
+    const handleBulkAlert = () => {
+        // Filtrar incidencias atrasadas (más de 3 horas)
+        const overdueIncidents = incidents.filter(inc => inc.isOverdue);
+        if (overdueIncidents.length === 0) {
+            alert('No hay incidencias atrasadas para alertar');
+            return;
+        }
+        setSelectedIncidentsForAlert(overdueIncidents);
+        setAlertMessage('');
+        setShowAlertModal(true);
+    };
+
+    const confirmSendAlert = async () => {
+        if (!alertMessage.trim()) {
+            alert('Debes escribir un mensaje de alerta');
+            return;
+        }
+
+        setAlertLoading(true);
+        try {
+            const incident_ids = selectedIncidentsForAlert.map(inc => inc.id);
+            const response = await incidentService.sendApprovalAlerts(incident_ids, alertMessage);
+            
+            alert(response.data.msg);
+            setShowAlertModal(false);
+            setSelectedIncidentsForAlert([]);
+            setAlertMessage('');
+        } catch (error) {
+            console.error('Error enviando alerta:', error);
+            alert(error.response?.data?.msg || 'Error al enviar la alerta');
+        } finally {
+            setAlertLoading(false);
+        }
+    };
+
+    const clearFilters = () => {
+        const clearedFilters = {
+            departamento: '',
+            sede: '',
+            creador: '',
+            tiempo_supervision: ''
+        };
+        setFilters(clearedFilters);
+        loadIncidentsWithFilters(clearedFilters);
     };
 
     const getStatusBadge = (status) => {
@@ -226,7 +425,113 @@ const IncidentsSupervision = () => {
                         {incidents.length} incidencia(s) pendiente(s)
                     </span>
                 </div>
+                
+                {/* Botones de acción para admin */}
+                {user.role === 'admin' && (
+                    <div className="flex flex-wrap gap-2">
+                        <button
+                            onClick={() => setShowFilters(!showFilters)}
+                            className="inline-flex items-center px-3 py-2 border border-gray-300 shadow-sm text-sm font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500"
+                        >
+                            <Filter className="h-4 w-4 mr-2" />
+                            Filtros Avanzados
+                            {showFilters ? <ChevronUp className="h-4 w-4 ml-1" /> : <ChevronDown className="h-4 w-4 ml-1" />}
+                        </button>
+                        <button
+                            onClick={handleBulkAlert}
+                            className="inline-flex items-center px-3 py-2 border border-transparent shadow-sm text-sm font-medium rounded-md text-white bg-red-600 hover:bg-red-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-red-500"
+                        >
+                            <Bell className="h-4 w-4 mr-2" />
+                            Alertar Atrasadas +3h ({incidents.filter(inc => inc.isOverdue).length})
+                        </button>
+                    </div>
+                )}
             </div>
+
+            {/* Panel de filtros */}
+            {showFilters && user.role === 'admin' && (
+                <div className="bg-gray-50 rounded-lg p-4 mb-6">
+                    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+                        {/* Filtro por Sede */}
+                        <div>
+                            <label className="block text-sm font-medium text-gray-700 mb-2">
+                                Sede
+                            </label>
+                            <select
+                                value={filters.sede}
+                                onChange={(e) => handleFilterChange('sede', e.target.value)}
+                                className="w-full border border-gray-300 rounded-md px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                            >
+                                <option value="">Todas las sedes</option>
+                                <option value="bogota">Bogotá</option>
+                                <option value="barranquilla">Barranquilla</option>
+                                <option value="villavicencio">Villavicencio</option>
+                            </select>
+                        </div>
+
+                        {/* Filtro por Departamento */}
+                        <div>
+                            <label className="block text-sm font-medium text-gray-700 mb-2">
+                                Departamento
+                            </label>
+                            <select
+                                value={filters.departamento}
+                                onChange={(e) => handleFilterChange('departamento', e.target.value)}
+                                className="w-full border border-gray-300 rounded-md px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                            >
+                                <option value="">Todos los departamentos</option>
+                                <option value="obama">Obama</option>
+                                <option value="majority">Majority</option>
+                                <option value="claro">Claro</option>
+                            </select>
+                        </div>
+
+                        {/* Filtro por Creador */}
+                        <div>
+                            <label className="block text-sm font-medium text-gray-700 mb-2">
+                                Creado por
+                            </label>
+                            <select
+                                value={filters.creador}
+                                onChange={(e) => handleFilterChange('creador', e.target.value)}
+                                className="w-full border border-gray-300 rounded-md px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                            >
+                                <option value="">Todos los creadores</option>
+                                <option value="coordinador">Coordinadores</option>
+                                <option value="jefe_operaciones">Jefes de Operaciones</option>
+                                <option value="administrativo">Administrativos</option>
+                            </select>
+                        </div>
+
+                        {/* Filtro por Tiempo */}
+                        <div>
+                            <label className="block text-sm font-medium text-gray-700 mb-2">
+                                Tiempo en supervisión
+                            </label>
+                            <select
+                                value={filters.tiempo_supervision}
+                                onChange={(e) => handleFilterChange('tiempo_supervision', e.target.value)}
+                                className="w-full border border-gray-300 rounded-md px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                            >
+                                <option value="">Todo el tiempo</option>
+                                <option value="hoy">Resueltas hoy</option>
+                                <option value="3horas">Más de 3 horas</option>
+                                <option value="semana">Más de 7 días</option>
+                                <option value="mes">Más de 30 días</option>
+                            </select>
+                        </div>
+                    </div>
+                    
+                    <div className="mt-4 flex justify-end">
+                        <button
+                            onClick={clearFilters}
+                            className="inline-flex items-center px-3 py-2 border border-gray-300 shadow-sm text-sm font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500"
+                        >
+                            Limpiar Filtros
+                        </button>
+                    </div>
+                </div>
+            )}
 
             {incidents.length === 0 ? (
                 <div className="text-center py-12 bg-white rounded-lg shadow">
@@ -272,8 +577,19 @@ const IncidentsSupervision = () => {
                                                 <div className="flex items-center">
                                                     <Clock className="h-4 w-4 mr-1" />
                                                     <span>
-                                                        Actualizado: {new Date(incident.updated_at).toLocaleDateString()} a las {new Date(incident.updated_at).toLocaleTimeString()}
+                                                        En supervisión: {incident.hoursInSupervision}h 
+                                                        {incident.daysInSupervision > 0 && ` (${incident.daysInSupervision}d)`}
                                                     </span>
+                                                    {incident.isUrgent && (
+                                                        <span className="ml-2 inline-flex px-2 py-1 text-xs font-semibold rounded-full bg-red-100 text-red-800">
+                                                            ¡URGENTE! +7 días
+                                                        </span>
+                                                    )}
+                                                    {incident.isOverdue && !incident.isUrgent && (
+                                                        <span className="ml-2 inline-flex px-2 py-1 text-xs font-semibold rounded-full bg-orange-100 text-orange-800">
+                                                            Atrasado +3 horas
+                                                        </span>
+                                                    )}
                                                 </div>
                                                 {getStatusBadge(incident.status)}
                                             </div>
@@ -287,7 +603,21 @@ const IncidentsSupervision = () => {
                                                 <History className="h-4 w-4 mr-1" />
                                                 Ver Historial
                                             </button>
-                                            {user.role !== 'jefe_operaciones' && (
+                                            
+                                            {/* Botón de reasignar - solo para admins */}
+                                            {user.role === 'admin' && incident.assigned_to_name && (
+                                                <button
+                                                    onClick={() => handleReassign(incident)}
+                                                    className="inline-flex items-center px-3 py-2 border border-transparent text-sm font-medium rounded-md text-white bg-orange-600 hover:bg-orange-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-orange-500"
+                                                >
+                                                    <UserPlus className="h-4 w-4 mr-1" />
+                                                    Reasignar
+                                                </button>
+                                            )}
+                                            {/* Solo mostrar botones de aprobar/rechazar si:
+                                                 - Es admin/supervisor/coordinador/administrativo (pueden aprobar todas)
+                                                 - O es jefe de operaciones pero SOLO para sus propias incidencias */}
+                                            {(user.role !== 'jefe_operaciones' || incident.reported_by_name === user.full_name) && (
                                                 <>
                                                     <button
                                                         onClick={() => handleAction(incident, 'approve')}
@@ -304,6 +634,24 @@ const IncidentsSupervision = () => {
                                                         Rechazar
                                                     </button>
                                                 </>
+                                            )}
+                                            
+                                            {/* Botón de alerta individual - solo para admin en incidencias atrasadas */}
+                                            {user.role === 'admin' && incident.isOverdue && (
+                                                <button
+                                                    onClick={() => handleSendAlert(incident)}
+                                                    className="inline-flex items-center px-3 py-2 border border-transparent text-sm font-medium rounded-md text-white bg-red-600 hover:bg-red-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-red-500"
+                                                >
+                                                    <Bell className="h-4 w-4 mr-1" />
+                                                    Alertar
+                                                </button>
+                                            )}
+                                            
+                                            {/* Para jefes de operaciones: mostrar mensaje informativo en incidencias de otros */}
+                                            {user.role === 'jefe_operaciones' && incident.reported_by_name !== user.full_name && (
+                                                <div className="text-sm text-gray-500 italic">
+                                                    Solo supervisión - no puedes aprobar incidencias de otros
+                                                </div>
                                             )}
                                         </div>
                                     </div>
@@ -362,7 +710,7 @@ const IncidentsSupervision = () => {
                             </div>
 
                             {/* Sección de calificación - Solo para aprobaciones */}
-                            {actionType === 'approve' && user?.role === 'coordinador' && (
+                            {actionType === 'approve' && (user?.role === 'coordinador' || user?.role === 'administrativo') && (
                                 <div className="mb-6 p-4 bg-yellow-50 border border-yellow-200 rounded-lg">
                                     <div className="flex items-center mb-3">
                                         <Star className="h-5 w-5 text-yellow-600 mr-2" />
@@ -463,6 +811,16 @@ const IncidentsSupervision = () => {
                                 <p className="text-sm text-gray-600">
                                     <strong>Descripción:</strong> {selectedIncident?.description}
                                 </p>
+                                {selectedIncident?.anydesk_address && (
+                                    <p className="text-sm text-gray-600">
+                                        <strong>AnyDesk:</strong> <span className="font-mono text-blue-600">{selectedIncident.anydesk_address}</span>
+                                    </p>
+                                )}
+                                {selectedIncident?.advisor_cedula && (
+                                    <p className="text-sm text-gray-600">
+                                        <strong>Cédula del Agente:</strong> <span className="font-mono">{selectedIncident.advisor_cedula}</span>
+                                    </p>
+                                )}
                                 <p className="text-sm text-gray-600">
                                     <strong>Técnico Asignado:</strong> {selectedIncident?.assigned_to_name}
                                 </p>
@@ -568,6 +926,149 @@ const IncidentsSupervision = () => {
                                     className="px-4 py-2 border border-gray-300 rounded-md text-sm font-medium text-gray-700 hover:bg-gray-50"
                                 >
                                     Cerrar
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            )}
+
+            {/* Modal para enviar alertas */}
+            {showAlertModal && (
+                <div className="fixed inset-0 bg-gray-600 bg-opacity-50 overflow-y-auto h-full w-full z-50">
+                    <div className="relative top-20 mx-auto p-5 border w-96 shadow-lg rounded-md bg-white">
+                        <div className="mt-3">
+                            <div className="flex items-center mb-4">
+                                <Bell className="h-6 w-6 text-red-600 mr-2" />
+                                <h3 className="text-lg font-medium text-gray-900">
+                                    Enviar Alerta
+                                </h3>
+                            </div>
+                            
+                            <div className="mb-4 p-3 bg-red-50 border border-red-200 rounded">
+                                <p className="text-sm text-red-700 mb-2">
+                                    <strong>Incidencias a alertar:</strong> {selectedIncidentsForAlert.length}
+                                </p>
+                                <div className="max-h-32 overflow-y-auto">
+                                    {selectedIncidentsForAlert.map(inc => (
+                                        <div key={inc.id} className="text-xs text-red-600 mb-1">
+                                            • {inc.station_code} - {inc.reported_by_name} ({inc.hoursInSupervision}h)
+                                        </div>
+                                    ))}
+                                </div>
+                                <p className="text-xs text-red-600 mt-2">
+                                    Responsables que recibirán la alerta: {[...new Set(selectedIncidentsForAlert.map(inc => inc.reported_by_name))].join(', ')}
+                                </p>
+                            </div>
+
+                            <div className="mb-4">
+                                <label className="block text-sm font-medium text-gray-700 mb-2">
+                                    Mensaje de Alerta *
+                                </label>
+                                <textarea
+                                    value={alertMessage}
+                                    onChange={(e) => setAlertMessage(e.target.value)}
+                                    rows={4}
+                                    className="w-full border border-gray-300 rounded-md px-3 py-2 focus:outline-none focus:ring-2 focus:ring-red-500 focus:border-red-500"
+                                    placeholder="Estimado/a [nombre], tienes incidencias pendientes de aprobación que requieren tu atención urgente. Por favor procede con la revisión y aprobación en el sistema..."
+                                />
+                            </div>
+
+                            <div className="flex justify-end space-x-3">
+                                <button
+                                    onClick={() => setShowAlertModal(false)}
+                                    className="px-4 py-2 border border-gray-300 rounded-md text-sm font-medium text-gray-700 hover:bg-gray-50"
+                                    disabled={alertLoading}
+                                >
+                                    Cancelar
+                                </button>
+                                <button
+                                    onClick={confirmSendAlert}
+                                    disabled={alertLoading || !alertMessage.trim()}
+                                    className="px-4 py-2 border border-transparent rounded-md text-sm font-medium text-white bg-red-600 hover:bg-red-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-red-500 disabled:opacity-50"
+                                >
+                                    {alertLoading ? 'Enviando...' : 'Enviar Alerta'}
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            )}
+
+            {/* Modal para reasignar técnico */}
+            {showReassignModal && (
+                <div className="fixed inset-0 bg-gray-600 bg-opacity-50 overflow-y-auto h-full w-full z-50">
+                    <div className="relative top-20 mx-auto p-5 border w-96 shadow-lg rounded-md bg-white">
+                        <div className="mt-3">
+                            <div className="flex items-center mb-4">
+                                <UserPlus className="h-6 w-6 text-orange-600 mr-2" />
+                                <h3 className="text-lg font-medium text-gray-900">
+                                    Reasignar Técnico
+                                </h3>
+                            </div>
+                            
+                            <div className="mb-4 p-3 bg-gray-50 rounded">
+                                <p className="text-sm text-gray-600">
+                                    <strong>Estación:</strong> {selectedIncidentForReassign?.station_code}
+                                </p>
+                                <p className="text-sm text-gray-600">
+                                    <strong>Estado:</strong> En Supervisión
+                                </p>
+                                <p className="text-sm text-gray-600">
+                                    <strong>Técnico actual:</strong> {selectedIncidentForReassign?.assigned_to_name}
+                                </p>
+                                <p className="text-sm text-gray-600">
+                                    <strong>Descripción:</strong> {selectedIncidentForReassign?.description}
+                                </p>
+                            </div>
+
+                            <div className="mb-4">
+                                <label className="block text-sm font-medium text-gray-700 mb-2">
+                                    Nuevo Técnico *
+                                </label>
+                                <select
+                                    value={selectedTechnician}
+                                    onChange={(e) => setSelectedTechnician(e.target.value)}
+                                    className="w-full border border-gray-300 rounded-md px-3 py-2 focus:outline-none focus:ring-2 focus:ring-orange-500 focus:border-orange-500"
+                                >
+                                    <option value="">Seleccionar nuevo técnico...</option>
+                                    {technicians
+                                        .filter(tech => tech.id !== selectedIncidentForReassign?.assigned_to_id)
+                                        .map((tech) => (
+                                            <option key={tech.id} value={tech.id}>
+                                                {tech.full_name}
+                                            </option>
+                                        ))}
+                                </select>
+                            </div>
+
+                            <div className="mb-4">
+                                <label className="block text-sm font-medium text-gray-700 mb-2">
+                                    Motivo de la reasignación
+                                </label>
+                                <textarea
+                                    value={reassignReason}
+                                    onChange={(e) => setReassignReason(e.target.value)}
+                                    className="w-full border border-gray-300 rounded-md px-3 py-2 focus:outline-none focus:ring-2 focus:ring-orange-500 focus:border-orange-500"
+                                    rows="3"
+                                    placeholder="Ej: Necesita revisión adicional, técnico especializado requerido, corrección de errores..."
+                                />
+                            </div>
+
+                            <div className="flex justify-end space-x-3">
+                                <button
+                                    onClick={() => setShowReassignModal(false)}
+                                    className="px-4 py-2 border border-gray-300 rounded-md text-sm font-medium text-gray-700 hover:bg-gray-50"
+                                    disabled={reassignLoading}
+                                >
+                                    Cancelar
+                                </button>
+                                <button
+                                    onClick={confirmReassign}
+                                    disabled={reassignLoading}
+                                    className="px-4 py-2 border border-transparent rounded-md text-sm font-medium text-white bg-orange-600 hover:bg-orange-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-orange-500 disabled:opacity-50"
+                                >
+                                    {reassignLoading ? 'Reasignando...' : 'Reasignar'}
                                 </button>
                             </div>
                         </div>

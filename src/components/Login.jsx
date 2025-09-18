@@ -1,7 +1,7 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useAuth } from '../context/AuthContext';
 import { Navigate } from 'react-router-dom';
-import { LogIn, User, Lock, AlertCircle } from 'lucide-react';
+import { LogIn, User, Lock, AlertCircle, Eye, EyeOff, Wrench, Shield, Zap } from 'lucide-react';
 
 const Login = () => {
     const [formData, setFormData] = useState({
@@ -10,8 +10,24 @@ const Login = () => {
     });
     const [error, setError] = useState('');
     const [loading, setLoading] = useState(false);
+    const [showPassword, setShowPassword] = useState(false);
+    const [focusedField, setFocusedField] = useState('');
     
     const { login, isAuthenticated } = useAuth();
+
+    useEffect(() => {
+        const particles = document.querySelector('.particles');
+        if (particles) {
+            for (let i = 0; i < 50; i++) {
+                const particle = document.createElement('div');
+                particle.className = 'particle';
+                particle.style.left = Math.random() * 100 + '%';
+                particle.style.animationDelay = Math.random() * 20 + 's';
+                particle.style.animationDuration = (Math.random() * 3 + 2) + 's';
+                particles.appendChild(particle);
+            }
+        }
+    }, []);
 
     if (isAuthenticated) {
         return <Navigate to="/dashboard" replace />;
@@ -40,37 +56,64 @@ const Login = () => {
     };
 
     return (
-        <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100 flex items-center justify-center px-4">
-            <div className="max-w-md w-full space-y-8">
-                <div className="bg-white rounded-lg shadow-lg p-8">
-                    <div className="text-center">
-                        <div className="mx-auto h-16 w-16 bg-blue-600 rounded-full flex items-center justify-center">
-                            <LogIn className="h-8 w-8 text-white" />
+        <div className="min-h-screen relative overflow-hidden bg-gradient-to-br from-slate-900 via-blue-900 to-indigo-900 flex items-center justify-center px-4">
+            <div className="particles absolute inset-0 opacity-20"></div>
+            
+            <div className="absolute inset-0 bg-gradient-to-r from-blue-600/10 to-purple-600/10 animate-pulse"></div>
+            
+            <div className="relative z-10 max-w-md w-full space-y-8">
+                <div className="bg-white/10 backdrop-blur-lg border border-white/20 rounded-2xl shadow-2xl p-8 transform hover:scale-105 transition-transform duration-300">
+                    <div className="text-center mb-8">
+                        <div className="relative mx-auto h-20 w-20 mb-6">
+                            <div className="absolute inset-0 bg-gradient-to-r from-blue-500 to-purple-600 rounded-full animate-spin-slow"></div>
+                            <div className="relative h-full w-full bg-gradient-to-r from-blue-600 to-purple-700 rounded-full flex items-center justify-center">
+                                <Wrench className="h-10 w-10 text-white animate-bounce" />
+                            </div>
                         </div>
-                        <h2 className="mt-6 text-3xl font-bold text-gray-900">
+                        
+                        <h1 className="text-4xl font-bold bg-gradient-to-r from-blue-400 to-purple-400 bg-clip-text text-transparent mb-2">
                             ASISTE ING
-                        </h2>
-                        <p className="mt-2 text-sm text-gray-600">
-                            Sistema de Gestión de Incidencias Técnicas
+                        </h1>
+                        <p className="text-white/80 text-sm font-medium">
+                            Sistema de Gestión Técnica Profesional
                         </p>
+                        
+                        <div className="flex justify-center mt-4 space-x-6 text-white/60">
+                            <div className="flex items-center space-x-1">
+                                <Shield className="h-4 w-4" />
+                                <span className="text-xs">Seguro</span>
+                            </div>
+                            <div className="flex items-center space-x-1">
+                                <Zap className="h-4 w-4" />
+                                <span className="text-xs">Rápido</span>
+                            </div>
+                            <div className="flex items-center space-x-1">
+                                <Wrench className="h-4 w-4" />
+                                <span className="text-xs">Eficiente</span>
+                            </div>
+                        </div>
                     </div>
 
-                    <form className="mt-8 space-y-6" onSubmit={handleSubmit}>
+                    <form className="space-y-6" onSubmit={handleSubmit}>
                         {error && (
-                            <div className="bg-red-50 border border-red-200 rounded-md p-3 flex items-center">
-                                <AlertCircle className="h-5 w-5 text-red-400 mr-2" />
-                                <span className="text-sm text-red-700">{error}</span>
+                            <div className="bg-red-500/20 border border-red-500/50 rounded-lg p-4 backdrop-blur-sm">
+                                <div className="flex items-center">
+                                    <AlertCircle className="h-5 w-5 text-red-400 mr-3 animate-pulse" />
+                                    <span className="text-red-200 text-sm font-medium">{error}</span>
+                                </div>
                             </div>
                         )}
 
-                        <div className="space-y-4">
-                            <div>
-                                <label htmlFor="username" className="block text-sm font-medium text-gray-700">
+                        <div className="space-y-5">
+                            <div className="relative group">
+                                <label className="block text-sm font-semibold text-white/90 mb-2">
                                     Usuario
                                 </label>
-                                <div className="mt-1 relative">
-                                    <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                                        <User className="h-5 w-5 text-gray-400" />
+                                <div className="relative">
+                                    <div className="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none">
+                                        <User className={`h-5 w-5 transition-colors duration-200 ${
+                                            focusedField === 'username' ? 'text-blue-400' : 'text-white/60'
+                                        }`} />
                                     </div>
                                     <input
                                         id="username"
@@ -79,58 +122,111 @@ const Login = () => {
                                         required
                                         value={formData.username}
                                         onChange={handleChange}
-                                        className="pl-10 block w-full border border-gray-300 rounded-md px-3 py-2 placeholder-gray-400 focus:outline-none focus:ring-blue-500 focus:border-blue-500"
+                                        onFocus={() => setFocusedField('username')}
+                                        onBlur={() => setFocusedField('')}
+                                        className="w-full pl-12 pr-4 py-3 bg-white/10 border border-white/30 rounded-lg text-white placeholder-white/50 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent backdrop-blur-sm transition-all duration-200 hover:bg-white/15"
                                         placeholder="Ingrese su usuario"
                                     />
                                 </div>
                             </div>
 
-                            <div>
-                                <label htmlFor="password" className="block text-sm font-medium text-gray-700">
+                            <div className="relative group">
+                                <label className="block text-sm font-semibold text-white/90 mb-2">
                                     Contraseña
                                 </label>
-                                <div className="mt-1 relative">
-                                    <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                                        <Lock className="h-5 w-5 text-gray-400" />
+                                <div className="relative">
+                                    <div className="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none">
+                                        <Lock className={`h-5 w-5 transition-colors duration-200 ${
+                                            focusedField === 'password' ? 'text-blue-400' : 'text-white/60'
+                                        }`} />
                                     </div>
                                     <input
                                         id="password"
                                         name="password"
-                                        type="password"
+                                        type={showPassword ? 'text' : 'password'}
                                         required
                                         value={formData.password}
                                         onChange={handleChange}
-                                        className="pl-10 block w-full border border-gray-300 rounded-md px-3 py-2 placeholder-gray-400 focus:outline-none focus:ring-blue-500 focus:border-blue-500"
+                                        onFocus={() => setFocusedField('password')}
+                                        onBlur={() => setFocusedField('')}
+                                        className="w-full pl-12 pr-12 py-3 bg-white/10 border border-white/30 rounded-lg text-white placeholder-white/50 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent backdrop-blur-sm transition-all duration-200 hover:bg-white/15"
                                         placeholder="Ingrese su contraseña"
                                     />
+                                    <button
+                                        type="button"
+                                        onClick={() => setShowPassword(!showPassword)}
+                                        className="absolute inset-y-0 right-0 pr-4 flex items-center text-white/60 hover:text-white transition-colors duration-200"
+                                    >
+                                        {showPassword ? (
+                                            <EyeOff className="h-5 w-5" />
+                                        ) : (
+                                            <Eye className="h-5 w-5" />
+                                        )}
+                                    </button>
                                 </div>
                             </div>
                         </div>
 
-                        <div>
+                        <div className="pt-2">
                             <button
                                 type="submit"
                                 disabled={loading}
-                                className="group relative w-full flex justify-center py-3 px-4 border border-transparent text-sm font-medium rounded-md text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 disabled:opacity-50 disabled:cursor-not-allowed"
+                                className="group relative w-full overflow-hidden rounded-lg bg-gradient-to-r from-blue-600 to-purple-600 py-3 px-4 text-white font-semibold shadow-lg transition-all duration-300 hover:from-blue-700 hover:to-purple-700 hover:shadow-xl focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 focus:ring-offset-transparent disabled:opacity-50 disabled:cursor-not-allowed transform hover:scale-105 active:scale-95"
                             >
-                                {loading ? 'Iniciando sesión...' : 'Iniciar Sesión'}
+                                <div className="absolute inset-0 bg-gradient-to-r from-white/0 via-white/20 to-white/0 -translate-x-full group-hover:translate-x-full transition-transform duration-700"></div>
+                                <div className="relative flex items-center justify-center">
+                                    {loading ? (
+                                        <>
+                                            <div className="animate-spin rounded-full h-5 w-5 border-b-2 border-white mr-2"></div>
+                                            Iniciando sesión...
+                                        </>
+                                    ) : (
+                                        <>
+                                            <LogIn className="h-5 w-5 mr-2 group-hover:translate-x-1 transition-transform duration-200" />
+                                            Iniciar Sesión
+                                        </>
+                                    )}
+                                </div>
                             </button>
                         </div>
 
-                        <div className="text-center">
-                            <div className="text-sm text-gray-600">
-                                <p className="font-semibold">Usuarios de prueba:</p>
-                                <div className="mt-2 space-y-1 text-xs">
-                                    <p><strong>Admin:</strong> david / admin123</p>
-                                    <p><strong>Coordinador (Bogotá):</strong> kevin / supervisor123</p>
-                                    <p><strong>Coordinador (Villavicencio):</strong> coordinador_villa / coordinador123</p>
-                                    <p><strong>Técnico:</strong> tecnico1 / tecnico123</p>
-                                </div>
-                            </div>
-                        </div>
                     </form>
                 </div>
             </div>
+
+            <style jsx>{`
+                .particles {
+                    pointer-events: none;
+                }
+                .particle {
+                    position: absolute;
+                    width: 2px;
+                    height: 2px;
+                    background: rgba(255, 255, 255, 0.5);
+                    animation: float linear infinite;
+                }
+                @keyframes float {
+                    0% {
+                        transform: translateY(100vh) translateX(0);
+                        opacity: 1;
+                    }
+                    100% {
+                        transform: translateY(-100px) translateX(50px);
+                        opacity: 0;
+                    }
+                }
+                @keyframes spin-slow {
+                    from {
+                        transform: rotate(0deg);
+                    }
+                    to {
+                        transform: rotate(360deg);
+                    }
+                }
+                .animate-spin-slow {
+                    animation: spin-slow 8s linear infinite;
+                }
+            `}</style>
         </div>
     );
 };

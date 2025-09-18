@@ -11,7 +11,7 @@ export const useAuth = () => {
     return context;
 };
 
-const API_BASE_URL = 'http://31.97.138.23:5001/api';
+const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || 'http://localhost:5001/api';
 
 export const AuthProvider = ({ children }) => {
     const [user, setUser] = useState(null);
@@ -70,6 +70,8 @@ export const AuthProvider = ({ children }) => {
         }
     };
 
+
+
     const logout = () => {
         localStorage.removeItem('token');
         setToken(null);
@@ -103,9 +105,11 @@ export const AuthProvider = ({ children }) => {
         isAdmin: user?.role === 'admin',
         isCoordinador: user?.role === 'coordinador',
         isJefeOperaciones: user?.role === 'jefe_operaciones',
+        isAdministrativo: user?.role === 'administrativo',
         isSupervisor: user?.role === 'supervisor' || user?.role === 'coordinador', // Mantener compatibilidad
         isTechnician: user?.role === 'technician',
-        canSupervise: user?.role === 'admin' || user?.role === 'supervisor' || user?.role === 'coordinador' || user?.role === 'jefe_operaciones'
+        canSupervise: user?.role === 'admin' || user?.role === 'supervisor' || user?.role === 'coordinador' || user?.role === 'administrativo' || user?.role === 'jefe_operaciones',
+        canCreateIncidents: user?.role === 'admin' || user?.role === 'supervisor' || user?.role === 'coordinador' || user?.role === 'jefe_operaciones'
     };
 
     return (

@@ -26,7 +26,7 @@ import TechnicianRatings from './TechnicianRatings';
 import TechniciansRankingPanel from './TechniciansRankingPanel';
 
 const Dashboard = () => {
-    const { user, isAdmin, isSupervisor, isTechnician } = useAuth();
+    const { user, isAdmin, isSupervisor, isTechnician, isAdministrativo, isJefeOperaciones } = useAuth();
     const navigate = useNavigate();
     const [stats, setStats] = useState({
         pending: 0,
@@ -121,7 +121,7 @@ const Dashboard = () => {
             // Cargar estadísticas y técnicos si es admin
             const requests = [
                 incidentService.getAll({ status: 'pendiente' }),
-                incidentService.getApproved()
+                incidentService.getAll({ status: 'aprobado' })
             ];
             
             if (isAdmin) {
@@ -147,7 +147,7 @@ const Dashboard = () => {
             } else {
                 [inProcessRes, inSupervisionRes] = await Promise.all([
                     incidentService.getAll({ status: 'en_proceso' }),
-                    incidentService.getInSupervision()
+                    incidentService.getAll({ status: 'en_supervision' })
                 ]);
                 inProcessCount = inProcessRes.data.length;
                 inSupervisionCount = inSupervisionRes.data.length;
@@ -221,6 +221,11 @@ const Dashboard = () => {
         const searchParams = new URLSearchParams();
         searchParams.set('sede', ciudadKey);
         
+        // Agregar parámetro de status para incidencias en proceso
+        if (type === 'inProcess') {
+            searchParams.set('status', 'en_proceso');
+        }
+        
         const routes = {
             'pending': '/incidents/pending',
             'inProcess': '/incidents/pending',
@@ -241,6 +246,11 @@ const Dashboard = () => {
         const searchParams = new URLSearchParams();
         searchParams.set('sede', ciudadKey);
         searchParams.set('departamento', departamentoKey);
+        
+        // Agregar parámetro de status para incidencias en proceso
+        if (type === 'inProcess') {
+            searchParams.set('status', 'en_proceso');
+        }
         
         const routes = {
             'pending': '/incidents/pending',
@@ -331,7 +341,9 @@ const Dashboard = () => {
                         <div 
                             className="px-3 py-2 hover:bg-blue-50 cursor-pointer rounded transition-colors border-t border-gray-200 mt-2"
                             onClick={() => {
-                                navigate(routePath);
+                                // Para incidencias en proceso, agregar parámetro de status
+                                const finalPath = type === 'inProcess' ? `${routePath}?status=en_proceso` : routePath;
+                                navigate(finalPath);
                                 setShowPendingDropdown(false);
                                 setShowInProcessDropdown(false);
                                 setShowInSupervisionDropdown(false);
@@ -392,6 +404,11 @@ const Dashboard = () => {
     const handleSedeStatsClick = (sede, status) => {
         const searchParams = new URLSearchParams();
         searchParams.set('sede', sede);
+        
+        // Agregar parámetro de status para incidencias en proceso
+        if (status === 'en_proceso') {
+            searchParams.set('status', 'en_proceso');
+        }
         
         const routes = {
             'pendientes': '/incidents/pending',
@@ -520,41 +537,43 @@ const Dashboard = () => {
                     {renderDropdown('pending', pendingByCiudad, showPendingDropdown, 'Seleccionar Ciudad', '/incidents/pending')}
                 </div>
 
-                {/* En Proceso - Interactivo para Admin */}
-                <div className="relative">
-                    <div 
-                        className={`bg-white overflow-hidden shadow rounded-lg ${isAdmin ? 'cursor-pointer hover:shadow-md transition-shadow' : ''}`}
-                        onClick={() => handleCardClick('inProcess')}
-                    >
-                        <div className="p-5">
-                            <div className="flex items-center">
-                                <div className="flex-shrink-0">
-                                    <Settings className="h-6 w-6 text-blue-400" />
-                                </div>
-                                <div className="ml-5 w-0 flex-1">
-                                    <dl>
-                                        <dt className="text-sm font-medium text-gray-500 truncate flex items-center">
-                                            En Proceso
-                                            {isAdmin && (
-                                                <span className="ml-2">
-                                                    {showInProcessDropdown ? 
-                                                        <ChevronUp className="h-4 w-4 text-gray-400" /> : 
-                                                        <ChevronDown className="h-4 w-4 text-gray-400" />
-                                                    }
-                                                </span>
-                                            )}
-                                        </dt>
-                                        <dd className="text-lg font-medium text-gray-900">
-                                            {stats.inProcess}
-                                        </dd>
-                                    </dl>
+                {/* En Proceso - Interactivo para Admin (No visible para jefe de operaciones) */}
+                {!isJefeOperaciones && (
+                    <div className="relative">
+                        <div 
+                            className={`bg-white overflow-hidden shadow rounded-lg ${isAdmin ? 'cursor-pointer hover:shadow-md transition-shadow' : ''}`}
+                            onClick={() => handleCardClick('inProcess')}
+                        >
+                            <div className="p-5">
+                                <div className="flex items-center">
+                                    <div className="flex-shrink-0">
+                                        <Settings className="h-6 w-6 text-blue-400" />
+                                    </div>
+                                    <div className="ml-5 w-0 flex-1">
+                                        <dl>
+                                            <dt className="text-sm font-medium text-gray-500 truncate flex items-center">
+                                                En Proceso
+                                                {isAdmin && (
+                                                    <span className="ml-2">
+                                                        {showInProcessDropdown ? 
+                                                            <ChevronUp className="h-4 w-4 text-gray-400" /> : 
+                                                            <ChevronDown className="h-4 w-4 text-gray-400" />
+                                                        }
+                                                    </span>
+                                                )}
+                                            </dt>
+                                            <dd className="text-lg font-medium text-gray-900">
+                                                {stats.inProcess}
+                                            </dd>
+                                        </dl>
+                                    </div>
                                 </div>
                             </div>
                         </div>
-                    </div>
 
-                    {renderDropdown('inProcess', inProcessByCiudad, showInProcessDropdown, 'Seleccionar Ciudad', '/incidents/pending')}
-                </div>
+                        {renderDropdown('inProcess', inProcessByCiudad, showInProcessDropdown, 'Seleccionar Ciudad', '/incidents/pending')}
+                    </div>
+                )}
 
                 {/* En Supervisión o Mis Incidencias */}
                 {isTechnician ? (
@@ -651,7 +670,7 @@ const Dashboard = () => {
                 </div>
             </div>
 
-            {/* Incidencias Recientes - Oculto para admin */}
+            {/* Incidencias Recientes - Oculto solo para admin */}
             {!isAdmin && (
                 <div className="bg-white shadow overflow-hidden sm:rounded-md">
                 <div className="px-4 py-5 sm:px-6">
@@ -780,8 +799,8 @@ const Dashboard = () => {
                 </div>
             )}
 
-            {/* Sección de calificaciones - Solo para técnicos */}
-            {isTechnician && (
+            {/* Sección de calificaciones - Solo para admins */}
+            {isAdmin && (
                 <TechnicianRatings isOwnRatings={true} />
             )}
 

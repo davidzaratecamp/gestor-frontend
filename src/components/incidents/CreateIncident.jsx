@@ -6,10 +6,11 @@ import { AlertTriangle, Save, ArrowLeft, Monitor, Upload, X, FileImage, FileText
 
 const CreateIncident = () => {
     const navigate = useNavigate();
-    const { user } = useAuth();
+    const { user, isAdministrativo, isJefeOperaciones } = useAuth();
     const [formData, setFormData] = useState({
         sede: user?.sede || 'bogota',
-        departamento: '',
+        // Solo pre-seleccionar departamento para no-admins y no-administrativos, jefes de operaciones usan su departamento
+        departamento: (user?.role === 'admin' || user?.role === 'administrativo') ? '' : (user?.departamento || ''),
         puesto_numero: '',
         failure_type: '',
         peripheral_type: '',
@@ -57,8 +58,32 @@ const CreateIncident = () => {
         { value: 'claro', label: 'Claro' }
     ];
 
-    // Filtrar departamentos según la sede
+    const departamentosAdministrativo = [
+        { value: 'cont', label: 'Contratación' },
+        { value: 'sel', label: 'Selección' },
+        { value: 'rec', label: 'Reclutamiento' },
+        { value: 'fin', label: 'Área financiera' }
+    ];
+
+    // Verificar si el usuario puede elegir departamento
+    const canChooseDepartment = () => {
+        // Administrativos y admins siempre pueden elegir departamento
+        if (user?.role === 'admin' || user?.role === 'administrativo') {
+            return true;
+        }
+        // Jefes de operaciones NO pueden elegir departamento (solo el suyo)
+        if (user?.role === 'jefe_operaciones') {
+            return false;
+        }
+        // Para otros roles, si no tienen departamento específico pueden elegir
+        return !user?.departamento;
+    };
+
+    // Filtrar departamentos según la sede y rol
     const getAvailableDepartments = (sede) => {
+        if (isAdministrativo) {
+            return departamentosAdministrativo; // Administrativos tienen sus propios departamentos
+        }
         if (sede === 'bogota') {
             return departamentos; // Bogotá tiene todos
         } else {
@@ -92,7 +117,8 @@ const CreateIncident = () => {
             setFormData({
                 ...formData,
                 [name]: value,
-                departamento: '',
+                // Mantener el departamento del usuario solo si no es admin ni administrativo
+                departamento: (user?.role === 'admin' || user?.role === 'administrativo') ? '' : (user?.departamento || ''),
                 puesto_numero: '',
                 anydesk_address: '',
                 advisor_cedula: '',
@@ -207,7 +233,7 @@ const CreateIncident = () => {
         
         const isBarranquilla = formData.sede === 'barranquilla';
 
-        if (!formData.sede || !formData.departamento || (!isBarranquilla && !formData.puesto_numero) || !formData.failure_type || !formData.description.trim()) {
+        if (!formData.sede || !formData.departamento || (!isBarranquilla && !isAdministrativo && !formData.puesto_numero) || !formData.failure_type || !formData.description.trim()) {
             setError('Todos los campos marcados con * son requeridos');
             return;
         }
@@ -258,7 +284,7 @@ const CreateIncident = () => {
             // Agregar datos del formulario
             formDataToSend.append('sede', formData.sede);
             formDataToSend.append('departamento', formData.departamento);
-            formDataToSend.append('puesto_numero', isBarranquilla ? 1 : parseInt(formData.puesto_numero));
+            formDataToSend.append('puesto_numero', isBarranquilla ? 1 : isAdministrativo ? 0 : parseInt(formData.puesto_numero));
             formDataToSend.append('failure_type', formData.failure_type);
             formDataToSend.append('description', description);
 
@@ -269,8 +295,8 @@ const CreateIncident = () => {
                 formDataToSend.append('advisor_contact', formData.advisor_contact);
             }
 
-            // Agregar archivos adjuntos (solo para coordinadores)
-            if (user?.role === 'coordinador' && attachments.length > 0) {
+            // Agregar archivos adjuntos (para coordinadores y administrativos)
+            if ((user?.role === 'coordinador' || user?.role === 'administrativo') && attachments.length > 0) {
                 attachments.forEach((file, index) => {
                     formDataToSend.append(`attachments`, file);
                 });
@@ -364,8 +390,8 @@ const CreateIncident = () => {
                         </div>
                     )}
 
-                    {/* Mostrar sede actual para coordinadores */}
-                    {user?.role === 'coordinador' && (
+                    {/* Mostrar sede actual para coordinadores y jefes de operaciones */}
+                    {(user?.role === 'coordinador' || user?.role === 'jefe_operaciones') && (
                         <div>
                             <label className="block text-sm font-medium text-gray-700 mb-2">
                                 Sede
@@ -381,25 +407,34 @@ const CreateIncident = () => {
                         <label htmlFor="departamento" className="block text-sm font-medium text-gray-700 mb-2">
                             Departamento *
                         </label>
-                        <select
-                            id="departamento"
-                            name="departamento"
-                            required
-                            value={formData.departamento}
-                            onChange={handleChange}
-                            className="w-full border border-gray-300 rounded-md px-3 py-3 sm:py-2 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-base sm:text-sm"
-                        >
-                            <option value="">Seleccionar departamento...</option>
-                            {getAvailableDepartments(formData.sede).map((dept) => (
-                                <option key={dept.value} value={dept.value}>
-                                    {dept.label}
-                                </option>
-                            ))}
-                        </select>
+                        {canChooseDepartment() ? (
+                            <select
+                                id="departamento"
+                                name="departamento"
+                                required
+                                value={formData.departamento}
+                                onChange={handleChange}
+                                className="w-full border border-gray-300 rounded-md px-3 py-3 sm:py-2 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-base sm:text-sm"
+                            >
+                                <option value="">Seleccionar departamento...</option>
+                                {getAvailableDepartments(formData.sede).map((dept) => (
+                                    <option key={dept.value} value={dept.value}>
+                                        {dept.label}
+                                    </option>
+                                ))}
+                            </select>
+                        ) : (
+                            <div className="w-full border border-gray-200 rounded-md px-3 py-3 sm:py-2 bg-gray-50 text-gray-900 text-base sm:text-sm">
+                                {getAvailableDepartments(formData.sede).find(dept => dept.value === formData.departamento)?.label || 
+                                 departamentos.find(dept => dept.value === formData.departamento)?.label ||
+                                 departamentosAdministrativo.find(dept => dept.value === formData.departamento)?.label ||
+                                 formData.departamento}
+                            </div>
+                        )}
                     </div>
 
-                    {/* Número de puesto (oculto para Barranquilla) */}
-                    {formData.sede !== 'barranquilla' && (
+                    {/* Número de puesto (oculto para Barranquilla y administrativos) */}
+                    {formData.sede !== 'barranquilla' && !isAdministrativo && (
                         <div>
                             <label htmlFor="puesto_numero" className="block text-sm font-medium text-gray-700 mb-2">
                                 Número de Puesto *
@@ -479,28 +514,6 @@ const CreateIncident = () => {
                                 Información de Trabajo Remoto
                             </h4>
                             
-                            {/* Selector rápido de workstation existente */}
-                            {workstations.length > 0 && (
-                                <div>
-                                    <label htmlFor="workstation_selection" className="block text-sm font-medium text-gray-700 mb-2">
-                                        Selección Rápida de Estación
-                                    </label>
-                                    <select
-                                        id="workstation_selection"
-                                        name="workstation_selection"
-                                        onChange={handleChange}
-                                        className="w-full border border-gray-300 rounded-md px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-                                    >
-                                        <option value="">Seleccionar estación existente...</option>
-                                        {workstations.map((station) => (
-                                            <option key={station.id} value={station.id}>
-                                                {station.station_code} - AnyDesk: {station.anydesk_address} - Cédula: {station.advisor_cedula}
-                                            </option>
-                                        ))}
-                                    </select>
-                                    <p className="mt-1 text-xs text-gray-500">O llena los campos manualmente</p>
-                                </div>
-                            )}
                             
                             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                                 <div>
@@ -553,8 +566,8 @@ const CreateIncident = () => {
                         </div>
                     )}
 
-                    {/* Archivos adjuntos - Solo para coordinadores */}
-                    {user?.role === 'coordinador' && (
+                    {/* Archivos adjuntos - Para coordinadores y administrativos */}
+                    {(user?.role === 'coordinador' || user?.role === 'administrativo') && (
                         <div>
                             <label htmlFor="attachments" className="block text-sm font-medium text-gray-700 mb-2">
                                 Archivos Adjuntos <span className="text-sm text-gray-500">(Opcional)</span>

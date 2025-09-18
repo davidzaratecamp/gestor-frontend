@@ -10,6 +10,7 @@ import IncidentsSupervision from './components/incidents/IncidentsSupervision';
 import PendingIncidents from './components/incidents/PendingIncidents';
 import MyIncidents from './components/incidents/MyIncidents';
 import ApprovedIncidents from './components/incidents/ApprovedIncidents';
+import MyIncidentsSupervision from './components/incidents/MyIncidentsSupervision';
 import UserManagement from './components/UserManagement';
 import WorkstationManagement from './components/WorkstationManagement';
 
@@ -81,6 +82,7 @@ function App() {
               <Route path="incidents/pending" element={<PendingIncidents />} />
               <Route path="incidents/my-incidents" element={<MyIncidents />} />
               <Route path="incidents/supervision" element={<IncidentsSupervision />} />
+              <Route path="incidents/my-supervision" element={<MyIncidentsSupervision />} />
               <Route path="incidents/approved" element={<ApprovedIncidents />} />
               
               {/* Rutas de gestión */}

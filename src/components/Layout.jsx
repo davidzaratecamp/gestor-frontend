@@ -3,6 +3,8 @@ import { Outlet, Link, useLocation, useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import { useNotifications } from '../hooks/useNotifications';
 import NotificationBell from './NotificationBell';
+import AlertsDropdown from './AlertsDropdown';
+import IntrusiveAlerts from './IntrusiveAlerts';
 import '../styles/hanny-theme.css';
 import { 
     Menu, 
@@ -70,14 +72,15 @@ const Layout = () => {
     }, [isHannyTheme]);
 
     const navigation = [
-        { name: 'Dashboard', href: '/dashboard', icon: Home, roles: ['admin', 'supervisor', 'coordinador', 'jefe_operaciones', 'technician'] },
+        { name: 'Dashboard', href: '/dashboard', icon: Home, roles: ['admin', 'supervisor', 'coordinador', 'jefe_operaciones', 'technician', 'administrativo'] },
         
         // Incidencias
-        { name: 'Crear Incidencia', href: '/incidents/create', icon: AlertTriangle, roles: ['admin', 'supervisor', 'coordinador'] },
-        { name: 'Incidencias Pendientes', href: '/incidents/pending', icon: Clock, roles: ['admin', 'technician'] },
+        { name: 'Crear Incidencia', href: '/incidents/create', icon: AlertTriangle, roles: ['admin', 'supervisor', 'coordinador', 'jefe_operaciones', 'administrativo'] },
+        { name: 'Incidencias Pendientes', href: '/incidents/pending', icon: Clock, roles: ['admin', 'technician', 'jefe_operaciones'] },
         { name: 'Mis Incidencias', href: '/incidents/my-incidents', icon: User, roles: ['technician'], showBadge: true },
-        { name: 'En Supervisión', href: '/incidents/supervision', icon: Settings, roles: ['admin', 'supervisor', 'coordinador', 'jefe_operaciones'] },
-        { name: 'Historial Aprobadas', href: '/incidents/approved', icon: CheckCircle, roles: ['admin', 'supervisor', 'coordinador', 'jefe_operaciones', 'technician'] },
+        { name: 'En Supervisión', href: '/incidents/supervision', icon: Settings, roles: ['admin', 'supervisor', 'coordinador', 'jefe_operaciones', 'administrativo'] },
+        { name: 'Mis Incidencias en Supervisión', href: '/incidents/my-supervision', icon: User, roles: ['jefe_operaciones'] },
+        { name: 'Historial Aprobadas', href: '/incidents/approved', icon: CheckCircle, roles: ['admin', 'supervisor', 'coordinador', 'jefe_operaciones', 'technician', 'administrativo'] },
         
         // Gestión (solo admin)
         { name: 'Usuarios', href: '/users', icon: Users, roles: ['admin'] },
@@ -92,6 +95,11 @@ const Layout = () => {
 
     return (
         <div className={`h-screen flex ${isHannyTheme ? 'bg-gray-900 hanny-theme' : 'bg-gray-50'} relative`}>
+            
+            {/* Modal intrusivo de alertas */}
+            {(isCoordinador || isJefeOperaciones || user?.role === 'administrativo') && (
+                <IntrusiveAlerts />
+            )}
             {/* Sidebar */}
             <div className={`${sidebarOpen ? 'translate-x-0' : '-translate-x-full'} fixed inset-y-0 left-0 z-50 w-64 ${isHannyTheme ? 'bg-gray-800' : 'bg-white'} shadow-lg transform lg:translate-x-0 lg:static lg:inset-0 transition-transform duration-300`}>
                 <div className={`flex items-center justify-between p-4 ${isHannyTheme ? 'border-gray-700' : 'border-b'}`}>
@@ -165,6 +173,7 @@ const Layout = () => {
                                     user?.role === 'supervisor' ? 'Supervisor' : 
                                     user?.role === 'coordinador' ? 'Coordinador' :
                                     user?.role === 'jefe_operaciones' ? 'Jefe Operaciones' :
+                                    user?.role === 'administrativo' ? 'Administrativo' :
                                     'Técnico'
                                 )}
                             </p>
@@ -206,9 +215,14 @@ const Layout = () => {
                             {isHannyTheme ? '💜 Sistema de Soporte de Hanny 💜' : 'Call Center - Sistema de Soporte Técnico'}
                         </h2>
                         
-                        {/* Notification Bell for Technicians */}
-                        {isTechnician && (
-                            <div className="flex items-center">
+                        <div className="flex items-center space-x-2">
+                            {/* Alertas para coordinadores, jefes de operaciones y administrativos */}
+                            {(isCoordinador || isJefeOperaciones || user?.role === 'administrativo') && (
+                                <AlertsDropdown />
+                            )}
+                            
+                            {/* Notification Bell for Technicians */}
+                            {isTechnician && (
                                 <NotificationBell
                                     notifications={notifications}
                                     unreadCount={unreadCount}
@@ -217,10 +231,8 @@ const Layout = () => {
                                     clearNotifications={clearNotifications}
                                     testNotificationSound={testNotificationSound}
                                 />
-                            </div>
-                        )}
-                        
-                        {!isTechnician && <div className="hidden lg:block" />} {/* Spacer for non-technicians */}
+                            )}
+                        </div>
                     </div>
                 </div>
 

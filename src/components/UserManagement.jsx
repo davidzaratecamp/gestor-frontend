@@ -43,7 +43,8 @@ const UserManagement = () => {
     const roles = [
         { value: 'coordinador', label: 'Coordinador', color: 'bg-blue-100 text-blue-800' },
         { value: 'technician', label: 'Técnico', color: 'bg-green-100 text-green-800' },
-        { value: 'jefe_operaciones', label: 'Jefe de Operaciones', color: 'bg-purple-100 text-purple-800' }
+        { value: 'jefe_operaciones', label: 'Jefe de Operaciones', color: 'bg-purple-100 text-purple-800' },
+        { value: 'administrativo', label: 'Administrativo', color: 'bg-orange-100 text-orange-800' }
     ];
 
     const sedes = [
@@ -191,8 +192,8 @@ const UserManagement = () => {
             // Preparar datos para envío
             const submitData = { ...formData };
             
-            // Para técnicos, no asignar departamento específico
-            if (submitData.role === 'technician') {
+            // Para técnicos y administrativos, no asignar departamento específico
+            if (submitData.role === 'technician' || submitData.role === 'administrativo') {
                 submitData.departamento = null;
             }
             
@@ -563,6 +564,15 @@ const UserManagement = () => {
                                         <p className="text-sm text-blue-700">
                                             <strong>Nota:</strong> Los técnicos no tienen departamento asignado específico. 
                                             Pueden trabajar en cualquier departamento según las necesidades.
+                                        </p>
+                                    </div>
+                                )}
+
+                                {/* Mensaje informativo para administrativos */}
+                                {formData.role === 'administrativo' && (
+                                    <div className="bg-orange-50 border border-orange-200 rounded-md p-3">
+                                        <p className="text-sm text-orange-700">
+                                            <strong>Nota:</strong> Los administrativos manejan tareas generales de su sede y no tienen departamento específico asignado.
                                         </p>
                                     </div>
                                 )}
