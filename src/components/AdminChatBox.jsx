@@ -68,6 +68,9 @@ const AdminChatBox = () => {
                 socketRef.current.on('new_message', (data) => {
                     try {
                         console.log('Admin recibió nuevo mensaje:', data);
+                        console.log('=== DEBUG NEW MESSAGE ===');
+                        console.log('activeConversation actual:', activeConversation);
+                        console.log('conversations actual:', conversations);
                         
                         // Agregar mensaje a la lista
                         setMessages(prev => [...prev, data.message]);
@@ -162,10 +165,24 @@ const AdminChatBox = () => {
     const sendMessage = async () => {
         if (!newMessage.trim()) return;
         
+        // Debug: mostrar estado actual
+        console.log('=== DEBUG SEND MESSAGE ===');
+        console.log('activeConversation:', activeConversation);
+        console.log('conversations:', conversations);
+        console.log('conversations.length:', conversations.length);
+        
+        // Si no hay conversaciones cargadas, cargarlas primero
+        let currentConversations = conversations;
+        if (conversations.length === 0) {
+            console.log('Cargando conversaciones porque están vacías...');
+            currentConversations = await loadConversations();
+        }
+        
         // Usar la conversación activa o la primera disponible
-        const currentConversation = activeConversation || conversations[0];
+        const currentConversation = activeConversation || currentConversations[0];
         if (!currentConversation) {
             console.error('No hay conversación disponible');
+            console.log('Debug: activeConversation es null y conversations está vacío');
             alert('No hay conversación disponible para enviar el mensaje');
             return;
         }
