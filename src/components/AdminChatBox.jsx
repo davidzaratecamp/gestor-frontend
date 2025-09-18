@@ -28,10 +28,25 @@ const AdminChatBox = () => {
             try {
                 const conversationsData = await loadConversations();
                 
-                // Auto-seleccionar la primera conversación si existe
-                if (conversationsData.length > 0 && !activeConversation) {
-                    setActiveConversation(conversationsData[0]);
-                    await loadMessages(conversationsData[0].anonymous_user_id);
+                // Intentar recuperar conversación guardada
+                const savedConversationId = localStorage.getItem('admin_active_conversation');
+                let conversationToSelect = null;
+                
+                if (savedConversationId) {
+                    // Buscar la conversación guardada
+                    conversationToSelect = conversationsData.find(c => c.anonymous_user_id.toString() === savedConversationId);
+                }
+                
+                // Si no se encuentra la guardada o no existe, usar la primera
+                if (!conversationToSelect && conversationsData.length > 0) {
+                    conversationToSelect = conversationsData[0];
+                }
+                
+                // Establecer conversación activa
+                if (conversationToSelect && !activeConversation) {
+                    setActiveConversation(conversationToSelect);
+                    await loadMessages(conversationToSelect.anonymous_user_id);
+                    localStorage.setItem('admin_active_conversation', conversationToSelect.anonymous_user_id.toString());
                 }
             } catch (error) {
                 console.error('Error inicializando chat admin:', error);
@@ -64,6 +79,7 @@ const AdminChatBox = () => {
                                 const conv = conversationsData.find(c => c.anonymous_user_id === data.message.from_user_id);
                                 if (conv) {
                                     setActiveConversation(conv);
+                                    localStorage.setItem('admin_active_conversation', conv.anonymous_user_id.toString());
                                     // No llamar loadMessages aquí porque ya agregamos el mensaje arriba
                                 }
                             });
@@ -163,6 +179,7 @@ const AdminChatBox = () => {
             // Si no hay conversación activa, establecerla
             if (!activeConversation) {
                 setActiveConversation(currentConversation);
+                localStorage.setItem('admin_active_conversation', currentConversation.anonymous_user_id.toString());
             }
             
             // Recargar mensajes para mostrar el enviado
@@ -187,8 +204,20 @@ const AdminChatBox = () => {
         setIsMinimized(false);
         setHasNewMessage(false);
         if (conversations.length > 0 && !activeConversation) {
-            setActiveConversation(conversations[0]);
-            loadMessages(conversations[0].anonymous_user_id);
+            // Intentar recuperar conversación guardada
+            const savedConversationId = localStorage.getItem('admin_active_conversation');
+            let conversationToSelect = conversations[0];
+            
+            if (savedConversationId) {
+                const savedConversation = conversations.find(c => c.anonymous_user_id.toString() === savedConversationId);
+                if (savedConversation) {
+                    conversationToSelect = savedConversation;
+                }
+            }
+            
+            setActiveConversation(conversationToSelect);
+            loadMessages(conversationToSelect.anonymous_user_id);
+            localStorage.setItem('admin_active_conversation', conversationToSelect.anonymous_user_id.toString());
         }
     };
 
@@ -298,14 +327,14 @@ const AdminChatBox = () => {
                             {/* Input de mensaje */}
                             <div className="border-t p-3">
                                 <div className="flex space-x-2">
-                                    <input
-                                        type="text"
+                                    <textarea
                                         value={newMessage}
                                         onChange={(e) => setNewMessage(e.target.value)}
                                         onKeyPress={handleKeyPress}
                                         placeholder="Escribe tu respuesta..."
-                                        className="flex-1 border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-purple-500"
-                                        disabled={false}
+                                        className="flex-1 border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-purple-500 resize-none"
+                                        rows="1"
+                                        disabled={loading}
                                     />
                                     <button
                                         onClick={sendMessage}
