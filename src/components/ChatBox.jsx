@@ -71,6 +71,15 @@ const ChatBox = () => {
         scrollToBottom();
     }, [messages]);
 
+    useEffect(() => {
+        // Scroll al final cuando se abre el chat
+        if (isOpen && !isMinimized) {
+            setTimeout(() => {
+                scrollToBottom();
+            }, 100);
+        }
+    }, [isOpen, isMinimized]);
+
     const loadAdminInfo = async () => {
         try {
             const response = await chatService.getAdminInfo();

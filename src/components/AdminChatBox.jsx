@@ -72,6 +72,15 @@ const AdminChatBox = () => {
         scrollToBottom();
     }, [messages]);
 
+    useEffect(() => {
+        // Scroll al final cuando se abre el chat o cambia conversación
+        if (isOpen && activeConversation) {
+            setTimeout(() => {
+                scrollToBottom();
+            }, 100);
+        }
+    }, [isOpen, activeConversation]);
+
     const loadConversations = async () => {
         try {
             const response = await chatService.getConversations();
