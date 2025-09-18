@@ -36,27 +36,35 @@ const ChatBox = () => {
             
             // Escuchar nuevos mensajes
             socketRef.current.on('new_message', (data) => {
-                console.log('Nuevo mensaje recibido:', data);
-                
-                // Agregar mensaje a la lista
-                setMessages(prev => [...prev, data.message]);
-                
-                // Si el chat está cerrado, mostrar notificación y abrir automáticamente
-                if (!isOpen) {
-                    setHasNewMessage(true);
-                    setIsOpen(true);
-                    setUnreadCount(prev => prev + 1);
-                } else {
-                    // Si está abierto, marcar como leído inmediatamente
-                    markAsRead();
-                }
-                
-                // Reproducir sonido de notificación
                 try {
-                    new Audio('/notification.mp3').play().catch(() => {});
+                    console.log('Nuevo mensaje recibido:', data);
+                    
+                    // Agregar mensaje a la lista
+                    setMessages(prev => [...prev, data.message]);
+                    
+                    // Si el chat está cerrado, mostrar notificación y abrir automáticamente
+                    if (!isOpen) {
+                        setHasNewMessage(true);
+                        setIsOpen(true);
+                        setUnreadCount(prev => prev + 1);
+                    } else {
+                        // Si está abierto, marcar como leído inmediatamente
+                        markAsRead();
+                    }
+                    
+                    // Reproducir sonido de notificación
+                    try {
+                        new Audio('/notification.mp3').play().catch(() => {});
+                    } catch (error) {
+                        console.log('No se pudo reproducir sonido de notificación');
+                    }
                 } catch (error) {
-                    console.log('No se pudo reproducir sonido de notificación');
+                    console.error('Error procesando mensaje nuevo:', error);
                 }
+            });
+
+            socketRef.current.on('connect_error', (error) => {
+                console.error('Error de conexión WebSocket:', error);
             });
             
             return () => {
