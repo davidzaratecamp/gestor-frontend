@@ -7,7 +7,6 @@ import AlertsDropdown from './AlertsDropdown';
 import IntrusiveAlerts from './IntrusiveAlerts';
 import ChatBox from './ChatBox';
 import AdminChatBox from './AdminChatBox';
-import HannyChatManager from './HannyChatManager';
 import '../styles/hanny-theme.css';
 import { 
     Menu, 
@@ -262,10 +261,9 @@ const Layout = () => {
             
             {/* Chat Box para usuarios anónimos */}
             <ChatBox />
-            <AdminChatBox />
             
-            {/* Chat Manager para Hanny */}
-            <HannyChatManager />
+            {/* Chat Admin simplificado para Hanny */}
+            <AdminChatBox />
         </div>
     );
 };
