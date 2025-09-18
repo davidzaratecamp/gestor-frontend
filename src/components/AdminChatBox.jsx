@@ -230,7 +230,7 @@ const AdminChatBox = () => {
                             ) : (
                                 <>
                                     {/* Mensajes */}
-                                    <div className="flex-1 overflow-y-auto p-3 space-y-2">
+                                    <div className="flex-1 overflow-y-auto p-3 space-y-2 bg-white">
                                         {loading ? (
                                             <div className="flex items-center justify-center py-4">
                                                 <div className="animate-spin rounded-full h-6 w-6 border-b-2 border-blue-600"></div>

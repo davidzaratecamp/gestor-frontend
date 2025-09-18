@@ -222,7 +222,7 @@ const ChatBox = () => {
                     {!isMinimized && (
                         <>
                             {/* Mensajes */}
-                            <div className="h-64 overflow-y-auto p-3 space-y-2">
+                            <div className="h-64 overflow-y-auto p-3 space-y-2 bg-white">
                                 {messages.length === 0 ? (
                                     <div className="text-center text-gray-500 text-sm mt-8">
                                         <MessageCircle className="h-8 w-8 mx-auto mb-2 text-gray-300" />

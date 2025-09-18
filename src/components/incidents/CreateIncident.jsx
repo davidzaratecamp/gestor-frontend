@@ -573,14 +573,32 @@ const CreateIncident = () => {
                                 Archivos Adjuntos <span className="text-sm text-gray-500">(Opcional)</span>
                             </label>
                             
-                            {/* Input de archivos */}
+                            {/* Mensaje de mantenimiento */}
+                            <div className="mb-4 p-3 bg-yellow-50 border border-yellow-200 rounded-md">
+                                <div className="flex items-center">
+                                    <div className="flex-shrink-0">
+                                        <svg className="h-5 w-5 text-yellow-400" fill="currentColor" viewBox="0 0 20 20">
+                                            <path fillRule="evenodd" d="M8.257 3.099c.765-1.36 2.722-1.36 3.486 0l5.58 9.92c.75 1.334-.213 2.98-1.742 2.98H4.42c-1.53 0-2.493-1.646-1.743-2.98l5.58-9.92zM11 13a1 1 0 11-2 0 1 1 0 012 0zm-1-8a1 1 0 00-1 1v3a1 1 0 002 0V6a1 1 0 00-1-1z" clipRule="evenodd" />
+                                        </svg>
+                                    </div>
+                                    <div className="ml-3">
+                                        <p className="text-sm text-yellow-800">
+                                            <strong>La sección de adjuntos está en mantenimiento.</strong>
+                                        </p>
+                                        <p className="text-xs text-yellow-700 mt-1">
+                                            Temporalmente no se pueden subir archivos. Puedes crear la incidencia sin adjuntos.
+                                        </p>
+                                    </div>
+                                </div>
+                            </div>
+                            
+                            {/* Input de archivos - DESHABILITADO POR MANTENIMIENTO */}
                             <div className="mb-3">
                                 <label
-                                    htmlFor="file-upload"
-                                    className="cursor-pointer inline-flex items-center px-4 py-2 border border-gray-300 rounded-md shadow-sm text-sm font-medium text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500"
+                                    className="inline-flex items-center px-4 py-2 border border-gray-300 rounded-md shadow-sm text-sm font-medium text-gray-400 bg-gray-100 cursor-not-allowed opacity-50"
                                 >
                                     <Upload className="h-4 w-4 mr-2" />
-                                    Seleccionar Archivos
+                                    Seleccionar Archivos (Deshabilitado)
                                 </label>
                                 <input
                                     id="file-upload"
@@ -590,6 +608,7 @@ const CreateIncident = () => {
                                     accept="image/*,.pdf"
                                     onChange={handleFileChange}
                                     className="sr-only"
+                                    disabled
                                 />
                             </div>
                             
