@@ -148,16 +148,28 @@ const AdminChatBox = () => {
         
         // Usar la conversación activa o la primera disponible
         const currentConversation = activeConversation || conversations[0];
-        if (!currentConversation) return;
+        if (!currentConversation) {
+            console.error('No hay conversación disponible');
+            alert('No hay conversación disponible para enviar el mensaje');
+            return;
+        }
+
+        console.log('Enviando mensaje a:', currentConversation.anonymous_user_id);
 
         try {
             await chatService.sendMessage(currentConversation.anonymous_user_id, newMessage.trim());
             setNewMessage('');
+            
+            // Si no hay conversación activa, establecerla
+            if (!activeConversation) {
+                setActiveConversation(currentConversation);
+            }
+            
             // Recargar mensajes para mostrar el enviado
             loadMessages(currentConversation.anonymous_user_id);
         } catch (error) {
             console.error('Error enviando mensaje:', error);
-            alert('Error al enviar mensaje');
+            alert('Error al enviar mensaje: ' + error.message);
         }
     };
 
@@ -297,7 +309,7 @@ const AdminChatBox = () => {
                                     />
                                     <button
                                         onClick={sendMessage}
-                                        disabled={!newMessage.trim() || conversations.length === 0 || loading}
+                                        disabled={!newMessage.trim() || loading}
                                         className="bg-purple-600 text-white px-3 py-2 rounded-lg hover:bg-purple-700 disabled:opacity-50 disabled:cursor-not-allowed"
                                     >
                                         <Send className="h-4 w-4" />
