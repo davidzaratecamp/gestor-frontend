@@ -28,7 +28,7 @@ const ChatBox = () => {
         
         // Configurar WebSocket
         if (user?.id) {
-            const socketUrl = import.meta.env.VITE_API_URL?.replace('/api', '') || 'http://localhost:5001';
+            const socketUrl = import.meta.env.VITE_API_URL?.replace('/api', '') || 'http://31.97.138.23:5001';
             socketRef.current = io(socketUrl);
             
             // Autenticar usuario
