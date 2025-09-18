@@ -24,7 +24,8 @@ import {
     AlertTriangle,
     Trophy,
     Target,
-    Paperclip
+    Paperclip,
+    Settings
 } from 'lucide-react';
 
 const PendingIncidents = () => {
@@ -707,6 +708,12 @@ const PendingIncidents = () => {
                                                 <span className={`inline-flex px-2 py-1 text-xs font-semibold rounded-full ${getFailureTypeColor(incident.failure_type)}`}>
                                                     {getFailureTypeLabel(incident.failure_type)}
                                                 </span>
+                                                {incident.is_recently_reassigned && (
+                                                    <span className="inline-flex items-center px-2 py-1 text-xs font-semibold rounded-full bg-orange-100 text-orange-800 border border-orange-200">
+                                                        <Settings className="h-3 w-3 mr-1" />
+                                                        Reasignado
+                                                    </span>
+                                                )}
                                                 <div className="flex items-center text-sm text-gray-500 mt-1 sm:mt-0">
                                                     <User className="h-4 w-4 mr-1" />
                                                     <span className="truncate">Reportado por: {incident.reported_by_name}</span>

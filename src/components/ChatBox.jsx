@@ -1,7 +1,8 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { MessageCircle, X, Send, Minimize2, Maximize2 } from 'lucide-react';
+import { MessageCircle, X, Send, Minimize2, Maximize2, Bell } from 'lucide-react';
 import { chatService } from '../services/api';
 import { useAuth } from '../context/AuthContext';
+import io from 'socket.io-client';
 
 const ChatBox = () => {
     const { user } = useAuth();
@@ -12,7 +13,9 @@ const ChatBox = () => {
     const [loading, setLoading] = useState(false);
     const [adminInfo, setAdminInfo] = useState(null);
     const [unreadCount, setUnreadCount] = useState(0);
+    const [hasNewMessage, setHasNewMessage] = useState(false);
     const messagesEndRef = useRef(null);
+    const socketRef = useRef(null);
 
     // Solo mostrar para usuarios anónimos
     if (user?.role !== 'anonimo') {
@@ -23,16 +26,46 @@ const ChatBox = () => {
         loadAdminInfo();
         loadUnreadCount();
         
-        // Verificar mensajes no leídos cada 10 segundos
-        const interval = setInterval(() => {
-            if (adminInfo) {
-                loadMessages();
-                loadUnreadCount();
-            }
-        }, 10000);
-
-        return () => clearInterval(interval);
-    }, [adminInfo]);
+        // Configurar WebSocket
+        if (user?.id) {
+            const socketUrl = import.meta.env.VITE_API_URL?.replace('/api', '') || 'http://localhost:5001';
+            socketRef.current = io(socketUrl);
+            
+            // Autenticar usuario
+            socketRef.current.emit('authenticate', user.id);
+            
+            // Escuchar nuevos mensajes
+            socketRef.current.on('new_message', (data) => {
+                console.log('Nuevo mensaje recibido:', data);
+                
+                // Agregar mensaje a la lista
+                setMessages(prev => [...prev, data.message]);
+                
+                // Si el chat está cerrado, mostrar notificación y abrir automáticamente
+                if (!isOpen) {
+                    setHasNewMessage(true);
+                    setIsOpen(true);
+                    setUnreadCount(prev => prev + 1);
+                } else {
+                    // Si está abierto, marcar como leído inmediatamente
+                    markAsRead();
+                }
+                
+                // Reproducir sonido de notificación
+                try {
+                    new Audio('/notification.mp3').play().catch(() => {});
+                } catch (error) {
+                    console.log('No se pudo reproducir sonido de notificación');
+                }
+            });
+            
+            return () => {
+                if (socketRef.current) {
+                    socketRef.current.disconnect();
+                }
+            };
+        }
+    }, [user?.id, isOpen]);
 
     useEffect(() => {
         scrollToBottom();
@@ -88,12 +121,25 @@ const ChatBox = () => {
         messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
     };
 
+    const markAsRead = async () => {
+        if (adminInfo && unreadCount > 0) {
+            try {
+                await chatService.markAsRead(adminInfo.id);
+                setUnreadCount(0);
+                setHasNewMessage(false);
+            } catch (error) {
+                console.error('Error marcando como leído:', error);
+            }
+        }
+    };
+
     const handleOpen = () => {
         setIsOpen(true);
         setIsMinimized(false);
+        setHasNewMessage(false);
         if (adminInfo) {
             loadMessages();
-            loadUnreadCount();
+            markAsRead();
         }
     };
 
@@ -118,11 +164,16 @@ const ChatBox = () => {
             {!isOpen && (
                 <button
                     onClick={handleOpen}
-                    className="bg-purple-600 hover:bg-purple-700 text-white rounded-full p-3 shadow-lg transition-colors relative"
+                    className={`bg-purple-600 hover:bg-purple-700 text-white rounded-full p-3 shadow-lg transition-all duration-300 relative ${
+                        hasNewMessage ? 'animate-bounce' : ''
+                    }`}
                 >
                     <MessageCircle className="h-6 w-6" />
+                    {hasNewMessage && (
+                        <Bell className="absolute -top-1 -left-1 h-4 w-4 text-yellow-400 animate-pulse" />
+                    )}
                     {unreadCount > 0 && (
-                        <span className="absolute -top-2 -right-2 bg-red-500 text-white text-xs rounded-full h-5 w-5 flex items-center justify-center">
+                        <span className="absolute -top-2 -right-2 bg-red-500 text-white text-xs rounded-full h-5 w-5 flex items-center justify-center animate-pulse">
                             {unreadCount > 9 ? '9+' : unreadCount}
                         </span>
                     )}
