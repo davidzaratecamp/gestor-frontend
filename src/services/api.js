@@ -86,4 +86,13 @@ export const incidentService = {
     dismissAlert: (alertId) => api.put(`/incidents/alerts/${alertId}/dismiss`)
 };
 
+// === SERVICIOS DE CHAT ===
+export const chatService = {
+    sendMessage: (to_user_id, message) => api.post('/chat/send', { to_user_id, message }),
+    getMessages: (userId) => api.get(`/chat/messages/${userId}`),
+    getConversations: () => api.get('/chat/conversations'),
+    getAdminInfo: () => api.get('/chat/admin-info'),
+    getUnreadCount: () => api.get('/chat/unread-count')
+};
+
 export default api;

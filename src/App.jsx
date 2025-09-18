@@ -4,6 +4,8 @@ import { AuthProvider, useAuth } from './context/AuthContext';
 
 import Login from './components/Login';
 import Layout from './components/Layout';
+import AnonymousLayout from './components/AnonymousLayout';
+import AnonymousChat from './components/AnonymousChat';
 import Dashboard from './components/Dashboard';
 import CreateIncident from './components/incidents/CreateIncident';
 import IncidentsSupervision from './components/incidents/IncidentsSupervision';
@@ -13,6 +15,89 @@ import ApprovedIncidents from './components/incidents/ApprovedIncidents';
 import MyIncidentsSupervision from './components/incidents/MyIncidentsSupervision';
 import UserManagement from './components/UserManagement';
 import WorkstationManagement from './components/WorkstationManagement';
+
+// Componente para determinar el layout según el rol
+const LayoutWrapper = ({ children }) => {
+  const { user } = useAuth();
+  
+  if (user?.role === 'anonimo') {
+    return <AnonymousLayout>{children}</AnonymousLayout>;
+  }
+  
+  return <Layout>{children}</Layout>;
+};
+
+// Componente específico para usuarios anónimos
+const AnonymousRoute = ({ children }) => {
+  const { user, loading } = useAuth();
+  
+  if (loading) {
+    return (
+      <div className="min-h-screen flex items-center justify-center">
+        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600"></div>
+      </div>
+    );
+  }
+  
+  return user?.role === 'anonimo' ? children : <Navigate to="/dashboard" replace />;
+};
+
+// Componente para redirigir según el rol
+const RedirectByRole = () => {
+  const { user, loading } = useAuth();
+  
+  if (loading) {
+    return (
+      <div className="min-h-screen flex items-center justify-center">
+        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600"></div>
+      </div>
+    );
+  }
+  
+  if (user?.role === 'anonimo') {
+    return <Navigate to="/chat" replace />;
+  }
+  
+  return <Navigate to="/dashboard" replace />;
+};
+
+// Componente que bloquea dashboard para anónimos
+const DashboardRoute = () => {
+  const { user, loading } = useAuth();
+  
+  if (loading) {
+    return (
+      <div className="min-h-screen flex items-center justify-center">
+        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600"></div>
+      </div>
+    );
+  }
+  
+  if (user?.role === 'anonimo') {
+    return <Navigate to="/chat" replace />;
+  }
+  
+  return <Dashboard />;
+};
+
+// Componente que bloquea rutas para usuarios anónimos
+const NonAnonymousRoute = ({ children }) => {
+  const { user, loading } = useAuth();
+  
+  if (loading) {
+    return (
+      <div className="min-h-screen flex items-center justify-center">
+        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600"></div>
+      </div>
+    );
+  }
+  
+  if (user?.role === 'anonimo') {
+    return <Navigate to="/chat" replace />;
+  }
+  
+  return children;
+};
 
 // Componente para rutas protegidas
 const ProtectedRoute = ({ children }) => {
@@ -69,21 +154,32 @@ function App() {
           <Routes>
             <Route path="/login" element={<Login />} />
             
+            {/* Ruta específica para usuarios anónimos */}
+            <Route path="/chat" element={
+              <ProtectedRoute>
+                <AnonymousRoute>
+                  <AnonymousLayout>
+                    <AnonymousChat />
+                  </AnonymousLayout>
+                </AnonymousRoute>
+              </ProtectedRoute>
+            } />
+            
             <Route path="/" element={
               <ProtectedRoute>
-                <Layout />
+                <LayoutWrapper />
               </ProtectedRoute>
             }>
-              <Route index element={<Navigate to="/dashboard" replace />} />
-              <Route path="dashboard" element={<Dashboard />} />
+              <Route index element={<RedirectByRole />} />
+              <Route path="dashboard" element={<DashboardRoute />} />
               
               {/* Rutas de incidencias */}
-              <Route path="incidents/create" element={<CreateIncident />} />
-              <Route path="incidents/pending" element={<PendingIncidents />} />
-              <Route path="incidents/my-incidents" element={<MyIncidents />} />
-              <Route path="incidents/supervision" element={<IncidentsSupervision />} />
-              <Route path="incidents/my-supervision" element={<MyIncidentsSupervision />} />
-              <Route path="incidents/approved" element={<ApprovedIncidents />} />
+              <Route path="incidents/create" element={<NonAnonymousRoute><CreateIncident /></NonAnonymousRoute>} />
+              <Route path="incidents/pending" element={<NonAnonymousRoute><PendingIncidents /></NonAnonymousRoute>} />
+              <Route path="incidents/my-incidents" element={<NonAnonymousRoute><MyIncidents /></NonAnonymousRoute>} />
+              <Route path="incidents/supervision" element={<NonAnonymousRoute><IncidentsSupervision /></NonAnonymousRoute>} />
+              <Route path="incidents/my-supervision" element={<NonAnonymousRoute><MyIncidentsSupervision /></NonAnonymousRoute>} />
+              <Route path="incidents/approved" element={<NonAnonymousRoute><ApprovedIncidents /></NonAnonymousRoute>} />
               
               {/* Rutas de gestión */}
               <Route path="users" element={<AdminRoute><UserManagement /></AdminRoute>} />
@@ -91,7 +187,7 @@ function App() {
             </Route>
 
             {/* Ruta catch-all */}
-            <Route path="*" element={<Navigate to="/dashboard" replace />} />
+            <Route path="*" element={<RedirectByRole />} />
           </Routes>
         </div>
       </Router>

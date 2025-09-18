@@ -5,6 +5,8 @@ import { useNotifications } from '../hooks/useNotifications';
 import NotificationBell from './NotificationBell';
 import AlertsDropdown from './AlertsDropdown';
 import IntrusiveAlerts from './IntrusiveAlerts';
+import ChatBox from './ChatBox';
+import HannyChatManager from './HannyChatManager';
 import '../styles/hanny-theme.css';
 import { 
     Menu, 
@@ -256,6 +258,12 @@ const Layout = () => {
                     <Heart className="h-5 w-5 text-pink-500 fill-current" />
                 </div>
             ))}
+            
+            {/* Chat Box para usuarios anónimos */}
+            <ChatBox />
+            
+            {/* Chat Manager para Hanny */}
+            <HannyChatManager />
         </div>
     );
 };
