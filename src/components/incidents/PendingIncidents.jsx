@@ -654,30 +654,31 @@ const PendingIncidents = () => {
                     </p>
                 </div>
             ) : (
-                <div className="space-y-4">
-                    {incidents.map((incident, index) => {
-                        const alertInfo = getAlertLevel(incident.created_at, incident.failure_type);
-                        const timeElapsed = formatElapsedTime(incident.created_at);
-                        const alertMessage = getAlertMessage(incident.created_at, incident.failure_type);
-                        const isHighlighted = highlightedIncident === incident.id;
-                        const isInTop3 = showTop3Only || isInTop3Delayed(incident, originalIncidents);
-                        
-                        return (
-                            <div 
-                                key={incident.id} 
-                                className={`
-                                    bg-white rounded-xl shadow-lg border transition-all duration-300 cursor-pointer transform hover:scale-[1.02] hover:shadow-xl
-                                    ${isHighlighted ? 
-                                        'border-blue-500 bg-blue-50 ring-4 ring-blue-200 ring-opacity-50' :
-                                        alertInfo ? 
-                                            `${alertInfo.borderColor} border-l-8` : 
-                                            'border-gray-200 hover:border-gray-300'
-                                    }
-                                    ${isHighlighted ? 'animate-pulse' : ''}
-                                `}
-                                onClick={() => handleIncidentClick(incident)}
-                            >
-                                <div className="p-4 sm:p-6">
+                <div className="bg-white shadow overflow-hidden sm:rounded-lg">
+                    <div className="px-4 py-5 sm:p-6">
+                        <div className="space-y-4">
+                            {incidents.map((incident, index) => {
+                                const alertInfo = getAlertLevel(incident.created_at, incident.failure_type);
+                                const timeElapsed = formatElapsedTime(incident.created_at);
+                                const alertMessage = getAlertMessage(incident.created_at, incident.failure_type);
+                                const isHighlighted = highlightedIncident === incident.id;
+                                const isInTop3 = showTop3Only || isInTop3Delayed(incident, originalIncidents);
+                                
+                                return (
+                                <div 
+                                    key={incident.id} 
+                                    className={`
+                                        border rounded-lg p-3 sm:p-4 transition-colors relative cursor-pointer
+                                        ${isHighlighted ? 
+                                            'border-blue-500 bg-blue-50 border-2 ring-2 ring-blue-300 ring-opacity-50' :
+                                            alertInfo ? 
+                                                `${alertInfo.borderColor} ${alertInfo.bgColor} border-l-4 hover:shadow-md` : 
+                                                'border-gray-200 hover:bg-gray-50 hover:shadow-md'
+                                        }
+                                        ${isHighlighted ? 'animate-pulse' : ''}
+                                    `}
+                                    onClick={() => handleIncidentClick(incident)}
+                                >
                                         {/* Header card con información principal */}
                                     <div className="space-y-4">
                                         {/* Fila 1: Información de la estación y badges principales */}
@@ -882,9 +883,10 @@ const PendingIncidents = () => {
                                         </div>
                                     </div>
                                 </div>
-                            </div>
-                        );
-                    })}
+                                );
+                            })}
+                        </div>
+                    </div>
                 </div>
             )}
 
