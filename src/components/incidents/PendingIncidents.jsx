@@ -654,180 +654,237 @@ const PendingIncidents = () => {
                     </p>
                 </div>
             ) : (
-                <div className="bg-white shadow overflow-hidden sm:rounded-lg">
-                    <div className="px-4 py-5 sm:p-6">
-                        <div className="space-y-4">
-                            {incidents.map((incident, index) => {
-                                const alertInfo = getAlertLevel(incident.created_at, incident.failure_type);
-                                const timeElapsed = formatElapsedTime(incident.created_at);
-                                const alertMessage = getAlertMessage(incident.created_at, incident.failure_type);
-                                const isHighlighted = highlightedIncident === incident.id;
-                                const isInTop3 = showTop3Only || isInTop3Delayed(incident, originalIncidents);
-                                
-                                return (
-                                <div 
-                                    key={incident.id} 
-                                    className={`
-                                        border rounded-lg p-3 sm:p-4 transition-colors relative cursor-pointer
-                                        ${isHighlighted ? 
-                                            'border-blue-500 bg-blue-50 border-2 ring-2 ring-blue-300 ring-opacity-50' :
-                                            alertInfo ? 
-                                                `${alertInfo.borderColor} ${alertInfo.bgColor} border-l-4 hover:shadow-md` : 
-                                                'border-gray-200 hover:bg-gray-50 hover:shadow-md'
-                                        }
-                                        ${isHighlighted ? 'animate-pulse' : ''}
-                                    `}
-                                    onClick={() => handleIncidentClick(incident)}
-                                >
-                                    <div className="flex flex-col space-y-3 sm:flex-row sm:items-center sm:justify-between sm:space-y-0">
-                                        <div className="flex-1">
-                                            <div className="flex flex-col space-y-2 sm:flex-row sm:items-center sm:space-x-4 sm:space-y-0 mb-2">
-                                                <div className="flex items-center text-sm text-gray-500">
-                                                    <Monitor className="h-4 w-4 mr-1" />
-                                                    <span className="font-medium">{incident.station_code}</span>
-                                                    <span className="ml-2 text-xs bg-gray-100 px-2 py-1 rounded">
+                <div className="space-y-4">
+                    {incidents.map((incident, index) => {
+                        const alertInfo = getAlertLevel(incident.created_at, incident.failure_type);
+                        const timeElapsed = formatElapsedTime(incident.created_at);
+                        const alertMessage = getAlertMessage(incident.created_at, incident.failure_type);
+                        const isHighlighted = highlightedIncident === incident.id;
+                        const isInTop3 = showTop3Only || isInTop3Delayed(incident, originalIncidents);
+                        
+                        return (
+                            <div 
+                                key={incident.id} 
+                                className={`
+                                    bg-white rounded-xl shadow-lg border transition-all duration-300 cursor-pointer transform hover:scale-[1.02] hover:shadow-xl
+                                    ${isHighlighted ? 
+                                        'border-blue-500 bg-blue-50 ring-4 ring-blue-200 ring-opacity-50' :
+                                        alertInfo ? 
+                                            `${alertInfo.borderColor} border-l-8` : 
+                                            'border-gray-200 hover:border-gray-300'
+                                    }
+                                    ${isHighlighted ? 'animate-pulse' : ''}
+                                `}
+                                onClick={() => handleIncidentClick(incident)}
+                            >
+                                <div className="p-4 sm:p-6">
+                                        {/* Header card con información principal */}
+                                    <div className="space-y-4">
+                                        {/* Fila 1: Información de la estación y badges principales */}
+                                        <div className="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-3">
+                                            <div className="flex-1 space-y-2">
+                                                {/* Estación y ubicación */}
+                                                <div className="flex flex-wrap items-center gap-2">
+                                                    <div className="flex items-center text-lg font-bold text-gray-900">
+                                                        <Monitor className="h-5 w-5 mr-2 text-blue-600" />
+                                                        <span>{incident.station_code}</span>
+                                                    </div>
+                                                    <span className="inline-flex items-center px-3 py-1 text-sm font-medium bg-gray-100 text-gray-800 rounded-full">
                                                         {incident.sede?.toUpperCase()} - {incident.departamento?.toUpperCase()}
                                                     </span>
-                                                    {incidentAttachments[incident.id] > 0 && (
-                                                        <div className="ml-2 flex items-center">
-                                                            <Paperclip className="h-4 w-4 text-blue-500 mr-1" />
-                                                            <span className="text-xs font-semibold text-blue-600 bg-blue-100 px-2 py-1 rounded">
-                                                                {incidentAttachments[incident.id]} archivo{incidentAttachments[incident.id] !== 1 ? 's' : ''}
-                                                            </span>
-                                                        </div>
-                                                    )}
-                                                    {isInTop3 && showTop3Only && (
-                                                        <div className="ml-2 flex items-center">
-                                                            <Trophy className="h-4 w-4 text-yellow-500 mr-1" />
-                                                            <span className="text-xs font-semibold text-yellow-600 bg-yellow-100 px-2 py-1 rounded">
-                                                                TOP {index + 1}
-                                                            </span>
-                                                        </div>
-                                                    )}
                                                 </div>
-                                                <span className={`inline-flex px-2 py-1 text-xs font-semibold rounded-full ${getFailureTypeColor(incident.failure_type)}`}>
+                                                
+                                                {/* Reportado por */}
+                                                <div className="flex items-center text-sm text-gray-600">
+                                                    <User className="h-4 w-4 mr-1 text-gray-400" />
+                                                    <span>Reportado por: <span className="font-medium">{incident.reported_by_name}</span></span>
+                                                </div>
+                                            </div>
+                                            
+                                            {/* Badges secundarios */}
+                                            <div className="flex flex-wrap gap-2 sm:flex-col sm:items-end">
+                                                <span className={`inline-flex items-center px-3 py-1 text-sm font-semibold rounded-full ${getFailureTypeColor(incident.failure_type)}`}>
                                                     {getFailureTypeLabel(incident.failure_type)}
                                                 </span>
+                                                
                                                 {incident.is_recently_reassigned && (
-                                                    <span className="inline-flex items-center px-2 py-1 text-xs font-semibold rounded-full bg-orange-100 text-orange-800 border border-orange-200">
-                                                        <Settings className="h-3 w-3 mr-1" />
+                                                    <span className="inline-flex items-center px-3 py-1 text-sm font-semibold rounded-full bg-orange-100 text-orange-800 border border-orange-200">
+                                                        <Settings className="h-4 w-4 mr-1" />
                                                         Reasignado
                                                     </span>
                                                 )}
-                                                <div className="flex items-center text-sm text-gray-500 mt-1 sm:mt-0">
-                                                    <User className="h-4 w-4 mr-1" />
-                                                    <span className="truncate">Reportado por: {incident.reported_by_name}</span>
-                                                </div>
+                                                
+                                                {incidentAttachments[incident.id] > 0 && (
+                                                    <span className="inline-flex items-center px-3 py-1 text-sm font-semibold text-blue-700 bg-blue-100 rounded-full">
+                                                        <Paperclip className="h-4 w-4 mr-1" />
+                                                        {incidentAttachments[incident.id]} archivo{incidentAttachments[incident.id] !== 1 ? 's' : ''}
+                                                    </span>
+                                                )}
+                                                
+                                                {isInTop3 && showTop3Only && (
+                                                    <span className="inline-flex items-center px-3 py-1 text-sm font-bold text-yellow-700 bg-yellow-100 rounded-full border-2 border-yellow-300">
+                                                        <Trophy className="h-4 w-4 mr-1" />
+                                                        TOP {index + 1}
+                                                    </span>
+                                                )}
                                             </div>
-                                            
-                                            <div className="flex items-start space-x-2 mb-2">
-                                                <FileText className="h-4 w-4 text-gray-400 mt-0.5 flex-shrink-0" />
-                                                <p className="text-gray-900 font-medium">
+                                        </div>
+                                        
+                                        {/* Fila 2: Descripción */}
+                                        <div className="flex items-start space-x-3 p-3 bg-gray-50 rounded-lg">
+                                            <FileText className="h-5 w-5 text-gray-500 mt-0.5 flex-shrink-0" />
+                                            <div>
+                                                <p className="text-sm font-medium text-gray-500 mb-1">Descripción del problema:</p>
+                                                <p className="text-gray-900 font-medium leading-relaxed">
                                                     {incident.description}
                                                 </p>
                                             </div>
-                                            
-                                            <div className="flex flex-col space-y-2 sm:flex-row sm:items-center sm:space-x-4 sm:space-y-0 text-sm text-gray-500">
-                                                <div className="flex items-center">
-                                                    <Calendar className="h-4 w-4 mr-1" />
-                                                    <span>
-                                                        Creado: {new Date(incident.created_at).toLocaleDateString()} a las {new Date(incident.created_at).toLocaleTimeString()}
-                                                    </span>
+                                        </div>
+                                        
+                                        {/* Fila 3: Información temporal y estado */}
+                                        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3 text-sm">
+                                            {/* Fecha de creación */}
+                                            <div className="flex items-center p-2 bg-blue-50 rounded-lg">
+                                                <Calendar className="h-4 w-4 mr-2 text-blue-600" />
+                                                <div>
+                                                    <p className="font-medium text-blue-900">Creado</p>
+                                                    <p className="text-blue-700">
+                                                        {new Date(incident.created_at).toLocaleDateString()}
+                                                    </p>
+                                                    <p className="text-blue-600 text-xs">
+                                                        {new Date(incident.created_at).toLocaleTimeString()}
+                                                    </p>
                                                 </div>
-                                                
-                                                {/* Información de tiempo transcurrido */}
-                                                <div className="flex items-center">
-                                                    <Clock className="h-4 w-4 mr-1" />
-                                                    <span className={alertInfo ? alertInfo.textColor : 'text-gray-500'}>
-                                                        Sin asignar: {timeElapsed}
-                                                    </span>
-                                                </div>
-                                                
-                                                {/* Badge de estado con alerta si aplica */}
-                                                <span className={`inline-flex px-2 py-1 text-xs font-semibold rounded-full ${
-                                                    alertInfo ? 
-                                                        `${alertInfo.bgColor} ${alertInfo.textColor}` : 
-                                                        'bg-yellow-100 text-yellow-800'
-                                                }`}>
-                                                    {alertInfo ? 
-                                                        (alertInfo.level === 'urgent' ? '🚨 URGENTE' :
-                                                         alertInfo.level === 'critical' ? '⚠️ CRÍTICO' : 
-                                                         '⚡ ATENCIÓN') : 
-                                                        'Pendiente'
-                                                    }
-                                                </span>
                                             </div>
                                             
-                                            {/* Mensaje de alerta si aplica */}
-                                            {alertMessage && (
-                                                <div className={`mt-2 p-2 rounded-md ${alertInfo.bgColor} flex items-center`}>
-                                                    <AlertTriangle className={`h-4 w-4 mr-2 ${alertInfo.textColor}`} />
-                                                    <span className={`text-sm font-medium ${alertInfo.textColor}`}>
-                                                        {alertMessage}
-                                                    </span>
+                                            {/* Tiempo transcurrido */}
+                                            <div className={`flex items-center p-2 rounded-lg ${
+                                                alertInfo ? `${alertInfo.bgColor}` : 'bg-yellow-50'
+                                            }`}>
+                                                <Clock className={`h-4 w-4 mr-2 ${
+                                                    alertInfo ? alertInfo.textColor : 'text-yellow-600'
+                                                }`} />
+                                                <div>
+                                                    <p className={`font-medium ${
+                                                        alertInfo ? alertInfo.textColor : 'text-yellow-900'
+                                                    }`}>Sin asignar</p>
+                                                    <p className={`font-bold ${
+                                                        alertInfo ? alertInfo.textColor : 'text-yellow-700'
+                                                    }`}>
+                                                        {timeElapsed}
+                                                    </p>
                                                 </div>
-                                            )}
+                                            </div>
                                             
-                                            {/* Indicador de click para ver detalles */}
-                                            <div className="mt-2 text-xs text-gray-500 flex items-center">
-                                                <span>👁️ Hacer clic para ver detalles completos</span>
+                                            {/* Estado de prioridad */}
+                                            <div className={`flex items-center p-2 rounded-lg ${
+                                                alertInfo ? `${alertInfo.bgColor}` : 'bg-green-50'
+                                            } sm:col-span-2 lg:col-span-1`}>
+                                                <AlertCircle className={`h-4 w-4 mr-2 ${
+                                                    alertInfo ? alertInfo.textColor : 'text-green-600'
+                                                }`} />
+                                                <div>
+                                                    <p className={`font-medium ${
+                                                        alertInfo ? alertInfo.textColor : 'text-green-900'
+                                                    }`}>Estado</p>
+                                                    <p className={`font-bold ${
+                                                        alertInfo ? alertInfo.textColor : 'text-green-700'
+                                                    }`}>
+                                                        {alertInfo ? 
+                                                            (alertInfo.level === 'urgent' ? '🚨 URGENTE' :
+                                                             alertInfo.level === 'critical' ? '⚠️ CRÍTICO' : 
+                                                             '⚡ ATENCIÓN') : 
+                                                            '✅ Normal'
+                                                        }
+                                                    </p>
+                                                </div>
                                             </div>
                                         </div>
-
-                                        {currentStatus === 'pendiente' && (isAdmin || isTechnician) && (
-                                            <div className="ml-0 sm:ml-4 flex-shrink-0">
-                                                {isAdmin ? (
-                                                    <button
-                                                        onClick={(e) => {
-                                                            e.stopPropagation();
-                                                            handleAssign(incident);
-                                                        }}
-                                                        className="inline-flex items-center px-3 py-2 border border-transparent text-xs sm:text-sm font-medium rounded-md text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 w-full sm:w-auto justify-center"
-                                                    >
-                                                        <UserPlus className="h-4 w-4 mr-1" />
-                                                        Asignar Técnico
-                                                    </button>
-                                                ) : (
-                                                    <button
-                                                        onClick={(e) => {
-                                                            e.stopPropagation();
-                                                            handleSelfAssign(incident);
-                                                        }}
-                                                        className="inline-flex items-center px-3 py-2 border border-transparent text-xs sm:text-sm font-medium rounded-md text-white bg-green-600 hover:bg-green-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-green-500 w-full sm:w-auto justify-center"
-                                                    >
-                                                        <UserPlus className="h-4 w-4 mr-1" />
-                                                        Tomar Incidencia
-                                                    </button>
-                                                )}
+                                        
+                                        {/* Mensaje de alerta si aplica */}
+                                        {alertMessage && (
+                                            <div className={`p-4 rounded-lg border-l-4 ${alertInfo.bgColor} ${alertInfo.borderColor}`}>
+                                                <div className="flex items-center">
+                                                    <AlertTriangle className={`h-5 w-5 mr-3 ${alertInfo.textColor}`} />
+                                                    <div>
+                                                        <p className={`font-bold ${alertInfo.textColor}`}>¡Atención Requerida!</p>
+                                                        <p className={`text-sm ${alertInfo.textColor} mt-1`}>
+                                                            {alertMessage}
+                                                        </p>
+                                                    </div>
+                                                </div>
                                             </div>
                                         )}
                                         
-                                        {currentStatus === 'en_proceso' && incident.assigned_to_name && (
-                                            <div className="ml-0 sm:ml-4 flex-shrink-0 flex flex-col sm:flex-row gap-2">
-                                                <div className="inline-flex items-center px-3 py-2 border border-gray-300 text-xs sm:text-sm font-medium rounded-md text-gray-700 bg-gray-50 w-full sm:w-auto justify-center">
-                                                    <User className="h-4 w-4 mr-1" />
-                                                    Asignado a: {incident.assigned_to_name}
-                                                </div>
-                                                {isAdmin && (
-                                                    <button
-                                                        onClick={(e) => {
-                                                            e.stopPropagation();
-                                                            handleReassign(incident);
-                                                        }}
-                                                        className="inline-flex items-center px-3 py-2 border border-transparent text-xs sm:text-sm font-medium rounded-md text-white bg-orange-600 hover:bg-orange-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-orange-500 w-full sm:w-auto justify-center"
-                                                    >
-                                                        <UserPlus className="h-4 w-4 mr-1" />
-                                                        Reasignar
-                                                    </button>
+                                        {/* Fila 4: Acciones y botones */}
+                                        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 pt-4 border-t border-gray-100">
+                                            {/* Indicador de click para ver detalles */}
+                                            <div className="text-sm text-gray-500 flex items-center order-2 sm:order-1">
+                                                <span className="bg-blue-100 text-blue-800 px-2 py-1 rounded-full text-xs font-medium">
+                                                    👁️ Clic para ver detalles completos
+                                                </span>
+                                            </div>
+                                            
+                                            {/* Botones de acción */}
+                                            <div className="flex flex-col sm:flex-row gap-2 order-1 sm:order-2">
+                                                {currentStatus === 'pendiente' && (isAdmin || isTechnician) && (
+                                                    <>
+                                                        {isAdmin ? (
+                                                            <button
+                                                                onClick={(e) => {
+                                                                    e.stopPropagation();
+                                                                    handleAssign(incident);
+                                                                }}
+                                                                className="inline-flex items-center justify-center px-6 py-3 border border-transparent text-sm font-semibold rounded-lg text-white bg-gradient-to-r from-blue-600 to-blue-700 hover:from-blue-700 hover:to-blue-800 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 shadow-lg hover:shadow-xl transition-all duration-200 transform hover:scale-105"
+                                                            >
+                                                                <UserPlus className="h-5 w-5 mr-2" />
+                                                                Asignar Técnico
+                                                            </button>
+                                                        ) : (
+                                                            <button
+                                                                onClick={(e) => {
+                                                                    e.stopPropagation();
+                                                                    handleSelfAssign(incident);
+                                                                }}
+                                                                className="inline-flex items-center justify-center px-6 py-3 border border-transparent text-sm font-semibold rounded-lg text-white bg-gradient-to-r from-green-600 to-green-700 hover:from-green-700 hover:to-green-800 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-green-500 shadow-lg hover:shadow-xl transition-all duration-200 transform hover:scale-105"
+                                                            >
+                                                                <UserPlus className="h-5 w-5 mr-2" />
+                                                                Tomar Incidencia
+                                                            </button>
+                                                        )}
+                                                    </>
+                                                )}
+                                                
+                                                {currentStatus === 'en_proceso' && incident.assigned_to_name && (
+                                                    <>
+                                                        <div className="inline-flex items-center px-4 py-2 border-2 border-gray-300 text-sm font-medium rounded-lg text-gray-700 bg-white">
+                                                            <User className="h-5 w-5 mr-2 text-gray-500" />
+                                                            <span>
+                                                                <span className="text-gray-500">Asignado a:</span>
+                                                                <span className="font-semibold ml-1">{incident.assigned_to_name}</span>
+                                                            </span>
+                                                        </div>
+                                                        {isAdmin && (
+                                                            <button
+                                                                onClick={(e) => {
+                                                                    e.stopPropagation();
+                                                                    handleReassign(incident);
+                                                                }}
+                                                                className="inline-flex items-center justify-center px-6 py-3 border border-transparent text-sm font-semibold rounded-lg text-white bg-gradient-to-r from-orange-600 to-orange-700 hover:from-orange-700 hover:to-orange-800 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-orange-500 shadow-lg hover:shadow-xl transition-all duration-200 transform hover:scale-105"
+                                                            >
+                                                                <UserPlus className="h-5 w-5 mr-2" />
+                                                                Reasignar
+                                                            </button>
+                                                        )}
+                                                    </>
                                                 )}
                                             </div>
-                                        )}
+                                        </div>
                                     </div>
                                 </div>
-                                );
-                            })}
-                        </div>
-                    </div>
+                            </div>
+                        );
+                    })}
                 </div>
             )}
 
@@ -923,7 +980,7 @@ const PendingIncidents = () => {
             {/* Modal para reasignar técnico */}
             {showReassignModal && (
                 <div className="fixed inset-0 bg-gray-600 bg-opacity-50 overflow-y-auto h-full w-full z-50">
-                    <div className="relative top-20 mx-auto p-5 border w-96 shadow-lg rounded-md bg-white">
+                    <div className="relative top-20 mx-auto p-5 border w-11/12 max-w-md shadow-lg rounded-md bg-white">
                         <div className="mt-3">
                             <div className="flex items-center mb-4">
                                 <UserPlus className="h-6 w-6 text-orange-600 mr-2" />

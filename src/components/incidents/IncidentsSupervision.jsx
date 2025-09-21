@@ -24,7 +24,9 @@ import {
     Users,
     ChevronDown,
     ChevronUp,
-    Activity
+    Activity,
+    MoreVertical,
+    FileText
 } from 'lucide-react';
 import StarRating from '../StarRating';
 
@@ -65,6 +67,7 @@ const IncidentsSupervision = () => {
     const [showFilters, setShowFilters] = useState(false);
     const [coordinatorsRanking, setCoordinatorsRanking] = useState([]);
     const [showCoordinatorsPanel, setShowCoordinatorsPanel] = useState(false);
+    const [openDropdowns, setOpenDropdowns] = useState({});
 
     useEffect(() => {
         // Procesar parámetros de URL al cargar el componente
@@ -720,61 +723,150 @@ const IncidentsSupervision = () => {
                                             </div>
                                         </div>
 
-                                        <div className="flex items-center space-x-2 ml-4">
-                                            <button
-                                                onClick={() => handleViewHistory(incident)}
-                                                className="inline-flex items-center px-3 py-2 border border-gray-300 text-sm font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500"
-                                            >
-                                                <History className="h-4 w-4 mr-1" />
-                                                Ver Historial
-                                            </button>
-                                            
-                                            {/* Botón de reasignar - solo para admins */}
-                                            {user.role === 'admin' && incident.assigned_to_name && (
+                                        {/* Botones de acción - Desktop y Móvil */}
+                                        <div className="flex items-center mt-4 lg:mt-0 lg:ml-4">
+                                            {/* Vista Desktop - Botones horizontales */}
+                                            <div className="hidden lg:flex items-center space-x-2">
                                                 <button
-                                                    onClick={() => handleReassign(incident)}
-                                                    className="inline-flex items-center px-3 py-2 border border-transparent text-sm font-medium rounded-md text-white bg-orange-600 hover:bg-orange-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-orange-500"
+                                                    onClick={() => handleViewHistory(incident)}
+                                                    className="inline-flex items-center px-3 py-2 border border-gray-300 text-sm font-medium rounded-lg text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 shadow-sm transition-all duration-200"
                                                 >
-                                                    <UserPlus className="h-4 w-4 mr-1" />
-                                                    Reasignar
+                                                    <Eye className="h-4 w-4 mr-2" />
+                                                    Ver Historial
                                                 </button>
-                                            )}
-                                            {/* Solo mostrar botones de aprobar/rechazar si:
-                                                 - Es admin/supervisor/coordinador/administrativo (pueden aprobar todas)
-                                                 - O es jefe de operaciones pero SOLO para sus propias incidencias */}
-                                            {(user.role !== 'jefe_operaciones' || incident.reported_by_name === user.full_name) && (
-                                                <>
+                                                
+                                                {/* Botón de reasignar - solo para admins */}
+                                                {user.role === 'admin' && incident.assigned_to_name && (
                                                     <button
-                                                        onClick={() => handleAction(incident, 'approve')}
-                                                        className="inline-flex items-center px-3 py-2 border border-transparent text-sm font-medium rounded-md text-white bg-green-600 hover:bg-green-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-green-500"
+                                                        onClick={() => handleReassign(incident)}
+                                                        className="inline-flex items-center px-3 py-2 border border-transparent text-sm font-medium rounded-lg text-white bg-gradient-to-r from-orange-600 to-orange-700 hover:from-orange-700 hover:to-orange-800 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-orange-500 shadow-lg transition-all duration-200"
                                                     >
-                                                        <Check className="h-4 w-4 mr-1" />
-                                                        Aprobar
+                                                        <UserPlus className="h-4 w-4 mr-2" />
+                                                        Reasignar
                                                     </button>
+                                                )}
+                                                
+                                                {/* Solo mostrar botones de aprobar/rechazar si es permitido */}
+                                                {(user.role !== 'jefe_operaciones' || incident.reported_by_name === user.full_name) && (
+                                                    <>
+                                                        <button
+                                                            onClick={() => handleAction(incident, 'approve')}
+                                                            className="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-lg text-white bg-gradient-to-r from-green-600 to-green-700 hover:from-green-700 hover:to-green-800 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-green-500 shadow-lg transition-all duration-200"
+                                                        >
+                                                            <Check className="h-4 w-4 mr-2" />
+                                                            Aprobar
+                                                        </button>
+                                                        <button
+                                                            onClick={() => handleAction(incident, 'reject')}
+                                                            className="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-lg text-white bg-gradient-to-r from-red-600 to-red-700 hover:from-red-700 hover:to-red-800 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-red-500 shadow-lg transition-all duration-200"
+                                                        >
+                                                            <X className="h-4 w-4 mr-2" />
+                                                            Rechazar
+                                                        </button>
+                                                    </>
+                                                )}
+                                                
+                                                {/* Botón de alerta individual - solo para admin en incidencias atrasadas */}
+                                                {user.role === 'admin' && incident.isOverdue && (
                                                     <button
-                                                        onClick={() => handleAction(incident, 'reject')}
-                                                        className="inline-flex items-center px-3 py-2 border border-transparent text-sm font-medium rounded-md text-white bg-red-600 hover:bg-red-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-red-500"
+                                                        onClick={() => handleSendAlert(incident)}
+                                                        className="inline-flex items-center px-3 py-2 border border-transparent text-sm font-medium rounded-lg text-white bg-gradient-to-r from-red-600 to-red-700 hover:from-red-700 hover:to-red-800 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-red-500 shadow-lg transition-all duration-200"
                                                     >
-                                                        <X className="h-4 w-4 mr-1" />
-                                                        Rechazar
+                                                        <Bell className="h-4 w-4 mr-2" />
+                                                        Alertar
                                                     </button>
-                                                </>
-                                            )}
+                                                )}
+                                            </div>
                                             
-                                            {/* Botón de alerta individual - solo para admin en incidencias atrasadas */}
-                                            {user.role === 'admin' && incident.isOverdue && (
+                                            {/* Vista Móvil/Tablet - Menú desplegable */}
+                                            <div className="lg:hidden relative">
                                                 <button
-                                                    onClick={() => handleSendAlert(incident)}
-                                                    className="inline-flex items-center px-3 py-2 border border-transparent text-sm font-medium rounded-md text-white bg-red-600 hover:bg-red-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-red-500"
+                                                    onClick={() => setOpenDropdowns(prev => ({ 
+                                                        ...prev, 
+                                                        [incident.id]: !prev[incident.id] 
+                                                    }))}
+                                                    className="inline-flex items-center px-4 py-3 border border-gray-300 text-sm font-medium rounded-lg text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 shadow-lg transition-all duration-200"
                                                 >
-                                                    <Bell className="h-4 w-4 mr-1" />
-                                                    Alertar
+                                                    <MoreVertical className="h-5 w-5 mr-2" />
+                                                    Opciones
+                                                    <ChevronDown className={`h-4 w-4 ml-2 transition-transform duration-200 ${
+                                                        openDropdowns[incident.id] ? 'transform rotate-180' : ''
+                                                    }`} />
                                                 </button>
-                                            )}
+                                                
+                                                {/* Menú desplegable */}
+                                                {openDropdowns[incident.id] && (
+                                                    <div className="absolute right-0 mt-2 w-48 bg-white rounded-lg shadow-xl border border-gray-200 z-10">
+                                                        <div className="py-2">
+                                                            <button
+                                                                onClick={() => {
+                                                                    handleViewHistory(incident);
+                                                                    setOpenDropdowns(prev => ({ ...prev, [incident.id]: false }));
+                                                                }}
+                                                                className="flex items-center w-full px-4 py-3 text-sm text-gray-700 hover:bg-gray-100 transition-colors duration-150"
+                                                            >
+                                                                <Eye className="h-4 w-4 mr-3 text-blue-600" />
+                                                                Ver Historial
+                                                            </button>
+                                                            
+                                                            {user.role === 'admin' && incident.assigned_to_name && (
+                                                                <button
+                                                                    onClick={() => {
+                                                                        handleReassign(incident);
+                                                                        setOpenDropdowns(prev => ({ ...prev, [incident.id]: false }));
+                                                                    }}
+                                                                    className="flex items-center w-full px-4 py-3 text-sm text-gray-700 hover:bg-gray-100 transition-colors duration-150"
+                                                                >
+                                                                    <UserPlus className="h-4 w-4 mr-3 text-orange-600" />
+                                                                    Reasignar Técnico
+                                                                </button>
+                                                            )}
+                                                            
+                                                            {(user.role !== 'jefe_operaciones' || incident.reported_by_name === user.full_name) && (
+                                                                <>
+                                                                    <button
+                                                                        onClick={() => {
+                                                                            handleAction(incident, 'approve');
+                                                                            setOpenDropdowns(prev => ({ ...prev, [incident.id]: false }));
+                                                                        }}
+                                                                        className="flex items-center w-full px-4 py-3 text-sm text-gray-700 hover:bg-green-50 transition-colors duration-150"
+                                                                    >
+                                                                        <Check className="h-4 w-4 mr-3 text-green-600" />
+                                                                        Aprobar
+                                                                    </button>
+                                                                    <button
+                                                                        onClick={() => {
+                                                                            handleAction(incident, 'reject');
+                                                                            setOpenDropdowns(prev => ({ ...prev, [incident.id]: false }));
+                                                                        }}
+                                                                        className="flex items-center w-full px-4 py-3 text-sm text-gray-700 hover:bg-red-50 transition-colors duration-150"
+                                                                    >
+                                                                        <X className="h-4 w-4 mr-3 text-red-600" />
+                                                                        Rechazar
+                                                                    </button>
+                                                                </>
+                                                            )}
+                                                            
+                                                            {user.role === 'admin' && incident.isOverdue && (
+                                                                <button
+                                                                    onClick={() => {
+                                                                        handleSendAlert(incident);
+                                                                        setOpenDropdowns(prev => ({ ...prev, [incident.id]: false }));
+                                                                    }}
+                                                                    className="flex items-center w-full px-4 py-3 text-sm text-gray-700 hover:bg-red-50 transition-colors duration-150"
+                                                                >
+                                                                    <Bell className="h-4 w-4 mr-3 text-red-600" />
+                                                                    Enviar Alerta
+                                                                </button>
+                                                            )}
+                                                        </div>
+                                                    </div>
+                                                )}
+                                            </div>
                                             
                                             {/* Para jefes de operaciones: mostrar mensaje informativo en incidencias de otros */}
                                             {user.role === 'jefe_operaciones' && incident.reported_by_name !== user.full_name && (
-                                                <div className="text-sm text-gray-500 italic">
+                                                <div className="text-sm text-gray-500 italic px-3 py-2 bg-gray-50 rounded-lg">
                                                     Solo supervisión - no puedes aprobar incidencias de otros
                                                 </div>
                                             )}
