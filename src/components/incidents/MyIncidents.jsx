@@ -181,19 +181,19 @@ const MyIncidents = () => {
                             </h2>
                             <div className="bg-white shadow overflow-hidden sm:rounded-lg">
                                 <div className="px-4 py-5 sm:p-6">
-                                    <div className="space-y-4">
+                                    <div className="space-y-2">
                                         {inProcessIncidents.map((incident) => {
                                             const StatusIcon = getStatusInfo(incident.status).icon;
                                             const isRejected = incident.status === 'rechazado';
                                             return (
-                                                <div key={incident.id} className={`border rounded-lg p-4 ${
+                                                <div key={incident.id} className={`border rounded-lg p-2 sm:p-3 ${
                                                     isRejected 
                                                         ? 'border-red-300 bg-red-50' 
                                                         : 'border-blue-200 bg-blue-50'
                                                 }`}>
                                                     <div className="flex items-center justify-between">
                                                         <div className="flex-1">
-                                                            <div className="flex items-center space-x-4 mb-2">
+                                                            <div className="flex items-center space-x-4 mb-1">
                                                                 <div className="flex items-center text-sm text-gray-600">
                                                                     <Monitor className="h-4 w-4 mr-1" />
                                                                     <span className="font-medium">{incident.station_code}</span>
@@ -216,7 +216,7 @@ const MyIncidents = () => {
                                                                 </div>
                                                             </div>
                                                             
-                                                            <div className="flex items-start space-x-2 mb-2">
+                                                            <div className="flex items-start space-x-2 mb-1">
                                                                 <FileText className="h-4 w-4 text-gray-400 mt-0.5 flex-shrink-0" />
                                                                 <div className="flex-1">
                                                                     <p className="text-gray-900 font-medium">
@@ -287,14 +287,14 @@ const MyIncidents = () => {
                             </h2>
                             <div className="bg-white shadow overflow-hidden sm:rounded-lg">
                                 <div className="px-4 py-5 sm:p-6">
-                                    <div className="space-y-4">
+                                    <div className="space-y-2">
                                         {otherIncidents.map((incident) => {
                                             const StatusIcon = getStatusInfo(incident.status).icon;
                                             return (
-                                                <div key={incident.id} className="border border-gray-200 rounded-lg p-4">
+                                                <div key={incident.id} className="border border-gray-200 rounded-lg p-2 sm:p-3">
                                                     <div className="flex items-center justify-between">
                                                         <div className="flex-1">
-                                                            <div className="flex items-center space-x-4 mb-2">
+                                                            <div className="flex items-center space-x-4 mb-1">
                                                                 <div className="flex items-center text-sm text-gray-600">
                                                                     <Monitor className="h-4 w-4 mr-1" />
                                                                     <span className="font-medium">{incident.station_code}</span>
@@ -313,7 +313,7 @@ const MyIncidents = () => {
                                                                 )}
                                                             </div>
                                                             
-                                                            <div className="flex items-start space-x-2 mb-2">
+                                                            <div className="flex items-start space-x-2 mb-1">
                                                                 <FileText className="h-4 w-4 text-gray-400 mt-0.5 flex-shrink-0" />
                                                                 <p className="text-gray-900 font-medium">
                                                                     {incident.description}
