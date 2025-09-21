@@ -120,6 +120,7 @@ const Dashboard = () => {
 
     const loadDashboardData = async () => {
         try {
+            console.log('Cargando datos del dashboard...');
             setLoading(true);
             
             // Cargar estadísticas y técnicos si es admin
@@ -197,7 +198,10 @@ const Dashboard = () => {
 
         } catch (error) {
             console.error('Error cargando dashboard:', error);
+            console.error('Error details:', error.response?.data);
+            // No mostrar error, pero asegurar que loading se complete
         } finally {
+            console.log('Dashboard carga completada');
             setLoading(false);
         }
     };

@@ -692,8 +692,12 @@ const IncidentsSupervision = () => {
                                                     <span className="capitalize">{incident.failure_type}</span>
                                                 </div>
                                                 <div className="flex items-center text-sm text-gray-500">
-                                                    <User className="h-4 w-4 mr-1" />
-                                                    <span>{incident.assigned_to_name}</span>
+                                                    <User className="h-4 w-4 mr-1 text-blue-600" />
+                                                    <span><strong>Técnico:</strong> {incident.assigned_to_name}</span>
+                                                </div>
+                                                <div className="flex items-center text-sm text-gray-500">
+                                                    <User className="h-4 w-4 mr-1 text-green-600" />
+                                                    <span><strong>Reportado por:</strong> {incident.reported_by_name}</span>
                                                 </div>
                                             </div>
                                             

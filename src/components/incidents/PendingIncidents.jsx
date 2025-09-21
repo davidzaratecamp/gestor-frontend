@@ -656,7 +656,7 @@ const PendingIncidents = () => {
             ) : (
                 <div className="bg-white shadow overflow-hidden sm:rounded-lg">
                     <div className="px-4 py-5 sm:p-6">
-                        <div className="space-y-4">
+                        <div className="space-y-6">
                             {incidents.map((incident, index) => {
                                 const alertInfo = getAlertLevel(incident.created_at, incident.failure_type);
                                 const timeElapsed = formatElapsedTime(incident.created_at);
@@ -668,7 +668,7 @@ const PendingIncidents = () => {
                                 <div 
                                     key={incident.id} 
                                     className={`
-                                        border rounded p-1 sm:p-2 transition-colors relative cursor-pointer
+                                        border rounded p-3 sm:p-4 transition-colors relative cursor-pointer
                                         ${isHighlighted ? 
                                             'border-blue-500 bg-blue-50 border-2 ring-2 ring-blue-300 ring-opacity-50' :
                                             alertInfo ? 
@@ -679,207 +679,136 @@ const PendingIncidents = () => {
                                     `}
                                     onClick={() => handleIncidentClick(incident)}
                                 >
-                                        {/* Header card con información principal */}
-                                    <div className="space-y-4">
-                                        {/* Fila 1: Información de la estación y badges principales */}
-                                        <div className="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-1">
-                                            <div className="flex-1 space-y-2">
-                                                {/* Estación y ubicación */}
-                                                <div className="flex flex-wrap items-center gap-2">
-                                                    <div className="flex items-center text-lg font-bold text-gray-900">
-                                                        <Monitor className="h-5 w-5 mr-2 text-blue-600" />
-                                                        <span>{incident.station_code}</span>
-                                                    </div>
-                                                    <span className="inline-flex items-center px-3 py-1 text-sm font-medium bg-gray-100 text-gray-800 rounded-full">
-                                                        {incident.sede?.toUpperCase()} - {incident.departamento?.toUpperCase()}
-                                                    </span>
-                                                </div>
-                                                
-                                                {/* Reportado por */}
-                                                <div className="flex items-center text-sm text-gray-600">
-                                                    <User className="h-4 w-4 mr-1 text-gray-400" />
-                                                    <span>Reportado por: <span className="font-medium">{incident.reported_by_name}</span></span>
-                                                </div>
-                                            </div>
-                                            
-                                            {/* Badges secundarios */}
-                                            <div className="flex flex-wrap gap-2 sm:flex-col sm:items-end">
-                                                <span className={`inline-flex items-center px-3 py-1 text-sm font-semibold rounded-full ${getFailureTypeColor(incident.failure_type)}`}>
+                                        {/* Información expandida en múltiples líneas */}
+                                    <div className="space-y-2">
+                                        {/* Primera línea: Estación y ubicación */}
+                                        <div className="flex items-center justify-between">
+                                            <div className="flex items-center space-x-3">
+                                                <Monitor className="h-5 w-5 text-blue-600" />
+                                                <span className="font-bold text-lg">{incident.station_code}</span>
+                                                <span className="text-sm bg-gray-100 px-2 py-1 rounded">
+                                                    {incident.sede?.toUpperCase()} - {incident.departamento?.toUpperCase()}
+                                                </span>
+                                                <span className={`px-2 py-1 text-sm rounded ${getFailureTypeColor(incident.failure_type)}`}>
                                                     {getFailureTypeLabel(incident.failure_type)}
                                                 </span>
-                                                
                                                 {incident.is_recently_reassigned && (
-                                                    <span className="inline-flex items-center px-3 py-1 text-sm font-semibold rounded-full bg-orange-100 text-orange-800 border border-orange-200">
-                                                        <Settings className="h-4 w-4 mr-1" />
+                                                    <span className="px-2 py-1 text-sm bg-orange-100 text-orange-800 rounded">
                                                         Reasignado
                                                     </span>
                                                 )}
-                                                
                                                 {incidentAttachments[incident.id] > 0 && (
-                                                    <span className="inline-flex items-center px-3 py-1 text-sm font-semibold text-blue-700 bg-blue-100 rounded-full">
-                                                        <Paperclip className="h-4 w-4 mr-1" />
-                                                        {incidentAttachments[incident.id]} archivo{incidentAttachments[incident.id] !== 1 ? 's' : ''}
-                                                    </span>
-                                                )}
-                                                
-                                                {isInTop3 && showTop3Only && (
-                                                    <span className="inline-flex items-center px-3 py-1 text-sm font-bold text-yellow-700 bg-yellow-100 rounded-full border-2 border-yellow-300">
-                                                        <Trophy className="h-4 w-4 mr-1" />
-                                                        TOP {index + 1}
+                                                    <span className="px-2 py-1 text-sm text-blue-700 bg-blue-100 rounded">
+                                                        📎 {incidentAttachments[incident.id]} archivo(s)
                                                     </span>
                                                 )}
                                             </div>
-                                        </div>
-                                        
-                                        {/* Fila 2: Descripción */}
-                                        <div className="flex items-start space-x-2 p-1 sm:p-2 bg-gray-50 rounded">
-                                            <FileText className="h-5 w-5 text-gray-500 mt-0.5 flex-shrink-0" />
-                                            <div>
-                                                <p className="text-sm font-medium text-gray-500 mb-1">Descripción del problema:</p>
-                                                <p className="text-gray-900 font-medium leading-relaxed">
-                                                    {incident.description}
-                                                </p>
-                                            </div>
-                                        </div>
-                                        
-                                        {/* Fila 3: Información temporal y estado */}
-                                        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-1 text-xs sm:text-sm">
-                                            {/* Fecha de creación */}
-                                            <div className="flex items-center p-1 bg-blue-50 rounded">
-                                                <Calendar className="h-4 w-4 mr-2 text-blue-600" />
-                                                <div>
-                                                    <p className="font-medium text-blue-900">Creado</p>
-                                                    <p className="text-blue-700">
-                                                        {new Date(incident.created_at).toLocaleDateString()}
-                                                    </p>
-                                                    <p className="text-blue-600 text-xs">
-                                                        {new Date(incident.created_at).toLocaleTimeString()}
-                                                    </p>
-                                                </div>
-                                            </div>
-                                            
-                                            {/* Tiempo transcurrido */}
-                                            <div className={`flex items-center p-1 rounded ${
-                                                alertInfo ? `${alertInfo.bgColor}` : 'bg-yellow-50'
-                                            }`}>
-                                                <Clock className={`h-4 w-4 mr-2 ${
-                                                    alertInfo ? alertInfo.textColor : 'text-yellow-600'
-                                                }`} />
-                                                <div>
-                                                    <p className={`font-medium ${
-                                                        alertInfo ? alertInfo.textColor : 'text-yellow-900'
-                                                    }`}>Sin asignar</p>
-                                                    <p className={`font-bold ${
-                                                        alertInfo ? alertInfo.textColor : 'text-yellow-700'
-                                                    }`}>
-                                                        {timeElapsed}
-                                                    </p>
-                                                </div>
-                                            </div>
-                                            
-                                            {/* Estado de prioridad */}
-                                            <div className={`flex items-center p-1 rounded ${
-                                                alertInfo ? `${alertInfo.bgColor}` : 'bg-green-50'
-                                            } sm:col-span-2 lg:col-span-1`}>
-                                                <AlertCircle className={`h-4 w-4 mr-2 ${
-                                                    alertInfo ? alertInfo.textColor : 'text-green-600'
-                                                }`} />
-                                                <div>
-                                                    <p className={`font-medium ${
-                                                        alertInfo ? alertInfo.textColor : 'text-green-900'
-                                                    }`}>Estado</p>
-                                                    <p className={`font-bold ${
-                                                        alertInfo ? alertInfo.textColor : 'text-green-700'
-                                                    }`}>
-                                                        {alertInfo ? 
-                                                            (alertInfo.level === 'urgent' ? '🚨 URGENTE' :
-                                                             alertInfo.level === 'critical' ? '⚠️ CRÍTICO' : 
-                                                             '⚡ ATENCIÓN') : 
-                                                            '✅ Normal'
-                                                        }
-                                                    </p>
-                                                </div>
-                                            </div>
-                                        </div>
-                                        
-                                        {/* Mensaje de alerta si aplica */}
-                                        {alertMessage && (
-                                            <div className={`p-4 rounded-lg border-l-4 ${alertInfo.bgColor} ${alertInfo.borderColor}`}>
-                                                <div className="flex items-center">
-                                                    <AlertTriangle className={`h-5 w-5 mr-3 ${alertInfo.textColor}`} />
-                                                    <div>
-                                                        <p className={`font-bold ${alertInfo.textColor}`}>¡Atención Requerida!</p>
-                                                        <p className={`text-sm ${alertInfo.textColor} mt-1`}>
-                                                            {alertMessage}
-                                                        </p>
-                                                    </div>
-                                                </div>
-                                            </div>
-                                        )}
-                                        
-                                        {/* Fila 4: Acciones y botones */}
-                                        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 pt-4 border-t border-gray-100">
-                                            {/* Indicador de click para ver detalles */}
-                                            <div className="text-sm text-gray-500 flex items-center order-2 sm:order-1">
-                                                <span className="bg-blue-100 text-blue-800 px-2 py-1 rounded-full text-xs font-medium">
-                                                    👁️ Clic para ver detalles completos
+                                            {/* Info temporal a la derecha */}
+                                            <div className="flex items-center space-x-3 text-sm text-gray-600">
+                                                <span>
+                                                    <Calendar className="h-4 w-4 inline mr-1" />
+                                                    {new Date(incident.created_at).toLocaleDateString()}
+                                                </span>
+                                                <span className={alertInfo ? alertInfo.textColor : 'text-yellow-600'}>
+                                                    <Clock className="h-4 w-4 inline mr-1" />
+                                                    {timeElapsed}
+                                                </span>
+                                                <span className={alertInfo ? alertInfo.textColor : 'text-green-600'}>
+                                                    {alertInfo ? 
+                                                        (alertInfo.level === 'urgent' ? '🚨' :
+                                                         alertInfo.level === 'critical' ? '⚠️' : 
+                                                         '⚡') : 
+                                                        '✅'
+                                                    }
                                                 </span>
                                             </div>
-                                            
-                                            {/* Botones de acción */}
-                                            <div className="flex flex-col sm:flex-row gap-2 order-1 sm:order-2">
-                                                {currentStatus === 'pendiente' && (isAdmin || isTechnician) && (
-                                                    <>
-                                                        {isAdmin ? (
-                                                            <button
-                                                                onClick={(e) => {
-                                                                    e.stopPropagation();
-                                                                    handleAssign(incident);
-                                                                }}
-                                                                className="inline-flex items-center justify-center px-6 py-3 border border-transparent text-sm font-semibold rounded-lg text-white bg-gradient-to-r from-blue-600 to-blue-700 hover:from-blue-700 hover:to-blue-800 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 shadow-lg hover:shadow-xl transition-all duration-200 transform hover:scale-105"
-                                                            >
-                                                                <UserPlus className="h-5 w-5 mr-2" />
-                                                                Asignar Técnico
-                                                            </button>
-                                                        ) : (
-                                                            <button
-                                                                onClick={(e) => {
-                                                                    e.stopPropagation();
-                                                                    handleSelfAssign(incident);
-                                                                }}
-                                                                className="inline-flex items-center justify-center px-6 py-3 border border-transparent text-sm font-semibold rounded-lg text-white bg-gradient-to-r from-green-600 to-green-700 hover:from-green-700 hover:to-green-800 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-green-500 shadow-lg hover:shadow-xl transition-all duration-200 transform hover:scale-105"
-                                                            >
-                                                                <UserPlus className="h-5 w-5 mr-2" />
-                                                                Tomar Incidencia
-                                                            </button>
-                                                        )}
-                                                    </>
-                                                )}
-                                                
+                                        </div>
+
+                                        {/* Segunda línea: Personas involucradas */}
+                                        <div className="flex items-center justify-between">
+                                            <div className="flex items-center space-x-4 text-sm">
+                                                <div className="flex items-center space-x-2">
+                                                    <User className="h-4 w-4 text-green-600" />
+                                                    <span className="text-gray-700">
+                                                        <strong>Reportado por:</strong> {incident.reported_by_name}
+                                                    </span>
+                                                </div>
                                                 {currentStatus === 'en_proceso' && incident.assigned_to_name && (
-                                                    <>
-                                                        <div className="inline-flex items-center px-4 py-2 border-2 border-gray-300 text-sm font-medium rounded-lg text-gray-700 bg-white">
-                                                            <User className="h-5 w-5 mr-2 text-gray-500" />
-                                                            <span>
-                                                                <span className="text-gray-500">Asignado a:</span>
-                                                                <span className="font-semibold ml-1">{incident.assigned_to_name}</span>
-                                                            </span>
-                                                        </div>
-                                                        {isAdmin && (
-                                                            <button
-                                                                onClick={(e) => {
-                                                                    e.stopPropagation();
-                                                                    handleReassign(incident);
-                                                                }}
-                                                                className="inline-flex items-center justify-center px-6 py-3 border border-transparent text-sm font-semibold rounded-lg text-white bg-gradient-to-r from-orange-600 to-orange-700 hover:from-orange-700 hover:to-orange-800 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-orange-500 shadow-lg hover:shadow-xl transition-all duration-200 transform hover:scale-105"
-                                                            >
-                                                                <UserPlus className="h-5 w-5 mr-2" />
-                                                                Reasignar
-                                                            </button>
-                                                        )}
-                                                    </>
+                                                    <div className="flex items-center space-x-2">
+                                                        <User className="h-4 w-4 text-blue-600" />
+                                                        <span className="text-gray-700">
+                                                            <strong>Técnico:</strong> {incident.assigned_to_name}
+                                                        </span>
+                                                    </div>
                                                 )}
                                             </div>
+                                        </div>
+                                    </div>
+                                    
+                                    {/* Descripción expandida */}
+                                    <div className="text-sm text-gray-700 mt-2 p-2 bg-gray-50 rounded">
+                                        <strong>Descripción:</strong> {incident.description}
+                                    </div>
+                                    
+                                    {/* Mensaje de alerta si aplica */}
+                                    {alertMessage && (
+                                        <div className={`text-xs p-1 rounded ${alertInfo.bgColor} ${alertInfo.textColor}`}>
+                                            <AlertTriangle className="h-3 w-3 inline mr-1" />
+                                            {alertMessage}
+                                        </div>
+                                    )}
+                                    
+                                    {/* Botones de acción expandidos */}
+                                    <div className="flex items-center justify-between pt-3 mt-3 border-t border-gray-200">
+                                        <span className="text-sm text-gray-500">👁️ Clic para ver detalles completos</span>
+                                        
+                                        <div className="flex space-x-2">
+                                            {currentStatus === 'pendiente' && (isAdmin || isTechnician) && (
+                                                <>
+                                                    {isAdmin ? (
+                                                        <button
+                                                            onClick={(e) => {
+                                                                e.stopPropagation();
+                                                                handleAssign(incident);
+                                                            }}
+                                                            className="px-3 py-1.5 text-sm font-medium rounded text-white bg-blue-600 hover:bg-blue-700"
+                                                        >
+                                                            <UserPlus className="h-3 w-3 mr-1 inline" />
+                                                            Asignar
+                                                        </button>
+                                                    ) : (
+                                                        <button
+                                                            onClick={(e) => {
+                                                                e.stopPropagation();
+                                                                handleSelfAssign(incident);
+                                                            }}
+                                                            className="px-3 py-1.5 text-sm font-medium rounded text-white bg-green-600 hover:bg-green-700"
+                                                        >
+                                                            <UserPlus className="h-3 w-3 mr-1 inline" />
+                                                            Tomar
+                                                        </button>
+                                                    )}
+                                                </>
+                                            )}
+                                            
+                                            {currentStatus === 'en_proceso' && incident.assigned_to_name && (
+                                                <>
+                                                    <span className="px-3 py-1.5 text-sm bg-gray-100 rounded">
+                                                        {incident.assigned_to_name}
+                                                    </span>
+                                                    {isAdmin && (
+                                                        <button
+                                                            onClick={(e) => {
+                                                                e.stopPropagation();
+                                                                handleReassign(incident);
+                                                            }}
+                                                            className="px-3 py-1.5 text-sm font-medium rounded text-white bg-orange-600 hover:bg-orange-700"
+                                                        >
+                                                            Reasignar
+                                                        </button>
+                                                    )}
+                                                </>
+                                            )}
                                         </div>
                                     </div>
                                 </div>

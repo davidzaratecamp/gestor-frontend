@@ -46,6 +46,8 @@ const AnonymousRoute = ({ children }) => {
 const RedirectByRole = () => {
   const { user, loading } = useAuth();
   
+  console.log('RedirectByRole - user:', user, 'loading:', loading);
+  
   if (loading) {
     return (
       <div className="min-h-screen flex items-center justify-center">
@@ -64,6 +66,8 @@ const RedirectByRole = () => {
 // Componente que bloquea dashboard para anónimos
 const DashboardRoute = () => {
   const { user, loading } = useAuth();
+  
+  console.log('DashboardRoute - user:', user, 'loading:', loading);
   
   if (loading) {
     return (

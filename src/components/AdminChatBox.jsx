@@ -18,12 +18,12 @@ const AdminChatBox = () => {
     const messagesEndRef = useRef(null);
     const socketRef = useRef(null);
 
-    // Solo mostrar para Hanny admin
-    if (user?.username !== 'hannycita10') {
-        return null;
-    }
-
     useEffect(() => {
+        // Solo inicializar chat para Hanny admin
+        if (user?.username !== 'hannycita10') {
+            return;
+        }
+
         const initializeChat = async () => {
             try {
                 const conversationsData = await loadConversations();
@@ -118,17 +118,25 @@ const AdminChatBox = () => {
     }, [user?.id]);
 
     useEffect(() => {
+        // Solo ejecutar para Hanny admin
+        if (user?.username !== 'hannycita10') {
+            return;
+        }
         scrollToBottom();
-    }, [messages]);
+    }, [messages, user?.username]);
 
     useEffect(() => {
+        // Solo ejecutar para Hanny admin
+        if (user?.username !== 'hannycita10') {
+            return;
+        }
         // Scroll al final cuando se abre el chat
         if (isOpen && !isMinimized) {
             setTimeout(() => {
                 scrollToBottom();
             }, 100);
         }
-    }, [isOpen, isMinimized]);
+    }, [isOpen, isMinimized, user?.username]);
 
     const loadConversations = async () => {
         try {
@@ -253,6 +261,10 @@ const AdminChatBox = () => {
         });
     };
 
+    // Solo mostrar para Hanny admin
+    if (user?.username !== 'hannycita10') {
+        return null;
+    }
 
     return (
         <div className="fixed bottom-4 right-20 z-50">
