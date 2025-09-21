@@ -33,7 +33,11 @@ const WorkstationManagement = () => {
     const departamentos = [
         { value: 'obama', label: 'Obama' },
         { value: 'majority', label: 'Majority' },
-        { value: 'claro', label: 'Claro' }
+        { value: 'claro', label: 'Claro' },
+        { value: 'contratacion', label: 'Contratación' },
+        { value: 'seleccion', label: 'Selección' },
+        { value: 'reclutamiento', label: 'Reclutamiento' },
+        { value: 'area_financiera', label: 'Área Financiera' }
     ];
 
     const sortOptions = [

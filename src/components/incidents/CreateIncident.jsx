@@ -59,10 +59,10 @@ const CreateIncident = () => {
     ];
 
     const departamentosAdministrativo = [
-        { value: 'cont', label: 'Contratación' },
-        { value: 'sel', label: 'Selección' },
-        { value: 'rec', label: 'Reclutamiento' },
-        { value: 'fin', label: 'Área financiera' }
+        { value: 'contratacion', label: 'Contratación' },
+        { value: 'seleccion', label: 'Selección' },
+        { value: 'reclutamiento', label: 'Reclutamiento' },
+        { value: 'area_financiera', label: 'Área Financiera' }
     ];
 
     // Verificar si el usuario puede elegir departamento

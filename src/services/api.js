@@ -67,6 +67,8 @@ export const incidentService = {
     getStatsBySede: () => api.get('/incidents/stats/by-sede'),
     getTechniciansStatus: () => api.get('/incidents/stats/technicians'),
     getTechniciansRanking: () => api.get('/incidents/stats/technicians-ranking'),
+    getCoordinatorsRanking: () => api.get('/incidents/stats/coordinators-ranking'),
+    exportOldIncidents: (limit = 10) => api.get(`/incidents/export/old-incidents?limit=${limit}`),
     create: (incidentData) => api.post('/incidents', incidentData),
     createWithFiles: (formData) => api.post('/incidents/with-files', formData, {
         headers: {

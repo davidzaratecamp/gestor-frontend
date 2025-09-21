@@ -23,7 +23,8 @@ import {
     Calendar,
     Users,
     ChevronDown,
-    ChevronUp
+    ChevronUp,
+    Activity
 } from 'lucide-react';
 import StarRating from '../StarRating';
 
@@ -62,6 +63,8 @@ const IncidentsSupervision = () => {
     const [alertMessage, setAlertMessage] = useState('');
     const [alertLoading, setAlertLoading] = useState(false);
     const [showFilters, setShowFilters] = useState(false);
+    const [coordinatorsRanking, setCoordinatorsRanking] = useState([]);
+    const [showCoordinatorsPanel, setShowCoordinatorsPanel] = useState(false);
 
     useEffect(() => {
         // Procesar parámetros de URL al cargar el componente
@@ -87,6 +90,7 @@ const IncidentsSupervision = () => {
         if (user?.role === 'admin') {
             loadTechnicians();
             loadCreators();
+            loadCoordinatorsRanking();
         }
     }, [location.search, user]);
 
@@ -151,6 +155,15 @@ const IncidentsSupervision = () => {
         }
     };
 
+    const loadCoordinatorsRanking = async () => {
+        try {
+            const response = await incidentService.getCoordinatorsRanking();
+            setCoordinatorsRanking(response.data);
+        } catch (error) {
+            console.error('Error cargando ranking de coordinadores:', error);
+        }
+    };
+
     const loadIncidentsWithFilters = async (customFilters) => {
         try {
             setLoading(true);
@@ -204,7 +217,12 @@ const IncidentsSupervision = () => {
         if (filters.departamento) {
             const deptLabel = filters.departamento === 'obama' ? 'Obama' :
                              filters.departamento === 'majority' ? 'Majority' :
-                             filters.departamento === 'claro' ? 'Claro' : filters.departamento;
+                             filters.departamento === 'claro' ? 'Claro' :
+                             filters.departamento === 'contratacion' ? 'Contratación' :
+                             filters.departamento === 'seleccion' ? 'Selección' :
+                             filters.departamento === 'reclutamiento' ? 'Reclutamiento' :
+                             filters.departamento === 'area_financiera' ? 'Área Financiera' :
+                             filters.departamento === 'administrativo' ? 'Administrativo' : filters.departamento;
             parts.push(`Departamento: ${deptLabel}`);
         }
         
@@ -361,6 +379,39 @@ const IncidentsSupervision = () => {
         loadIncidentsWithFilters(clearedFilters);
     };
 
+    const handleExportOldIncidents = async () => {
+        if (!window.confirm('¿Deseas exportar las 10 incidencias más viejas sin resolver?')) {
+            return;
+        }
+
+        try {
+            const response = await incidentService.exportOldIncidents(10);
+            const data = response.data;
+
+            if (data.length === 0) {
+                alert('No hay incidencias sin resolver para exportar');
+                return;
+            }
+
+            // Crear archivo Excel usando la librería XLSX
+            const XLSX = await import('xlsx');
+            const wb = XLSX.utils.book_new();
+            const ws = XLSX.utils.json_to_sheet(data);
+            
+            // Agregar la hoja al libro
+            XLSX.utils.book_append_sheet(wb, ws, 'Incidencias Más Viejas');
+            
+            // Generar y descargar el archivo
+            const fileName = `incidencias_mas_viejas_${new Date().toISOString().split('T')[0]}.xlsx`;
+            XLSX.writeFile(wb, fileName);
+            
+            alert(`Archivo ${fileName} descargado exitosamente con ${data.length} incidencias`);
+        } catch (error) {
+            console.error('Error exportando incidencias:', error);
+            alert('Error al exportar las incidencias');
+        }
+    };
+
     const getStatusBadge = (status) => {
         const badges = {
             'en_supervision': 'bg-purple-100 text-purple-800'
@@ -444,6 +495,21 @@ const IncidentsSupervision = () => {
                             <Bell className="h-4 w-4 mr-2" />
                             Alertar Atrasadas +3h ({incidents.filter(inc => inc.isOverdue).length})
                         </button>
+                        <button
+                            onClick={() => setShowCoordinatorsPanel(!showCoordinatorsPanel)}
+                            className="inline-flex items-center px-3 py-2 border border-gray-300 shadow-sm text-sm font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500"
+                        >
+                            <Users className="h-4 w-4 mr-2" />
+                            Top 10 Coordinadores
+                            {showCoordinatorsPanel ? <ChevronUp className="h-4 w-4 ml-1" /> : <ChevronDown className="h-4 w-4 ml-1" />}
+                        </button>
+                        <button
+                            onClick={handleExportOldIncidents}
+                            className="inline-flex items-center px-3 py-2 border border-transparent shadow-sm text-sm font-medium rounded-md text-white bg-green-600 hover:bg-green-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-green-500"
+                        >
+                            <Activity className="h-4 w-4 mr-2" />
+                            Exportar Excel
+                        </button>
                     </div>
                 )}
             </div>
@@ -483,6 +549,11 @@ const IncidentsSupervision = () => {
                                 <option value="obama">Obama</option>
                                 <option value="majority">Majority</option>
                                 <option value="claro">Claro</option>
+                                <option value="contratacion">Contratación</option>
+                                <option value="seleccion">Selección</option>
+                                <option value="reclutamiento">Reclutamiento</option>
+                                <option value="area_financiera">Área Financiera</option>
+                                <option value="administrativo">Administrativo (General)</option>
                             </select>
                         </div>
 
@@ -530,6 +601,60 @@ const IncidentsSupervision = () => {
                             Limpiar Filtros
                         </button>
                     </div>
+                </div>
+            )}
+
+            {/* Panel de Top 10 Coordinadores */}
+            {showCoordinatorsPanel && user.role === 'admin' && (
+                <div className="bg-white rounded-lg shadow p-6 mb-6">
+                    <div className="flex items-center justify-between mb-4">
+                        <div className="flex items-center">
+                            <Users className="h-6 w-6 text-orange-600 mr-2" />
+                            <h3 className="text-lg font-semibold text-gray-900">
+                                Top 10 Coordinadores - Incidencias Sin Cerrar
+                            </h3>
+                        </div>
+                    </div>
+                    
+                    {coordinatorsRanking.length === 0 ? (
+                        <p className="text-gray-500 text-center py-4">
+                            No hay coordinadores con incidencias sin cerrar
+                        </p>
+                    ) : (
+                        <div className="space-y-3">
+                            {coordinatorsRanking.map((coordinator, index) => (
+                                <div key={coordinator.id} className="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
+                                    <div className="flex items-center space-x-3">
+                                        <div className={`w-8 h-8 rounded-full flex items-center justify-center text-sm font-bold ${
+                                            index === 0 ? 'bg-yellow-100 text-yellow-800' :
+                                            index === 1 ? 'bg-gray-100 text-gray-800' :
+                                            index === 2 ? 'bg-orange-100 text-orange-800' :
+                                            'bg-blue-100 text-blue-800'
+                                        }`}>
+                                            {index + 1}
+                                        </div>
+                                        <div>
+                                            <p className="font-medium text-gray-900">{coordinator.full_name}</p>
+                                            <p className="text-sm text-gray-500">
+                                                {coordinator.role} - {coordinator.sede?.toUpperCase()}
+                                                {coordinator.departamento && ` - ${coordinator.departamento.toUpperCase()}`}
+                                            </p>
+                                        </div>
+                                    </div>
+                                    <div className="text-right">
+                                        <p className="text-lg font-bold text-red-600">
+                                            {coordinator.incidencias_sin_cerrar}
+                                        </p>
+                                        <p className="text-xs text-gray-500">
+                                            P:{coordinator.pendientes} | 
+                                            EP:{coordinator.en_proceso} | 
+                                            ES:{coordinator.en_supervision}
+                                        </p>
+                                    </div>
+                                </div>
+                            ))}
+                        </div>
+                    )}
                 </div>
             )}
 

@@ -100,7 +100,11 @@ const Dashboard = () => {
             const departamento = incident.departamento || 'sin_departamento';
             const deptLabel = departamento === 'obama' ? 'Obama' :
                              departamento === 'majority' ? 'Majority' :
-                             departamento === 'claro' ? 'Claro' : 'Sin Departamento';
+                             departamento === 'claro' ? 'Claro' :
+                             departamento === 'contratacion' ? 'Contratación' :
+                             departamento === 'seleccion' ? 'Selección' :
+                             departamento === 'reclutamiento' ? 'Reclutamiento' :
+                             departamento === 'area_financiera' ? 'Área Financiera' : 'Sin Departamento';
             
             if (!acc[ciudad].departamentos[departamento]) {
                 acc[ciudad].departamentos[departamento] = {
@@ -479,6 +483,39 @@ const Dashboard = () => {
         }
     };
 
+    const handleExportOldIncidents = async () => {
+        if (!window.confirm('¿Deseas exportar las 10 incidencias más viejas sin resolver?')) {
+            return;
+        }
+
+        try {
+            const response = await incidentService.exportOldIncidents(10);
+            const data = response.data;
+
+            if (data.length === 0) {
+                alert('No hay incidencias sin resolver para exportar');
+                return;
+            }
+
+            // Crear archivo Excel usando la librería XLSX
+            const XLSX = await import('xlsx');
+            const wb = XLSX.utils.book_new();
+            const ws = XLSX.utils.json_to_sheet(data);
+            
+            // Agregar la hoja al libro
+            XLSX.utils.book_append_sheet(wb, ws, 'Incidencias Más Viejas');
+            
+            // Generar y descargar el archivo
+            const fileName = `incidencias_mas_viejas_${new Date().toISOString().split('T')[0]}.xlsx`;
+            XLSX.writeFile(wb, fileName);
+            
+            alert(`Archivo ${fileName} descargado exitosamente con ${data.length} incidencias`);
+        } catch (error) {
+            console.error('Error exportando incidencias:', error);
+            alert('Error al exportar las incidencias');
+        }
+    };
+
     if (loading) {
         return (
             <div className="flex items-center justify-center h-64">
@@ -796,6 +833,28 @@ const Dashboard = () => {
 
                     {/* Panel de Ranking de Técnicos */}
                     <TechniciansRankingPanel />
+
+                    {/* Botón de exportación Excel */}
+                    <div className="bg-white rounded-lg shadow p-6">
+                        <div className="flex items-center justify-between mb-4">
+                            <div className="flex items-center">
+                                <Activity className="h-6 w-6 text-green-600 mr-2" />
+                                <h3 className="text-lg font-semibold text-gray-900">
+                                    Exportación de Datos
+                                </h3>
+                            </div>
+                        </div>
+                        <button
+                            onClick={handleExportOldIncidents}
+                            className="w-full inline-flex items-center justify-center px-4 py-3 border border-transparent shadow-sm text-sm font-medium rounded-md text-white bg-green-600 hover:bg-green-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-green-500"
+                        >
+                            <Activity className="h-5 w-5 mr-2" />
+                            Exportar Incidencias Más Viejas (Excel)
+                        </button>
+                        <p className="text-xs text-gray-500 mt-2 text-center">
+                            Exporta las 10 incidencias más viejas sin resolver en formato Excel
+                        </p>
+                    </div>
                 </div>
             )}
 
