@@ -803,7 +803,7 @@ const IncidentsSupervision = () => {
                                                             className="fixed inset-0 z-10" 
                                                             onClick={() => setOpenDropdowns(prev => ({ ...prev, [incident.id]: false }))}
                                                         ></div>
-                                                        <div className="absolute left-0 mt-2 w-52 bg-white rounded-lg shadow-xl border border-gray-200 z-30">
+                                                        <div className="absolute left-0 bottom-full mb-2 w-52 bg-white rounded-lg shadow-xl border border-gray-200 z-30">
                                                         <div className="py-2">
                                                             <button
                                                                 onClick={() => {
