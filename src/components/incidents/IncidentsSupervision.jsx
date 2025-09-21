@@ -676,9 +676,9 @@ const IncidentsSupervision = () => {
                     <div className="px-4 py-5 sm:p-6">
                         <div className="space-y-4">
                             {incidents.map((incident) => (
-                                <div key={incident.id} className="border border-gray-200 rounded-lg p-4 hover:bg-gray-50 transition-colors">
-                                    <div className="flex items-center justify-between">
-                                        <div className="flex-1">
+                                <div key={incident.id} className="border border-gray-200 rounded-lg p-6 sm:p-4 hover:bg-gray-50 transition-colors w-full overflow-x-auto">
+                                    <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-4 lg:gap-0 min-w-full">
+                                        <div className="flex-1 min-w-0 w-full lg:w-auto">
                                             <div className="flex items-center space-x-4 mb-2">
                                                 <div className="flex items-center text-sm text-gray-500">
                                                     <Monitor className="h-4 w-4 mr-1" />
@@ -724,7 +724,7 @@ const IncidentsSupervision = () => {
                                         </div>
 
                                         {/* Botones de acción - Desktop y Móvil */}
-                                        <div className="mt-4 lg:mt-0 lg:ml-4 w-full lg:w-auto">
+                                        <div className="mt-4 lg:mt-0 lg:ml-4 w-full lg:w-auto flex-shrink-0">
                                             {/* Vista Desktop - Botones horizontales */}
                                             <div className="hidden lg:flex items-center space-x-2">
                                                 <button
@@ -779,17 +779,18 @@ const IncidentsSupervision = () => {
                                             </div>
                                             
                                             {/* Vista Móvil/Tablet - Botón a la izquierda */}
-                                            <div className="lg:hidden">
-                                                <div className="flex justify-start w-full">
+                                            <div className="lg:hidden w-full">
+                                                <div className="flex justify-start">
                                                     <div className="relative">
                                                         <button
                                                             onClick={() => setOpenDropdowns(prev => ({ 
                                                                 ...prev, 
                                                                 [incident.id]: !prev[incident.id] 
                                                             }))}
-                                                            className="inline-flex items-center justify-center w-10 h-10 border border-gray-300 rounded-full text-gray-600 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 shadow-md transition-all duration-200"
+                                                            className="inline-flex items-center justify-center px-4 py-2 border border-blue-500 rounded-lg text-blue-700 bg-blue-50 hover:bg-blue-100 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 shadow-md transition-all duration-200"
                                                         >
-                                                            <ChevronDown className={`h-5 w-5 transition-transform duration-200 ${
+                                                            <span className="text-sm font-medium mr-2">Acciones</span>
+                                                            <ChevronDown className={`h-4 w-4 transition-transform duration-200 ${
                                                                 openDropdowns[incident.id] ? 'transform rotate-180' : ''
                                                             }`} />
                                                         </button>
@@ -802,7 +803,7 @@ const IncidentsSupervision = () => {
                                                             className="fixed inset-0 z-10" 
                                                             onClick={() => setOpenDropdowns(prev => ({ ...prev, [incident.id]: false }))}
                                                         ></div>
-                                                        <div className="absolute left-0 mt-2 w-48 bg-white rounded-lg shadow-xl border border-gray-200 z-30">
+                                                        <div className="absolute left-0 mt-2 w-52 bg-white rounded-lg shadow-xl border border-gray-200 z-30">
                                                         <div className="py-2">
                                                             <button
                                                                 onClick={() => {
