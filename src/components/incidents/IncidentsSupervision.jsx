@@ -724,7 +724,7 @@ const IncidentsSupervision = () => {
                                         </div>
 
                                         {/* Botones de acción - Desktop y Móvil */}
-                                        <div className="flex items-center justify-end mt-4 lg:mt-0 lg:ml-4 w-full lg:w-auto">
+                                        <div className="mt-4 lg:mt-0 lg:ml-4 w-full lg:w-auto">
                                             {/* Vista Desktop - Botones horizontales */}
                                             <div className="hidden lg:flex items-center space-x-2">
                                                 <button
@@ -778,21 +778,21 @@ const IncidentsSupervision = () => {
                                                 )}
                                             </div>
                                             
-                                            {/* Vista Móvil/Tablet - Menú desplegable */}
-                                            <div className="lg:hidden relative">
-                                                <button
-                                                    onClick={() => setOpenDropdowns(prev => ({ 
-                                                        ...prev, 
-                                                        [incident.id]: !prev[incident.id] 
-                                                    }))}
-                                                    className="inline-flex items-center px-3 py-2 border border-gray-300 text-sm font-medium rounded-lg text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 shadow-lg transition-all duration-200 mr-2"
-                                                >
-                                                    <MoreVertical className="h-4 w-4 mr-1" />
-                                                    <span className="hidden sm:inline">Opciones</span>
-                                                    <ChevronDown className={`h-4 w-4 ml-1 transition-transform duration-200 ${
-                                                        openDropdowns[incident.id] ? 'transform rotate-180' : ''
-                                                    }`} />
-                                                </button>
+                                            {/* Vista Móvil/Tablet - Botón a la izquierda */}
+                                            <div className="lg:hidden">
+                                                <div className="flex justify-start w-full">
+                                                    <div className="relative">
+                                                        <button
+                                                            onClick={() => setOpenDropdowns(prev => ({ 
+                                                                ...prev, 
+                                                                [incident.id]: !prev[incident.id] 
+                                                            }))}
+                                                            className="inline-flex items-center justify-center w-10 h-10 border border-gray-300 rounded-full text-gray-600 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 shadow-md transition-all duration-200"
+                                                        >
+                                                            <ChevronDown className={`h-5 w-5 transition-transform duration-200 ${
+                                                                openDropdowns[incident.id] ? 'transform rotate-180' : ''
+                                                            }`} />
+                                                        </button>
                                                 
                                                 {/* Menú desplegable */}
                                                 {openDropdowns[incident.id] && (
@@ -802,7 +802,7 @@ const IncidentsSupervision = () => {
                                                             className="fixed inset-0 z-10" 
                                                             onClick={() => setOpenDropdowns(prev => ({ ...prev, [incident.id]: false }))}
                                                         ></div>
-                                                        <div className="absolute right-0 mt-2 w-56 bg-white rounded-lg shadow-xl border border-gray-200 z-20">
+                                                        <div className="absolute left-0 mt-2 w-48 bg-white rounded-lg shadow-xl border border-gray-200 z-30">
                                                         <div className="py-2">
                                                             <button
                                                                 onClick={() => {
@@ -869,6 +869,8 @@ const IncidentsSupervision = () => {
                                                         </div>
                                                     </>
                                                 )}
+                                                    </div>
+                                                </div>
                                             </div>
                                             
                                             {/* Para jefes de operaciones: mostrar mensaje informativo en incidencias de otros */}
