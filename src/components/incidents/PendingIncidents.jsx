@@ -668,7 +668,7 @@ const PendingIncidents = () => {
                                 <div 
                                     key={incident.id} 
                                     className={`
-                                        border rounded-lg p-3 sm:p-4 transition-colors relative cursor-pointer
+                                        border rounded p-1 sm:p-2 transition-colors relative cursor-pointer
                                         ${isHighlighted ? 
                                             'border-blue-500 bg-blue-50 border-2 ring-2 ring-blue-300 ring-opacity-50' :
                                             alertInfo ? 
@@ -682,7 +682,7 @@ const PendingIncidents = () => {
                                         {/* Header card con información principal */}
                                     <div className="space-y-4">
                                         {/* Fila 1: Información de la estación y badges principales */}
-                                        <div className="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-3">
+                                        <div className="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-1">
                                             <div className="flex-1 space-y-2">
                                                 {/* Estación y ubicación */}
                                                 <div className="flex flex-wrap items-center gap-2">
@@ -732,7 +732,7 @@ const PendingIncidents = () => {
                                         </div>
                                         
                                         {/* Fila 2: Descripción */}
-                                        <div className="flex items-start space-x-3 p-3 bg-gray-50 rounded-lg">
+                                        <div className="flex items-start space-x-2 p-1 sm:p-2 bg-gray-50 rounded">
                                             <FileText className="h-5 w-5 text-gray-500 mt-0.5 flex-shrink-0" />
                                             <div>
                                                 <p className="text-sm font-medium text-gray-500 mb-1">Descripción del problema:</p>
@@ -743,9 +743,9 @@ const PendingIncidents = () => {
                                         </div>
                                         
                                         {/* Fila 3: Información temporal y estado */}
-                                        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3 text-sm">
+                                        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-1 text-xs sm:text-sm">
                                             {/* Fecha de creación */}
-                                            <div className="flex items-center p-2 bg-blue-50 rounded-lg">
+                                            <div className="flex items-center p-1 bg-blue-50 rounded">
                                                 <Calendar className="h-4 w-4 mr-2 text-blue-600" />
                                                 <div>
                                                     <p className="font-medium text-blue-900">Creado</p>
@@ -759,7 +759,7 @@ const PendingIncidents = () => {
                                             </div>
                                             
                                             {/* Tiempo transcurrido */}
-                                            <div className={`flex items-center p-2 rounded-lg ${
+                                            <div className={`flex items-center p-1 rounded ${
                                                 alertInfo ? `${alertInfo.bgColor}` : 'bg-yellow-50'
                                             }`}>
                                                 <Clock className={`h-4 w-4 mr-2 ${
@@ -778,7 +778,7 @@ const PendingIncidents = () => {
                                             </div>
                                             
                                             {/* Estado de prioridad */}
-                                            <div className={`flex items-center p-2 rounded-lg ${
+                                            <div className={`flex items-center p-1 rounded ${
                                                 alertInfo ? `${alertInfo.bgColor}` : 'bg-green-50'
                                             } sm:col-span-2 lg:col-span-1`}>
                                                 <AlertCircle className={`h-4 w-4 mr-2 ${
