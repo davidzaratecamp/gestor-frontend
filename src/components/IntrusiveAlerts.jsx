@@ -19,7 +19,7 @@ const IntrusiveAlerts = () => {
 
     useEffect(() => {
         if (alerts.length > 0 && !isAcknowledged) {
-            const unreadAlerts = alerts.filter(alert => alert.status === 'sent');
+            const unreadAlerts = alerts.filter(alert => alert.status === 'active');
             if (unreadAlerts.length > 0) {
                 setCurrentAlert(unreadAlerts[0]);
                 setShowModal(true);
