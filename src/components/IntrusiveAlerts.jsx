@@ -7,18 +7,23 @@ const IntrusiveAlerts = () => {
     const [showModal, setShowModal] = useState(false);
     const [currentAlert, setCurrentAlert] = useState(null);
     const [isAcknowledged, setIsAcknowledged] = useState(false);
+    const [incidentsInSupervision, setIncidentsInSupervision] = useState([]);
     const audioRef = useRef(null);
     const intervalRef = useRef(null);
 
     useEffect(() => {
         loadAlerts();
+        loadIncidentsInSupervision();
         // Verificar cada 10 segundos
-        const interval = setInterval(loadAlerts, 10000);
+        const interval = setInterval(() => {
+            loadAlerts();
+            loadIncidentsInSupervision();
+        }, 10000);
         return () => clearInterval(interval);
     }, []);
 
     useEffect(() => {
-        if (alerts.length > 0 && !isAcknowledged) {
+        if (alerts.length > 0 && incidentsInSupervision.length > 0 && !isAcknowledged) {
             const unreadAlerts = alerts.filter(alert => alert.status === 'active');
             if (unreadAlerts.length > 0) {
                 setCurrentAlert(unreadAlerts[0]);
@@ -39,7 +44,7 @@ const IntrusiveAlerts = () => {
                 clearInterval(intervalRef.current);
             }
         };
-    }, [alerts, isAcknowledged]);
+    }, [alerts, incidentsInSupervision, isAcknowledged]);
 
     const loadAlerts = async () => {
         try {
@@ -47,6 +52,16 @@ const IntrusiveAlerts = () => {
             setAlerts(response.data.alerts);
         } catch (error) {
             console.error('Error cargando alertas:', error);
+        }
+    };
+
+    const loadIncidentsInSupervision = async () => {
+        try {
+            const response = await incidentService.getInSupervision();
+            setIncidentsInSupervision(response.data);
+        } catch (error) {
+            console.error('Error cargando incidencias en supervisión:', error);
+            setIncidentsInSupervision([]);
         }
     };
 
@@ -157,6 +172,7 @@ const IntrusiveAlerts = () => {
                         <div className="bg-red-50 border border-red-200 rounded-lg p-4 mb-6">
                             <h4 className="text-red-800 font-semibold mb-2">⚠️ IMPORTANTE:</h4>
                             <ul className="text-red-700 text-sm space-y-1">
+                                <li>• Tienes <strong>{incidentsInSupervision.length}</strong> incidencia(s) pendiente(s) de supervisión</li>
                                 <li>• Las incidencias llevan más de 3 horas sin supervisión</li>
                                 <li>• Esto afecta los tiempos de respuesta del equipo técnico</li>
                                 <li>• Debes revisar y aprobar/rechazar las incidencias pendientes</li>
