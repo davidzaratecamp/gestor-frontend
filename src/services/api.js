@@ -97,4 +97,20 @@ export const chatService = {
     getUnreadCount: () => api.get('/chat/unread-count')
 };
 
+// === SERVICIOS DE ANALÍTICAS ===
+export const analyticsService = {
+    getOverview: () => api.get('/analytics/overview'),
+    getIncidentsBySede: () => api.get('/analytics/by-sede'),
+    getIncidentsByDepartment: () => api.get('/analytics/by-department'),
+    getIncidentsByFailureType: () => api.get('/analytics/by-failure-type'),
+    getTemporalTrend: (period = 30) => api.get(`/analytics/temporal-trend?period=${period}`),
+    getTopFailingStations: (limit = 10) => api.get(`/analytics/top-failing-stations?limit=${limit}`),
+    getTechnicianPerformance: () => api.get('/analytics/technician-performance'),
+    getReportsByUser: () => api.get('/analytics/reports-by-user'),
+    getHourlyDistribution: () => api.get('/analytics/hourly-distribution'),
+    getWeekdayDistribution: () => api.get('/analytics/weekday-distribution'),
+    getResolutionTimeAnalysis: () => api.get('/analytics/resolution-time-analysis'),
+    getQualityMetrics: () => api.get('/analytics/quality-metrics')
+};
+
 export default api;

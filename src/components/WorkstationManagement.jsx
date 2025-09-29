@@ -22,6 +22,7 @@ const WorkstationManagement = () => {
     const [sedeFilter, setSedeFilter] = useState('all');
     const [departmentFilter, setDepartmentFilter] = useState('all');
     const [sortBy, setSortBy] = useState('failures_desc'); // failures_desc, station_code, created_date
+    const [riskFilter, setRiskFilter] = useState('all'); // all, high, medium, low
     const [error, setError] = useState('');
 
     const sedes = [
@@ -53,7 +54,7 @@ const WorkstationManagement = () => {
 
     useEffect(() => {
         filterAndSortWorkstations();
-    }, [workstations, incidentStats, searchTerm, sedeFilter, departmentFilter, sortBy]);
+    }, [workstations, incidentStats, searchTerm, sedeFilter, departmentFilter, sortBy, riskFilter]);
 
     const loadData = async () => {
         try {
@@ -194,6 +195,40 @@ const WorkstationManagement = () => {
             filtered = filtered.filter(station => station.departamento === departmentFilter);
         }
 
+        // Filtro por nivel de riesgo
+        if (riskFilter !== 'all') {
+            console.log('Aplicando filtro de riesgo:', riskFilter);
+            console.log('EstadĂ­sticas disponibles:', incidentStats);
+            
+            const beforeFilter = filtered.length;
+            filtered = filtered.filter(station => {
+                const stats = incidentStats[station.id] || { riskScore: 0 };
+                let matches = false;
+                
+                switch (riskFilter) {
+                    case 'high':
+                        matches = stats.riskScore >= 70;
+                        break;
+                    case 'medium':
+                        matches = stats.riskScore >= 40 && stats.riskScore < 70;
+                        break;
+                    case 'low':
+                        matches = stats.riskScore > 0 && stats.riskScore < 40;
+                        break;
+                    default:
+                        matches = true;
+                }
+                
+                if (matches) {
+                    console.log(`Estación ${station.station_code} coincide con filtro ${riskFilter}, riskScore: ${stats.riskScore}`);
+                }
+                
+                return matches;
+            });
+            
+            console.log(`Filtro ${riskFilter}: ${beforeFilter} estaciones -> ${filtered.length} estaciones después del filtro`);
+        }
+
         // Ordenamiento
         filtered.sort((a, b) => {
             const statsA = incidentStats[a.id] || { totalIncidents: 0, riskScore: 0 };
@@ -325,24 +360,54 @@ const WorkstationManagement = () => {
                         </div>
                     </div>
                 </div>
-                <div className="bg-white p-4 rounded-lg shadow border">
+                <div 
+                    className={`bg-white p-4 rounded-lg shadow border cursor-pointer transition-all hover:shadow-md hover:bg-red-50 ${
+                        riskFilter === 'high' ? 'ring-2 ring-red-500 bg-red-50' : ''
+                    }`}
+                    onClick={() => setRiskFilter(riskFilter === 'high' ? 'all' : 'high')}
+                >
                     <div className="flex items-center">
                         <AlertTriangle className="h-8 w-8 text-red-600" />
                         <div className="ml-3">
                             <p className="text-sm font-medium text-gray-500">Alto Riesgo</p>
                             <p className="text-2xl font-bold text-gray-900">
-                                {Object.values(incidentStats).filter(s => s.riskScore >= 70).length}
+                                {(() => {
+                                    // Contar estaciones con riesgo alto usando la misma lógica que el filtro
+                                    const highRiskCount = workstations.filter(station => {
+                                        const stats = incidentStats[station.id] || { riskScore: 0 };
+                                        return stats.riskScore >= 70;
+                                    }).length;
+                                    
+                                    console.log('Conteo Alto Riesgo (corregido):', highRiskCount);
+                                    console.log('Total workstations:', workstations.length);
+                                    console.log('IncidentStats keys:', Object.keys(incidentStats));
+                                    return highRiskCount;
+                                })()}
                             </p>
                         </div>
                     </div>
                 </div>
-                <div className="bg-white p-4 rounded-lg shadow border">
+                <div 
+                    className={`bg-white p-4 rounded-lg shadow border cursor-pointer transition-all hover:shadow-md hover:bg-yellow-50 ${
+                        riskFilter === 'medium' ? 'ring-2 ring-yellow-500 bg-yellow-50' : ''
+                    }`}
+                    onClick={() => setRiskFilter(riskFilter === 'medium' ? 'all' : 'medium')}
+                >
                     <div className="flex items-center">
                         <TrendingUp className="h-8 w-8 text-yellow-600" />
                         <div className="ml-3">
                             <p className="text-sm font-medium text-gray-500">Riesgo Medio</p>
                             <p className="text-2xl font-bold text-gray-900">
-                                {Object.values(incidentStats).filter(s => s.riskScore >= 40 && s.riskScore < 70).length}
+                                {(() => {
+                                    // Contar estaciones con riesgo medio usando la misma lógica que el filtro
+                                    const mediumRiskCount = workstations.filter(station => {
+                                        const stats = incidentStats[station.id] || { riskScore: 0 };
+                                        return stats.riskScore >= 40 && stats.riskScore < 70;
+                                    }).length;
+                                    
+                                    console.log('Conteo Riesgo Medio:', mediumRiskCount);
+                                    return mediumRiskCount;
+                                })()}
                             </p>
                         </div>
                     </div>

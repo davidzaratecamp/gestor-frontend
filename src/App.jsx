@@ -15,6 +15,7 @@ import ApprovedIncidents from './components/incidents/ApprovedIncidents';
 import MyIncidentsSupervision from './components/incidents/MyIncidentsSupervision';
 import UserManagement from './components/UserManagement';
 import WorkstationManagement from './components/WorkstationManagement';
+import Analytics from './components/Analytics';
 
 // Componente para determinar el layout según el rol
 const LayoutWrapper = ({ children }) => {
@@ -188,6 +189,7 @@ function App() {
               {/* Rutas de gestión */}
               <Route path="users" element={<AdminRoute><UserManagement /></AdminRoute>} />
               <Route path="workstations" element={<AdminRoute><WorkstationManagement /></AdminRoute>} />
+              <Route path="analytics" element={<AdminRoute><Analytics /></AdminRoute>} />
             </Route>
 
             {/* Ruta catch-all */}
