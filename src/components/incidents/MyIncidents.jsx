@@ -1,12 +1,12 @@
 import React, { useState, useEffect } from 'react';
 import { incidentService } from '../../services/api';
 import { useAuth } from '../../context/AuthContext';
-import { 
-    Wrench, 
-    CheckCircle, 
-    Clock, 
-    Monitor, 
-    AlertCircle, 
+import {
+    Wrench,
+    CheckCircle,
+    Clock,
+    Monitor,
+    AlertCircle,
     FileText,
     Calendar,
     User,
@@ -14,7 +14,8 @@ import {
     History,
     MessageCircle,
     XCircle,
-    Star
+    Star,
+    RotateCcw
 } from 'lucide-react';
 import StarRating from '../StarRating';
 
@@ -29,6 +30,9 @@ const MyIncidents = () => {
     const [showHistoryModal, setShowHistoryModal] = useState(false);
     const [incidentHistory, setIncidentHistory] = useState([]);
     const [historyLoading, setHistoryLoading] = useState(false);
+    const [showReturnModal, setShowReturnModal] = useState(false);
+    const [returnReason, setReturnReason] = useState('');
+    const [returnLoading, setReturnLoading] = useState(false);
 
     useEffect(() => {
         loadMyIncidents();
@@ -63,6 +67,32 @@ const MyIncidents = () => {
             alert(error.response?.data?.msg || 'Error al marcar como resuelto');
         } finally {
             setResolveLoading(false);
+        }
+    };
+
+    const handleReturn = (incident) => {
+        setSelectedIncident(incident);
+        setReturnReason('');
+        setShowReturnModal(true);
+    };
+
+    const confirmReturn = async () => {
+        if (!returnReason.trim()) {
+            alert('Por favor ingresa el motivo de la devolución');
+            return;
+        }
+
+        setReturnLoading(true);
+        try {
+            await incidentService.returnToCreator(selectedIncident.id, returnReason.trim());
+            setShowReturnModal(false);
+            alert('Incidencia devuelta exitosamente al creador');
+            await loadMyIncidents();
+        } catch (error) {
+            console.error('Error devolviendo incidencia:', error);
+            alert(error.response?.data?.msg || 'Error al devolver la incidencia');
+        } finally {
+            setReturnLoading(false);
         }
     };
 
@@ -103,6 +133,11 @@ const MyIncidents = () => {
                 label: 'Rechazado',
                 color: 'bg-red-100 text-red-800',
                 icon: AlertCircle
+            },
+            'devuelto': {
+                label: 'Devuelto',
+                color: 'bg-orange-100 text-orange-800',
+                icon: RotateCcw
             }
         };
         return statusInfo[status] || statusInfo.en_proceso;
@@ -261,6 +296,13 @@ const MyIncidents = () => {
                                                                 Ver Historial
                                                             </button>
                                                             <button
+                                                                onClick={() => handleReturn(incident)}
+                                                                className="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md text-white bg-orange-600 hover:bg-orange-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-orange-500"
+                                                            >
+                                                                <RotateCcw className="h-4 w-4 mr-1" />
+                                                                Devolver Caso
+                                                            </button>
+                                                            <button
                                                                 onClick={() => handleResolve(incident)}
                                                                 className="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md text-white bg-green-600 hover:bg-green-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-green-500"
                                                             >
@@ -414,6 +456,71 @@ const MyIncidents = () => {
                                     className="px-4 py-2 border border-transparent rounded-md text-sm font-medium text-white bg-green-600 hover:bg-green-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-green-500 disabled:opacity-50"
                                 >
                                     {resolveLoading ? 'Enviando...' : 'Marcar como Resuelto'}
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            )}
+
+            {/* Modal para Devolver Caso */}
+            {showReturnModal && (
+                <div className="fixed inset-0 bg-gray-600 bg-opacity-50 overflow-y-auto h-full w-full z-50">
+                    <div className="relative top-20 mx-auto p-5 border w-96 shadow-lg rounded-md bg-white">
+                        <div className="mt-3">
+                            <div className="flex items-center mb-4">
+                                <RotateCcw className="h-6 w-6 text-orange-600 mr-2" />
+                                <h3 className="text-lg font-medium text-gray-900">
+                                    Devolver Caso al Creador
+                                </h3>
+                            </div>
+
+                            <div className="mb-4 p-3 bg-orange-50 rounded border border-orange-200">
+                                <p className="text-sm text-gray-600">
+                                    <strong>Estación:</strong> {selectedIncident?.station_code}
+                                </p>
+                                <p className="text-sm text-gray-600">
+                                    <strong>Sede:</strong> {selectedIncident?.sede?.toUpperCase()} - {selectedIncident?.departamento?.toUpperCase()}
+                                </p>
+                                <p className="text-sm text-gray-600">
+                                    <strong>Tipo:</strong> {getFailureTypeLabel(selectedIncident?.failure_type)}
+                                </p>
+                                <p className="text-sm text-gray-600 mt-2">
+                                    <strong>Descripción:</strong> {selectedIncident?.description}
+                                </p>
+                            </div>
+
+                            <div className="mb-4">
+                                <label className="block text-sm font-medium text-gray-700 mb-2">
+                                    Motivo de la Devolución <span className="text-red-500">*</span>
+                                </label>
+                                <textarea
+                                    value={returnReason}
+                                    onChange={(e) => setReturnReason(e.target.value)}
+                                    rows={4}
+                                    className="w-full border border-gray-300 rounded-md px-3 py-2 focus:outline-none focus:ring-2 focus:ring-orange-500 focus:border-orange-500"
+                                    placeholder="Ej: AnyDesk incorrecto, falta información del puesto, descripción insuficiente..."
+                                    required
+                                />
+                                <p className="mt-1 text-sm text-orange-600">
+                                    Explica qué información está incorrecta o falta para poder resolver el caso.
+                                </p>
+                            </div>
+
+                            <div className="flex justify-end space-x-3">
+                                <button
+                                    onClick={() => setShowReturnModal(false)}
+                                    className="px-4 py-2 border border-gray-300 rounded-md text-sm font-medium text-gray-700 hover:bg-gray-50"
+                                    disabled={returnLoading}
+                                >
+                                    Cancelar
+                                </button>
+                                <button
+                                    onClick={confirmReturn}
+                                    disabled={returnLoading || !returnReason.trim()}
+                                    className="px-4 py-2 border border-transparent rounded-md text-sm font-medium text-white bg-orange-600 hover:bg-orange-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-orange-500 disabled:opacity-50"
+                                >
+                                    {returnLoading ? 'Devolviendo...' : 'Devolver Caso'}
                                 </button>
                             </div>
                         </div>

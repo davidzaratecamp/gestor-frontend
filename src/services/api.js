@@ -78,6 +78,7 @@ export const incidentService = {
     assignTechnician: (id, technicianId) => api.put(`/incidents/${id}/assign`, { technician_id: technicianId }),
     reassignTechnician: (id, technicianId, reason) => api.put(`/incidents/${id}/reassign`, { technician_id: technicianId, reason }),
     markAsResolved: (id, resolutionNotes) => api.put(`/incidents/${id}/resolve`, { resolution_notes: resolutionNotes }),
+    returnToCreator: (id, returnReason) => api.put(`/incidents/${id}/return`, { return_reason: returnReason }),
     approve: (id, data) => api.put(`/incidents/${id}/approve`, data),
     reject: (id, rejectionReason) => api.put(`/incidents/${id}/reject`, { rejection_reason: rejectionReason }),
     getMyRatings: () => api.get('/incidents/my-ratings'),
