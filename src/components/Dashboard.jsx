@@ -33,6 +33,7 @@ const Dashboard = () => {
         inProcess: 0,
         inSupervision: 0,
         approved: 0,
+        returned: 0,
         myIncidents: 0
     });
     const [pendingByCiudad, setPendingByCiudad] = useState({});
@@ -128,13 +129,35 @@ const Dashboard = () => {
                 incidentService.getAll({ status: 'pendiente' }),
                 incidentService.getAll({ status: 'aprobado' })
             ];
+
+            // Agregar carga de incidencias devueltas si el usuario puede verlas
+            let returnedRes = null;
+            if (user?.role === 'admin' || user?.role === 'coordinador' || user?.role === 'supervisor' || 
+                user?.role === 'jefe_operaciones' || user?.role === 'administrativo') {
+                requests.push(incidentService.getReturnedIncidents());
+            }
             
             if (isAdmin) {
                 requests.push(userService.getTechnicians());
             }
             
             const results = await Promise.all(requests);
-            const [pendingRes, approvedRes, techniciansRes] = results;
+            let pendingRes, approvedRes, returnedRes, techniciansRes;
+            
+            if (user?.role === 'admin' || user?.role === 'coordinador' || user?.role === 'supervisor' || 
+                user?.role === 'jefe_operaciones' || user?.role === 'administrativo') {
+                if (isAdmin) {
+                    [pendingRes, approvedRes, returnedRes, techniciansRes] = results;
+                } else {
+                    [pendingRes, approvedRes, returnedRes] = results;
+                }
+            } else {
+                if (isAdmin) {
+                    [pendingRes, approvedRes, techniciansRes] = results;
+                } else {
+                    [pendingRes, approvedRes] = results;
+                }
+            }
             
             if (techniciansRes) {
                 setTechnicians(techniciansRes.data);
@@ -179,6 +202,7 @@ const Dashboard = () => {
                 inProcess: inProcessCount,
                 inSupervision: inSupervisionCount,
                 approved: approvedRes.data.length,
+                returned: returnedRes ? returnedRes.data.length : 0,
                 myIncidents: myIncidentsCount
             });
 

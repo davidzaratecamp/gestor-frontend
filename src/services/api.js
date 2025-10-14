@@ -61,6 +61,7 @@ export const incidentService = {
     getPending: (params = {}) => api.get('/incidents/pending', { params }),
     getInSupervision: (params = {}) => api.get('/incidents/supervision', { params }),
     getApproved: (params = {}) => api.get('/incidents/approved', { params }),
+    getReturnedIncidents: () => api.get('/incidents/returned'),
     getById: (id) => api.get(`/incidents/${id}`),
     getHistory: (id) => api.get(`/incidents/${id}/history`),
     getAttachments: (id) => api.get(`/incidents/${id}/attachments`),

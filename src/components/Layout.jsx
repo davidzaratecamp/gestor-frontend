@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { Outlet, Link, useLocation, useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import { useNotifications } from '../hooks/useNotifications';
+import { useReturnedIncidents } from '../hooks/useReturnedIncidents';
 import NotificationBell from './NotificationBell';
 import AlertsDropdown from './AlertsDropdown';
 import IntrusiveAlerts from './IntrusiveAlerts';
@@ -21,7 +22,8 @@ import {
     LogOut,
     User,
     Heart,
-    BarChart3
+    BarChart3,
+    RotateCcw
 } from 'lucide-react';
 
 const Layout = () => {
@@ -43,6 +45,9 @@ const Layout = () => {
         clearNotifications,
         testNotificationSound
     } = useNotifications(user);
+
+    // Hook para incidencias devueltas
+    const { returnedCount } = useReturnedIncidents();
 
     const handleLogout = () => {
         logout();
@@ -83,6 +88,7 @@ const Layout = () => {
         { name: 'Mis Incidencias', href: '/incidents/my-incidents', icon: User, roles: ['technician'], showBadge: true },
         { name: 'En Supervisión', href: '/incidents/supervision', icon: Settings, roles: ['admin', 'supervisor', 'coordinador', 'jefe_operaciones', 'administrativo'] },
         { name: 'Mis Incidencias en Supervisión', href: '/incidents/my-supervision', icon: User, roles: ['jefe_operaciones'] },
+        { name: 'Incidencias Devueltas', href: '/incidents/returned', icon: RotateCcw, roles: ['admin', 'supervisor', 'coordinador', 'jefe_operaciones', 'administrativo'], showBadge: true },
         { name: 'Historial Aprobadas', href: '/incidents/approved', icon: CheckCircle, roles: ['admin', 'supervisor', 'coordinador', 'jefe_operaciones', 'technician', 'administrativo'] },
         
         // Gestión (solo admin)
@@ -147,10 +153,21 @@ const Layout = () => {
                                     } mr-3 h-5 w-5`}
                                 />
                                 <span className="flex-1">{item.name}</span>
-                                {item.showBadge && isTechnician && unreadCount > 0 && (
-                                    <span className="ml-auto bg-red-500 text-white text-xs font-bold rounded-full h-5 w-5 flex items-center justify-center">
-                                        {unreadCount > 9 ? '9+' : unreadCount}
-                                    </span>
+                                {item.showBadge && (
+                                    <>
+                                        {/* Badge para técnicos (Mis Incidencias) */}
+                                        {isTechnician && item.href === '/incidents/my-incidents' && unreadCount > 0 && (
+                                            <span className="ml-auto bg-red-500 text-white text-xs font-bold rounded-full h-5 w-5 flex items-center justify-center">
+                                                {unreadCount > 9 ? '9+' : unreadCount}
+                                            </span>
+                                        )}
+                                        {/* Badge para incidencias devueltas */}
+                                        {item.href === '/incidents/returned' && returnedCount > 0 && (
+                                            <span className="ml-auto bg-orange-500 text-white text-xs font-bold rounded-full h-5 w-5 flex items-center justify-center">
+                                                {returnedCount > 9 ? '9+' : returnedCount}
+                                            </span>
+                                        )}
+                                    </>
                                 )}
                             </Link>
                         );
