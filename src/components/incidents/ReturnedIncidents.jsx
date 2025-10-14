@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { incidentService } from '../../services/api';
 import { useAuth } from '../../context/AuthContext';
 import { 
@@ -10,21 +11,31 @@ import {
     Search,
     AlertCircle,
     MessageCircle,
-    ArrowLeft,
+    Plus,
     Clock,
-    RefreshCw
+    RefreshCw,
+    X,
+    Eye
 } from 'lucide-react';
 
 const ReturnedIncidents = () => {
     const { user } = useAuth();
+    const navigate = useNavigate();
     const [incidents, setIncidents] = useState([]);
     const [filteredIncidents, setFilteredIncidents] = useState([]);
     const [loading, setLoading] = useState(true);
     const [searchTerm, setSearchTerm] = useState('');
     const [typeFilter, setTypeFilter] = useState('all');
+    const [selectedIncident, setSelectedIncident] = useState(null);
+    const [showModal, setShowModal] = useState(false);
+
+    // Hook para manejar el badge de notificación
+    const { markAsViewed } = useReturnedIncidents();
 
     useEffect(() => {
         fetchReturnedIncidents();
+        // Marcar como visto cuando se accede a la página
+        markAsViewed();
     }, []);
 
     useEffect(() => {
@@ -100,10 +111,19 @@ const ReturnedIncidents = () => {
         });
     };
 
-    const handleRetryIncident = (incident) => {
-        // Aquí podrías implementar lógica para crear una nueva incidencia
-        // basada en la información de la incidencia devuelta
-        console.log('Reintentando incidencia:', incident);
+    const handleRetryIncident = () => {
+        // Redirigir a la página de crear incidencia
+        navigate('/incidents/create');
+    };
+
+    const handleViewDetails = (incident) => {
+        setSelectedIncident(incident);
+        setShowModal(true);
+    };
+
+    const closeModal = () => {
+        setShowModal(false);
+        setSelectedIncident(null);
     };
 
     if (loading) {
@@ -221,121 +241,221 @@ const ReturnedIncidents = () => {
                     </p>
                 </div>
             ) : (
-                <div className="space-y-4">
+                <div className="space-y-3">
                     {filteredIncidents.map((incident) => (
                         <div
                             key={incident.id}
-                            className="bg-white border border-orange-200 rounded-lg p-6 shadow-sm hover:shadow-md transition duration-200"
+                            className="bg-white border border-orange-200 rounded-lg p-4 shadow-sm hover:shadow-md transition duration-200 cursor-pointer"
+                            onClick={() => handleViewDetails(incident)}
                         >
-                            <div className="flex items-start justify-between">
-                                <div className="flex-1">
-                                    {/* Header de la tarjeta */}
-                                    <div className="flex items-center space-x-3 mb-3">
-                                        <span className="inline-flex items-center px-3 py-1 rounded-full text-sm font-medium bg-orange-100 text-orange-800">
-                                            <RotateCcw className="w-4 h-4 mr-1" />
+                            <div className="flex items-center justify-between">
+                                <div className="flex items-center space-x-4">
+                                    {/* Badges */}
+                                    <div className="flex items-center space-x-2">
+                                        <span className="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-orange-100 text-orange-800">
+                                            <RotateCcw className="w-3 h-3 mr-1" />
                                             Devuelto
                                         </span>
                                         
-                                        <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${getFailureTypeColor(incident.failure_type)}`}>
+                                        <span className={`inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium ${getFailureTypeColor(incident.failure_type)}`}>
                                             {incident.failure_type}
                                         </span>
 
                                         {incident.return_count > 1 && (
-                                            <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-red-100 text-red-800">
-                                                Reincidencia ({incident.return_count}x)
+                                            <span className="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium bg-red-100 text-red-800">
+                                                {incident.return_count}x
                                             </span>
                                         )}
                                     </div>
 
-                                    {/* Información principal */}
-                                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
-                                        <div className="space-y-2">
-                                            <div className="flex items-center text-sm text-gray-600">
-                                                <Monitor className="w-4 h-4 mr-2" />
-                                                <span className="font-medium">Estación:</span>
-                                                <span className="ml-1 font-mono">{incident.station_code}</span>
-                                            </div>
-                                            
-                                            <div className="flex items-center text-sm text-gray-600">
-                                                <User className="w-4 h-4 mr-2" />
-                                                <span className="font-medium">Devuelto por:</span>
-                                                <span className="ml-1">{incident.returned_by_name}</span>
-                                            </div>
+                                    {/* Información básica */}
+                                    <div className="flex items-center space-x-4">
+                                        <div className="flex items-center text-sm text-gray-600">
+                                            <Monitor className="w-4 h-4 mr-1" />
+                                            <span className="font-mono font-medium">{incident.station_code}</span>
                                         </div>
-
-                                        <div className="space-y-2">
-                                            <div className="flex items-center text-sm text-gray-600">
-                                                <Calendar className="w-4 h-4 mr-2" />
-                                                <span className="font-medium">Creado:</span>
-                                                <span className="ml-1">{formatDateTime(incident.created_at)}</span>
-                                            </div>
-                                            
-                                            <div className="flex items-center text-sm text-gray-600">
-                                                <Clock className="w-4 h-4 mr-2" />
-                                                <span className="font-medium">Devuelto:</span>
-                                                <span className="ml-1">{formatDateTime(incident.returned_at)}</span>
-                                            </div>
+                                        
+                                        <div className="flex items-center text-sm text-gray-500">
+                                            <Clock className="w-4 h-4 mr-1" />
+                                            <span>{formatDateTime(incident.returned_at)}</span>
                                         </div>
                                     </div>
+                                </div>
 
-                                    {/* Descripción */}
-                                    <div className="mb-4">
-                                        <div className="flex items-start">
-                                            <FileText className="w-4 h-4 mr-2 mt-0.5 text-gray-400" />
-                                            <div>
-                                                <span className="text-sm font-medium text-gray-700">Descripción:</span>
-                                                <p className="text-sm text-gray-600 mt-1">{incident.description}</p>
-                                            </div>
-                                        </div>
-                                    </div>
-
-                                    {/* Motivo de devolución */}
-                                    <div className="bg-orange-50 p-3 rounded-md border border-orange-200">
-                                        <div className="flex items-start">
-                                            <MessageCircle className="w-4 h-4 mr-2 mt-0.5 text-orange-600" />
-                                            <div>
-                                                <span className="text-sm font-medium text-orange-800">
-                                                    Motivo de devolución:
-                                                </span>
-                                                <p className="text-sm text-orange-700 mt-1">{incident.return_reason}</p>
-                                            </div>
-                                        </div>
-                                    </div>
-
-                                    {/* Información adicional para Barranquilla */}
-                                    {incident.sede === 'barranquilla' && (incident.anydesk_address || incident.advisor_cedula) && (
-                                        <div className="mt-3 pt-3 border-t border-gray-200">
-                                            <div className="flex flex-wrap gap-4">
-                                                {incident.anydesk_address && (
-                                                    <div className="text-sm text-gray-600">
-                                                        <span className="font-medium">AnyDesk:</span>
-                                                        <span className="ml-1 font-mono">{incident.anydesk_address}</span>
-                                                    </div>
-                                                )}
-                                                {incident.advisor_cedula && (
-                                                    <div className="text-sm text-gray-600">
-                                                        <span className="font-medium">Cédula:</span>
-                                                        <span className="ml-1 font-mono">{incident.advisor_cedula}</span>
-                                                    </div>
-                                                )}
-                                            </div>
-                                        </div>
-                                    )}
+                                {/* Acciones */}
+                                <div className="flex items-center space-x-2">
+                                    <button
+                                        onClick={(e) => {
+                                            e.stopPropagation();
+                                            handleViewDetails(incident);
+                                        }}
+                                        className="flex items-center space-x-1 text-blue-600 hover:text-blue-700 px-2 py-1 rounded transition duration-200"
+                                    >
+                                        <Eye className="w-4 h-4" />
+                                        <span className="text-sm">Ver</span>
+                                    </button>
+                                    
+                                    <button
+                                        onClick={(e) => {
+                                            e.stopPropagation();
+                                            handleRetryIncident();
+                                        }}
+                                        className="flex items-center space-x-1 bg-orange-600 text-white px-3 py-1 rounded hover:bg-orange-700 transition duration-200"
+                                    >
+                                        <Plus className="w-4 h-4" />
+                                        <span className="text-sm">Nueva</span>
+                                    </button>
                                 </div>
                             </div>
 
-                            {/* Acciones */}
-                            <div className="flex justify-end mt-4 pt-4 border-t border-gray-200">
+                            {/* Descripción truncada */}
+                            <div className="mt-2">
+                                <p className="text-sm text-gray-600 line-clamp-1">
+                                    {incident.description}
+                                </p>
+                            </div>
+                        </div>
+                    ))}
+                </div>
+            )}
+
+            {/* Modal de detalles */}
+            {showModal && selectedIncident && (
+                <div className="fixed inset-0 bg-gray-600 bg-opacity-50 overflow-y-auto h-full w-full z-50 flex items-center justify-center p-4">
+                    <div className="bg-white rounded-lg max-w-2xl w-full max-h-[90vh] overflow-y-auto shadow-xl">
+                        <div className="flex items-center justify-between p-6 border-b border-gray-200">
+                            <h3 className="text-lg font-semibold text-gray-900 flex items-center">
+                                <RotateCcw className="w-5 h-5 mr-2 text-orange-600" />
+                                Detalles de Incidencia Devuelta
+                            </h3>
+                            <button
+                                onClick={closeModal}
+                                className="text-gray-400 hover:text-gray-600 transition duration-200"
+                            >
+                                <X className="w-6 h-6" />
+                            </button>
+                        </div>
+
+                        <div className="p-6">
+                            {/* Badges */}
+                            <div className="flex items-center space-x-2 mb-4">
+                                <span className="inline-flex items-center px-3 py-1 rounded-full text-sm font-medium bg-orange-100 text-orange-800">
+                                    <RotateCcw className="w-4 h-4 mr-1" />
+                                    Devuelto
+                                </span>
+                                
+                                <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${getFailureTypeColor(selectedIncident.failure_type)}`}>
+                                    {selectedIncident.failure_type}
+                                </span>
+
+                                {selectedIncident.return_count > 1 && (
+                                    <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-red-100 text-red-800">
+                                        Reincidencia ({selectedIncident.return_count}x)
+                                    </span>
+                                )}
+                            </div>
+
+                            {/* Información principal */}
+                            <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6">
+                                <div className="space-y-3">
+                                    <div className="flex items-center text-sm">
+                                        <Monitor className="w-4 h-4 mr-2 text-gray-400" />
+                                        <span className="font-medium text-gray-700">Estación:</span>
+                                        <span className="ml-2 font-mono">{selectedIncident.station_code}</span>
+                                    </div>
+                                    
+                                    <div className="flex items-center text-sm">
+                                        <User className="w-4 h-4 mr-2 text-gray-400" />
+                                        <span className="font-medium text-gray-700">Devuelto por:</span>
+                                        <span className="ml-2">{selectedIncident.returned_by_name}</span>
+                                    </div>
+                                </div>
+
+                                <div className="space-y-3">
+                                    <div className="flex items-center text-sm">
+                                        <Calendar className="w-4 h-4 mr-2 text-gray-400" />
+                                        <span className="font-medium text-gray-700">Creado:</span>
+                                        <span className="ml-2">{formatDateTime(selectedIncident.created_at)}</span>
+                                    </div>
+                                    
+                                    <div className="flex items-center text-sm">
+                                        <Clock className="w-4 h-4 mr-2 text-gray-400" />
+                                        <span className="font-medium text-gray-700">Devuelto:</span>
+                                        <span className="ml-2">{formatDateTime(selectedIncident.returned_at)}</span>
+                                    </div>
+                                </div>
+                            </div>
+
+                            {/* Descripción */}
+                            <div className="mb-6">
+                                <div className="flex items-start">
+                                    <FileText className="w-4 h-4 mr-2 mt-0.5 text-gray-400" />
+                                    <div className="flex-1">
+                                        <span className="text-sm font-medium text-gray-700">Descripción del problema:</span>
+                                        <p className="text-sm text-gray-600 mt-1 bg-gray-50 p-3 rounded-md">{selectedIncident.description}</p>
+                                    </div>
+                                </div>
+                            </div>
+
+                            {/* Motivo de devolución */}
+                            <div className="mb-6">
+                                <div className="bg-orange-50 p-4 rounded-lg border border-orange-200">
+                                    <div className="flex items-start">
+                                        <MessageCircle className="w-5 h-5 mr-2 mt-0.5 text-orange-600" />
+                                        <div className="flex-1">
+                                            <span className="text-sm font-medium text-orange-800">
+                                                Motivo de devolución:
+                                            </span>
+                                            <p className="text-sm text-orange-700 mt-2">{selectedIncident.return_reason}</p>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+
+                            {/* Información adicional para Barranquilla */}
+                            {selectedIncident.sede === 'barranquilla' && (selectedIncident.anydesk_address || selectedIncident.advisor_cedula) && (
+                                <div className="mb-6">
+                                    <h4 className="text-sm font-medium text-gray-700 mb-3">Información de trabajo remoto:</h4>
+                                    <div className="bg-blue-50 p-3 rounded-lg border border-blue-200">
+                                        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                            {selectedIncident.anydesk_address && (
+                                                <div className="text-sm">
+                                                    <span className="font-medium text-blue-800">AnyDesk:</span>
+                                                    <span className="ml-2 font-mono text-blue-700">{selectedIncident.anydesk_address}</span>
+                                                </div>
+                                            )}
+                                            {selectedIncident.advisor_cedula && (
+                                                <div className="text-sm">
+                                                    <span className="font-medium text-blue-800">Cédula del asesor:</span>
+                                                    <span className="ml-2 font-mono text-blue-700">{selectedIncident.advisor_cedula}</span>
+                                                </div>
+                                            )}
+                                        </div>
+                                    </div>
+                                </div>
+                            )}
+
+                            {/* Acciones del modal */}
+                            <div className="flex justify-end space-x-3 pt-4 border-t border-gray-200">
                                 <button
-                                    onClick={() => handleRetryIncident(incident)}
-                                    className="flex items-center space-x-2 bg-orange-600 text-white px-4 py-2 rounded-lg hover:bg-orange-700 transition duration-200"
+                                    onClick={closeModal}
+                                    className="px-4 py-2 text-sm font-medium text-gray-700 bg-gray-100 border border-gray-300 rounded-md hover:bg-gray-200 transition duration-200"
                                 >
-                                    <ArrowLeft className="w-4 h-4" />
+                                    Cerrar
+                                </button>
+                                <button
+                                    onClick={() => {
+                                        closeModal();
+                                        handleRetryIncident();
+                                    }}
+                                    className="flex items-center space-x-2 px-4 py-2 text-sm font-medium text-white bg-orange-600 border border-transparent rounded-md hover:bg-orange-700 transition duration-200"
+                                >
+                                    <Plus className="w-4 h-4" />
                                     <span>Crear Nueva Incidencia</span>
                                 </button>
                             </div>
                         </div>
-                    ))}
+                    </div>
                 </div>
             )}
         </div>
