@@ -131,7 +131,6 @@ const Dashboard = () => {
             ];
 
             // Agregar carga de incidencias devueltas si el usuario puede verlas
-            let returnedRes = null;
             if (user?.role === 'admin' || user?.role === 'coordinador' || user?.role === 'supervisor' || 
                 user?.role === 'jefe_operaciones' || user?.role === 'administrativo') {
                 requests.push(incidentService.getReturnedIncidents());
