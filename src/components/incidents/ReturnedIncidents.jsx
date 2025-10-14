@@ -29,8 +29,12 @@ const ReturnedIncidents = () => {
     const [selectedIncident, setSelectedIncident] = useState(null);
     const [showModal, setShowModal] = useState(false);
 
-    // Hook para manejar el badge de notificación
-    const { markAsViewed } = useReturnedIncidents();
+    // Función para marcar como visto
+    const markAsViewed = () => {
+        if (user) {
+            localStorage.setItem(`returned_incidents_viewed_${user.id}`, 'true');
+        }
+    };
 
     useEffect(() => {
         fetchReturnedIncidents();
