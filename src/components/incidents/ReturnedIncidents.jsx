@@ -35,23 +35,39 @@ const ReturnedIncidents = () => {
         try {
             setLoading(true);
             const response = await incidentService.getReturnedIncidents();
-            setIncidents(response);
+            console.log('Response from API:', response); // Debug log
+            
+            // Manejar la respuesta correctamente
+            const incidentsData = response.data || response || [];
+            console.log('Incidents data:', incidentsData); // Debug log
+            
+            // Asegurar que siempre sea un array
+            const incidentsArray = Array.isArray(incidentsData) ? incidentsData : [];
+            setIncidents(incidentsArray);
         } catch (error) {
             console.error('Error obteniendo incidencias devueltas:', error);
+            setIncidents([]); // Establecer array vacío en caso de error
         } finally {
             setLoading(false);
         }
     };
 
     const filterIncidents = () => {
+        // Asegurar que incidents sea un array
+        if (!Array.isArray(incidents)) {
+            console.warn('incidents is not an array:', incidents);
+            setFilteredIncidents([]);
+            return;
+        }
+
         let filtered = incidents;
 
         // Filtrar por término de búsqueda
         if (searchTerm) {
             filtered = filtered.filter(incident =>
-                incident.station_code.toLowerCase().includes(searchTerm.toLowerCase()) ||
-                incident.description.toLowerCase().includes(searchTerm.toLowerCase()) ||
-                incident.return_reason.toLowerCase().includes(searchTerm.toLowerCase())
+                (incident.station_code || '').toLowerCase().includes(searchTerm.toLowerCase()) ||
+                (incident.description || '').toLowerCase().includes(searchTerm.toLowerCase()) ||
+                (incident.return_reason || '').toLowerCase().includes(searchTerm.toLowerCase())
             );
         }
 

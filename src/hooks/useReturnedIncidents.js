@@ -14,7 +14,9 @@ export const useReturnedIncidents = () => {
             if (user?.role === 'admin' || user?.role === 'coordinador' || user?.role === 'supervisor' || 
                 user?.role === 'jefe_operaciones' || user?.role === 'administrativo') {
                 const response = await incidentService.getReturnedIncidents();
-                setReturnedCount(response.data.length);
+                const incidentsData = response.data || response || [];
+                const incidentsArray = Array.isArray(incidentsData) ? incidentsData : [];
+                setReturnedCount(incidentsArray.length);
             }
         } catch (error) {
             console.error('Error obteniendo incidencias devueltas:', error);
