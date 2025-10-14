@@ -161,8 +161,8 @@ const Layout = () => {
                                                 {unreadCount > 9 ? '9+' : unreadCount}
                                             </span>
                                         )}
-                                        {/* Badge para incidencias devueltas */}
-                                        {item.href === '/incidents/returned' && returnedCount > 0 && (
+                                        {/* Badge para incidencias devueltas (solo para no-admins) */}
+                                        {item.href === '/incidents/returned' && returnedCount > 0 && !isAdmin && (
                                             <span className="ml-auto bg-orange-500 text-white text-xs font-bold rounded-full h-5 w-5 flex items-center justify-center">
                                                 {returnedCount > 9 ? '9+' : returnedCount}
                                             </span>
