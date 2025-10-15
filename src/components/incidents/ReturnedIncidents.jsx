@@ -19,7 +19,7 @@ import {
 } from 'lucide-react';
 
 const ReturnedIncidents = () => {
-    const { user } = useAuth();
+    const { user, isAdmin } = useAuth();
     const navigate = useNavigate();
     const [incidents, setIncidents] = useState([]);
     const [filteredIncidents, setFilteredIncidents] = useState([]);
@@ -299,16 +299,18 @@ const ReturnedIncidents = () => {
                                         <span className="text-sm">Ver</span>
                                     </button>
                                     
-                                    <button
-                                        onClick={(e) => {
-                                            e.stopPropagation();
-                                            handleRetryIncident();
-                                        }}
-                                        className="flex items-center space-x-1 bg-orange-600 text-white px-3 py-1 rounded hover:bg-orange-700 transition duration-200"
-                                    >
-                                        <Plus className="w-4 h-4" />
-                                        <span className="text-sm">Nueva</span>
-                                    </button>
+                                    {!isAdmin && (
+                                        <button
+                                            onClick={(e) => {
+                                                e.stopPropagation();
+                                                handleRetryIncident();
+                                            }}
+                                            className="flex items-center space-x-1 bg-orange-600 text-white px-3 py-1 rounded hover:bg-orange-700 transition duration-200"
+                                        >
+                                            <Plus className="w-4 h-4" />
+                                            <span className="text-sm">Nueva</span>
+                                        </button>
+                                    )}
                                 </div>
                             </div>
 
@@ -447,16 +449,18 @@ const ReturnedIncidents = () => {
                                 >
                                     Cerrar
                                 </button>
-                                <button
-                                    onClick={() => {
-                                        closeModal();
-                                        handleRetryIncident();
-                                    }}
-                                    className="flex items-center space-x-2 px-4 py-2 text-sm font-medium text-white bg-orange-600 border border-transparent rounded-md hover:bg-orange-700 transition duration-200"
-                                >
-                                    <Plus className="w-4 h-4" />
-                                    <span>Crear Nueva Incidencia</span>
-                                </button>
+                                {!isAdmin && (
+                                    <button
+                                        onClick={() => {
+                                            closeModal();
+                                            handleRetryIncident();
+                                        }}
+                                        className="flex items-center space-x-2 px-4 py-2 text-sm font-medium text-white bg-orange-600 border border-transparent rounded-md hover:bg-orange-700 transition duration-200"
+                                    >
+                                        <Plus className="w-4 h-4" />
+                                        <span>Crear Nueva Incidencia</span>
+                                    </button>
+                                )}
                             </div>
                         </div>
                     </div>
