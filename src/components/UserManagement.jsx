@@ -44,7 +44,8 @@ const UserManagement = () => {
         { value: 'coordinador', label: 'Coordinador', color: 'bg-blue-100 text-blue-800' },
         { value: 'technician', label: 'Técnico', color: 'bg-green-100 text-green-800' },
         { value: 'jefe_operaciones', label: 'Jefe de Operaciones', color: 'bg-purple-100 text-purple-800' },
-        { value: 'administrativo', label: 'Administrativo', color: 'bg-orange-100 text-orange-800' }
+        { value: 'administrativo', label: 'Administrativo', color: 'bg-orange-100 text-orange-800' },
+        { value: 'gestorActivos', label: 'Gestor de Activos', color: 'bg-indigo-100 text-indigo-800' }
     ];
 
     const sedes = [
@@ -197,6 +198,12 @@ const UserManagement = () => {
                 submitData.departamento = null;
             }
             
+            // Para gestores de activos, no asignar sede ni departamento
+            if (submitData.role === 'gestorActivos') {
+                submitData.sede = null;
+                submitData.departamento = null;
+            }
+            
             if (showCreateModal) {
                 await userService.create(submitData);
                 setSuccess('Usuario creado exitosamente');
@@ -319,6 +326,7 @@ const UserManagement = () => {
                             <option value="coordinador">Coordinadores</option>
                             <option value="technician">Técnicos</option>
                             <option value="jefe_operaciones">Jefes de Operaciones</option>
+                            <option value="gestorActivos">Gestores de Activos</option>
                         </select>
                     </div>
 
@@ -386,8 +394,10 @@ const UserManagement = () => {
                                                 <div className="flex items-center">
                                                     <MapPin className="h-4 w-4 mr-1" />
                                                     <span>
-                                                        {sedes.find(s => s.value === user.sede)?.label || user.sede}
-                                                        {user.departamento && ` - ${departamentos.find(d => d.value === user.departamento)?.label || user.departamento}`}
+                                                        {user.role === 'gestorActivos' 
+                                                            ? 'Gestión de Activos - Sin sede específica'
+                                                            : `${sedes.find(s => s.value === user.sede)?.label || user.sede}${user.departamento ? ` - ${departamentos.find(d => d.value === user.departamento)?.label || user.departamento}` : ''}`
+                                                        }
                                                     </span>
                                                 </div>
                                                 <span>
@@ -518,24 +528,26 @@ const UserManagement = () => {
                                     </select>
                                 </div>
 
-                                {/* Sede */}
-                                <div>
-                                    <label className="block text-sm font-medium text-gray-700 mb-1">
-                                        Sede *
-                                    </label>
-                                    <select
-                                        required
-                                        value={formData.sede}
-                                        onChange={(e) => handleSedeChange(e.target.value)}
-                                        className="w-full border border-gray-300 rounded-md px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-                                    >
-                                        {sedes.map(sede => (
-                                            <option key={sede.value} value={sede.value}>
-                                                {sede.label}
-                                            </option>
-                                        ))}
-                                    </select>
-                                </div>
+                                {/* Sede - Solo mostrar si NO es gestorActivos */}
+                                {formData.role !== 'gestorActivos' && (
+                                    <div>
+                                        <label className="block text-sm font-medium text-gray-700 mb-1">
+                                            Sede *
+                                        </label>
+                                        <select
+                                            required
+                                            value={formData.sede}
+                                            onChange={(e) => handleSedeChange(e.target.value)}
+                                            className="w-full border border-gray-300 rounded-md px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                                        >
+                                            {sedes.map(sede => (
+                                                <option key={sede.value} value={sede.value}>
+                                                    {sede.label}
+                                                </option>
+                                            ))}
+                                        </select>
+                                    </div>
+                                )}
 
                                 {/* Departamento - Solo mostrar para coordinadores y jefes de operaciones */}
                                 {(formData.role === 'coordinador' || formData.role === 'jefe_operaciones') && (
@@ -564,6 +576,16 @@ const UserManagement = () => {
                                         <p className="text-sm text-blue-700">
                                             <strong>Nota:</strong> Los técnicos no tienen departamento asignado específico. 
                                             Pueden trabajar en cualquier departamento según las necesidades.
+                                        </p>
+                                    </div>
+                                )}
+
+                                {/* Mensaje informativo para gestores de activos */}
+                                {formData.role === 'gestorActivos' && (
+                                    <div className="bg-indigo-50 border border-indigo-200 rounded-md p-3">
+                                        <p className="text-sm text-indigo-700">
+                                            <strong>Nota:</strong> Los gestores de activos tienen acceso exclusivo al módulo de gestión de activos. 
+                                            No requieren sede ni departamento específico.
                                         </p>
                                     </div>
                                 )}

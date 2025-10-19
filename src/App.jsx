@@ -17,6 +17,9 @@ import MyIncidentsSupervision from './components/incidents/MyIncidentsSupervisio
 import UserManagement from './components/UserManagement';
 import WorkstationManagement from './components/WorkstationManagement';
 import Analytics from './components/Analytics';
+import AssetManagement from './components/AssetManagement';
+import AssetLayout from './components/AssetLayout';
+import AssetInventory from './components/AssetInventory';
 
 // Componente para determinar el layout según el rol
 const LayoutWrapper = ({ children }) => {
@@ -24,6 +27,10 @@ const LayoutWrapper = ({ children }) => {
   
   if (user?.role === 'anonimo') {
     return <AnonymousLayout>{children}</AnonymousLayout>;
+  }
+  
+  if (user?.role === 'gestorActivos') {
+    return <AssetLayout>{children}</AssetLayout>;
   }
   
   return <Layout>{children}</Layout>;
@@ -62,6 +69,10 @@ const RedirectByRole = () => {
     return <Navigate to="/chat" replace />;
   }
   
+  if (user?.role === 'gestorActivos') {
+    return <Navigate to="/activos" replace />;
+  }
+  
   return <Navigate to="/dashboard" replace />;
 };
 
@@ -81,6 +92,10 @@ const DashboardRoute = () => {
   
   if (user?.role === 'anonimo') {
     return <Navigate to="/chat" replace />;
+  }
+  
+  if (user?.role === 'gestorActivos') {
+    return <Navigate to="/activos" replace />;
   }
   
   return <Dashboard />;
@@ -144,6 +159,30 @@ const AdminRoute = ({ children }) => {
   return children;
 };
 
+// Componente para rutas que requieren rol de gestorActivos
+const GestorActivosRoute = ({ children }) => {
+  const { isGestorActivos, loading } = useAuth();
+  
+  if (loading) {
+    return (
+      <div className="min-h-screen flex items-center justify-center">
+        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600"></div>
+      </div>
+    );
+  }
+  
+  if (!isGestorActivos) {
+    return (
+      <div className="text-center py-12">
+        <h1 className="text-2xl font-bold text-gray-900 mb-4">Acceso Denegado</h1>
+        <p className="text-gray-600">Solo los gestores de activos pueden acceder a esta sección.</p>
+      </div>
+    );
+  }
+  
+  return children;
+};
+
 // Componente placeholder para rutas que aún no están implementadas
 const ComingSoon = ({ title }) => (
   <div className="text-center py-12">
@@ -192,6 +231,10 @@ function App() {
               <Route path="users" element={<AdminRoute><UserManagement /></AdminRoute>} />
               <Route path="workstations" element={<AdminRoute><WorkstationManagement /></AdminRoute>} />
               <Route path="analytics" element={<AdminRoute><Analytics /></AdminRoute>} />
+              
+              {/* Rutas de gestión de activos */}
+              <Route path="activos" element={<GestorActivosRoute><AssetManagement /></GestorActivosRoute>} />
+              <Route path="activos/inventario" element={<GestorActivosRoute><AssetInventory /></GestorActivosRoute>} />
             </Route>
 
             {/* Ruta catch-all */}

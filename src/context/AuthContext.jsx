@@ -115,6 +115,7 @@ export const AuthProvider = ({ children }) => {
         isSupervisor: user?.role === 'supervisor' || user?.role === 'coordinador', // Mantener compatibilidad
         isTechnician: user?.role === 'technician',
         isAnonimo: user?.role === 'anonimo',
+        isGestorActivos: user?.role === 'gestorActivos',
         canSupervise: user?.role === 'admin' || user?.role === 'supervisor' || user?.role === 'coordinador' || user?.role === 'administrativo' || user?.role === 'jefe_operaciones',
         canCreateIncidents: user?.role === 'admin' || user?.role === 'supervisor' || user?.role === 'coordinador' || user?.role === 'jefe_operaciones'
     };
