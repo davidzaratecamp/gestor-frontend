@@ -171,6 +171,14 @@ const Dashboard = () => {
                 const myIncidentsRes = await incidentService.getMyIncidents();
                 myIncidentsCount = myIncidentsRes.data.length;
                 inProcessCount = myIncidentsRes.data.filter(inc => inc.status === 'en_proceso').length;
+                
+                // Para técnicos, también cargar estadísticas por ciudad con su lógica de visibilidad
+                [inProcessRes, inSupervisionRes] = await Promise.all([
+                    incidentService.getAll({ status: 'en_proceso' }),
+                    incidentService.getAll({ status: 'en_supervision' })
+                ]);
+                // Los contadores para técnicos siguen siendo de "mis incidencias"
+                inSupervisionCount = myIncidentsRes.data.filter(inc => inc.status === 'en_supervision').length;
             } else {
                 [inProcessRes, inSupervisionRes] = await Promise.all([
                     incidentService.getAll({ status: 'en_proceso' }),
@@ -183,8 +191,8 @@ const Dashboard = () => {
             // Guardar todas las incidencias pendientes para las alertas
             setAllPendingIncidents(pendingRes.data);
 
-            // Agrupar incidencias por ciudad (solo para admin)
-            if (isAdmin) {
+            // Agrupar incidencias por ciudad (para admin y técnicos)
+            if (isAdmin || isTechnician) {
                 setPendingByCiudad(groupIncidentsByCiudad(pendingRes.data));
                 setApprovedByCiudad(groupIncidentsByCiudad(approvedRes.data));
                 
@@ -230,17 +238,17 @@ const Dashboard = () => {
     };
 
     const handleCardClick = (type) => {
-        if (isAdmin) {
+        if (isAdmin || isTechnician) {
             // Cerrar otros dropdowns primero
             setShowPendingDropdown(type === 'pending' ? !showPendingDropdown : false);
             setShowInProcessDropdown(type === 'inProcess' ? !showInProcessDropdown : false);
             setShowInSupervisionDropdown(type === 'inSupervision' ? !showInSupervisionDropdown : false);
             setShowApprovedDropdown(type === 'approved' ? !showApprovedDropdown : false);
         } else {
-            // Para no-admin, navegar directamente
+            // Para no-admin, no-technician, navegar directamente
             const routes = {
                 'pending': '/incidents/pending',
-                'inProcess': '/incidents/pending', // Los técnicos ven sus asignadas en "Mis Incidencias"
+                'inProcess': '/incidents/pending',
                 'inSupervision': '/incidents/supervision',
                 'approved': '/incidents/approved'
             };
@@ -300,7 +308,7 @@ const Dashboard = () => {
     };
 
     const renderDropdown = (type, data, isVisible, title, routePath) => {
-        if (!isAdmin || !isVisible) return null;
+        if ((!isAdmin && !isTechnician) || !isVisible) return null;
 
         return (
             <div className="absolute top-full left-0 right-0 mt-2 bg-white border border-gray-200 rounded-lg shadow-lg z-10 max-h-96 overflow-y-auto">
@@ -565,10 +573,10 @@ const Dashboard = () => {
 
             {/* Stats Cards */}
             <div className="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-4">
-                {/* Pendientes - Interactivo para Admin */}
+                {/* Pendientes - Interactivo para Admin y Técnicos */}
                 <div className="relative">
                     <div 
-                        className={`bg-white overflow-hidden shadow rounded-lg ${isAdmin ? 'cursor-pointer hover:shadow-md transition-shadow' : ''}`}
+                        className={`bg-white overflow-hidden shadow rounded-lg ${(isAdmin || isTechnician) ? 'cursor-pointer hover:shadow-md transition-shadow' : ''}`}
                         onClick={() => handleCardClick('pending')}
                     >
                         <div className="p-5">
@@ -580,7 +588,7 @@ const Dashboard = () => {
                                     <dl>
                                         <dt className="text-sm font-medium text-gray-500 truncate flex items-center">
                                             Pendientes
-                                            {isAdmin && (
+                                            {(isAdmin || isTechnician) && (
                                                 <span className="ml-2">
                                                     {showPendingDropdown ? 
                                                         <ChevronUp className="h-4 w-4 text-gray-400" /> : 
@@ -601,11 +609,11 @@ const Dashboard = () => {
                     {renderDropdown('pending', pendingByCiudad, showPendingDropdown, 'Seleccionar Ciudad', '/incidents/pending')}
                 </div>
 
-                {/* En Proceso - Interactivo para Admin (No visible para jefe de operaciones) */}
+                {/* En Proceso - Interactivo para Admin y Técnicos (No visible para jefe de operaciones) */}
                 {!isJefeOperaciones && (
                     <div className="relative">
                         <div 
-                            className={`bg-white overflow-hidden shadow rounded-lg ${isAdmin ? 'cursor-pointer hover:shadow-md transition-shadow' : ''}`}
+                            className={`bg-white overflow-hidden shadow rounded-lg ${(isAdmin || isTechnician) ? 'cursor-pointer hover:shadow-md transition-shadow' : ''}`}
                             onClick={() => handleCardClick('inProcess')}
                         >
                             <div className="p-5">
@@ -617,7 +625,7 @@ const Dashboard = () => {
                                         <dl>
                                             <dt className="text-sm font-medium text-gray-500 truncate flex items-center">
                                                 En Proceso
-                                                {isAdmin && (
+                                                {(isAdmin || isTechnician) && (
                                                     <span className="ml-2">
                                                         {showInProcessDropdown ? 
                                                             <ChevronUp className="h-4 w-4 text-gray-400" /> : 
@@ -641,24 +649,37 @@ const Dashboard = () => {
 
                 {/* En Supervisión o Mis Incidencias */}
                 {isTechnician ? (
-                    <div className="bg-white overflow-hidden shadow rounded-lg">
-                        <div className="p-5">
-                            <div className="flex items-center">
-                                <div className="flex-shrink-0">
-                                    <Users className="h-6 w-6 text-indigo-400" />
-                                </div>
-                                <div className="ml-5 w-0 flex-1">
-                                    <dl>
-                                        <dt className="text-sm font-medium text-gray-500 truncate">
-                                            Mis Incidencias
-                                        </dt>
-                                        <dd className="text-lg font-medium text-gray-900">
-                                            {stats.myIncidents}
-                                        </dd>
-                                    </dl>
+                    <div className="relative">
+                        <div 
+                            className="bg-white overflow-hidden shadow rounded-lg cursor-pointer hover:shadow-md transition-shadow"
+                            onClick={() => handleCardClick('inSupervision')}
+                        >
+                            <div className="p-5">
+                                <div className="flex items-center">
+                                    <div className="flex-shrink-0">
+                                        <AlertTriangle className="h-6 w-6 text-purple-400" />
+                                    </div>
+                                    <div className="ml-5 w-0 flex-1">
+                                        <dl>
+                                            <dt className="text-sm font-medium text-gray-500 truncate flex items-center">
+                                                En Supervisión
+                                                <span className="ml-2">
+                                                    {showInSupervisionDropdown ? 
+                                                        <ChevronUp className="h-4 w-4 text-gray-400" /> : 
+                                                        <ChevronDown className="h-4 w-4 text-gray-400" />
+                                                    }
+                                                </span>
+                                            </dt>
+                                            <dd className="text-lg font-medium text-gray-900">
+                                                {stats.inSupervision}
+                                            </dd>
+                                        </dl>
+                                    </div>
                                 </div>
                             </div>
                         </div>
+
+                        {renderDropdown('inSupervision', inSupervisionByCiudad, showInSupervisionDropdown, 'Seleccionar Ciudad', '/incidents/supervision')}
                     </div>
                 ) : (
                     <div className="relative">
@@ -697,10 +718,10 @@ const Dashboard = () => {
                     </div>
                 )}
 
-                {/* Aprobadas - Interactivo para Admin */}
+                {/* Aprobadas - Interactivo para Admin y Técnicos */}
                 <div className="relative">
                     <div 
-                        className={`bg-white overflow-hidden shadow rounded-lg ${isAdmin ? 'cursor-pointer hover:shadow-md transition-shadow' : ''}`}
+                        className={`bg-white overflow-hidden shadow rounded-lg ${(isAdmin || isTechnician) ? 'cursor-pointer hover:shadow-md transition-shadow' : ''}`}
                         onClick={() => handleCardClick('approved')}
                     >
                         <div className="p-5">
@@ -712,7 +733,7 @@ const Dashboard = () => {
                                     <dl>
                                         <dt className="text-sm font-medium text-gray-500 truncate flex items-center">
                                             Aprobadas
-                                            {isAdmin && (
+                                            {(isAdmin || isTechnician) && (
                                                 <span className="ml-2">
                                                     {showApprovedDropdown ? 
                                                         <ChevronUp className="h-4 w-4 text-gray-400" /> : 
