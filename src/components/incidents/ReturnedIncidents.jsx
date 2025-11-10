@@ -15,7 +15,9 @@ import {
     Clock,
     RefreshCw,
     X,
-    Eye
+    Eye,
+    Edit,
+    Save
 } from 'lucide-react';
 
 const ReturnedIncidents = () => {
@@ -28,6 +30,15 @@ const ReturnedIncidents = () => {
     const [typeFilter, setTypeFilter] = useState('all');
     const [selectedIncident, setSelectedIncident] = useState(null);
     const [showModal, setShowModal] = useState(false);
+    const [showCorrectionModal, setShowCorrectionModal] = useState(false);
+    const [correctionLoading, setCorrectionLoading] = useState(false);
+    
+    // Estados para el formulario de corrección
+    const [description, setDescription] = useState('');
+    const [anydeskAddress, setAnydeskAddress] = useState('');
+    const [advisorCedula, setAdvisorCedula] = useState('');
+    const [puestoNumero, setPuestoNumero] = useState('');
+    const [failureType, setFailureType] = useState('');
 
     // Función para marcar como visto
     const markAsViewed = () => {
@@ -125,9 +136,70 @@ const ReturnedIncidents = () => {
         setShowModal(true);
     };
 
+    const handleCorrectIncident = (incident) => {
+        setSelectedIncident(incident);
+        // Pre-llenar formulario con datos actuales
+        setDescription(incident.description || '');
+        setAnydeskAddress(incident.anydesk_address || '');
+        setAdvisorCedula(incident.advisor_cedula || '');
+        setPuestoNumero(incident.puesto_numero || '');
+        setFailureType(incident.failure_type || '');
+        setShowCorrectionModal(true);
+    };
+
+    const handleSubmitCorrection = async () => {
+        if (!selectedIncident) return;
+
+        // Validar que al menos un campo haya sido modificado
+        const corrections = {};
+        if (description.trim() !== (selectedIncident.description || '')) {
+            corrections.description = description.trim();
+        }
+        if (anydeskAddress.trim() !== (selectedIncident.anydesk_address || '')) {
+            corrections.anydesk_address = anydeskAddress.trim();
+        }
+        if (advisorCedula.trim() !== (selectedIncident.advisor_cedula || '')) {
+            corrections.advisor_cedula = advisorCedula.trim();
+        }
+        if (puestoNumero !== (selectedIncident.puesto_numero || '')) {
+            corrections.puesto_numero = parseInt(puestoNumero) || null;
+        }
+        if (failureType !== (selectedIncident.failure_type || '')) {
+            corrections.failure_type = failureType;
+        }
+
+        if (Object.keys(corrections).length === 0) {
+            alert('No has realizado cambios en la información');
+            return;
+        }
+
+        setCorrectionLoading(true);
+        try {
+            await incidentService.correctIncident(selectedIncident.id, corrections);
+            setShowCorrectionModal(false);
+            alert('Incidencia corregida y reenviada exitosamente. Ahora está disponible para asignación.');
+            await fetchReturnedIncidents();
+        } catch (error) {
+            console.error('Error corrigiendo incidencia:', error);
+            alert(error.response?.data?.msg || 'Error al corregir la incidencia');
+        } finally {
+            setCorrectionLoading(false);
+        }
+    };
+
     const closeModal = () => {
         setShowModal(false);
         setSelectedIncident(null);
+    };
+
+    const closeCorrectionModal = () => {
+        setShowCorrectionModal(false);
+        setSelectedIncident(null);
+        setDescription('');
+        setAnydeskAddress('');
+        setAdvisorCedula('');
+        setPuestoNumero('');
+        setFailureType('');
     };
 
     if (loading) {
@@ -303,12 +375,12 @@ const ReturnedIncidents = () => {
                                         <button
                                             onClick={(e) => {
                                                 e.stopPropagation();
-                                                handleRetryIncident();
+                                                handleCorrectIncident(incident);
                                             }}
                                             className="flex items-center space-x-1 bg-orange-600 text-white px-3 py-1 rounded hover:bg-orange-700 transition duration-200"
                                         >
-                                            <Plus className="w-4 h-4" />
-                                            <span className="text-sm">Nueva</span>
+                                            <Edit className="w-4 h-4" />
+                                            <span className="text-sm">Corregir</span>
                                         </button>
                                     )}
                                 </div>
@@ -453,14 +525,164 @@ const ReturnedIncidents = () => {
                                     <button
                                         onClick={() => {
                                             closeModal();
-                                            handleRetryIncident();
+                                            handleCorrectIncident(selectedIncident);
                                         }}
                                         className="flex items-center space-x-2 px-4 py-2 text-sm font-medium text-white bg-orange-600 border border-transparent rounded-md hover:bg-orange-700 transition duration-200"
                                     >
-                                        <Plus className="w-4 h-4" />
-                                        <span>Crear Nueva Incidencia</span>
+                                        <Edit className="w-4 h-4" />
+                                        <span>Corregir Incidencia</span>
                                     </button>
                                 )}
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            )}
+
+            {/* Modal de corrección */}
+            {showCorrectionModal && selectedIncident && (
+                <div className="fixed inset-0 bg-gray-600 bg-opacity-50 overflow-y-auto h-full w-full z-50 flex items-center justify-center p-4">
+                    <div className="bg-white rounded-lg max-w-2xl w-full max-h-[90vh] overflow-y-auto shadow-xl">
+                        <div className="flex items-center justify-between p-6 border-b border-gray-200">
+                            <h3 className="text-lg font-semibold text-gray-900 flex items-center">
+                                <Edit className="w-5 h-5 mr-2 text-orange-600" />
+                                Corregir Incidencia Devuelta
+                            </h3>
+                            <button
+                                onClick={closeCorrectionModal}
+                                className="text-gray-400 hover:text-gray-600 transition duration-200"
+                                disabled={correctionLoading}
+                            >
+                                <X className="w-6 h-6" />
+                            </button>
+                        </div>
+
+                        <div className="p-6">
+                            {/* Información de la incidencia */}
+                            <div className="mb-6 p-4 bg-orange-50 border border-orange-200 rounded-lg">
+                                <div className="flex items-start">
+                                    <AlertCircle className="w-5 h-5 mr-2 mt-0.5 text-orange-600" />
+                                    <div>
+                                        <h4 className="text-sm font-medium text-orange-800">Motivo de devolución:</h4>
+                                        <p className="text-sm text-orange-700 mt-1">{selectedIncident.return_reason}</p>
+                                    </div>
+                                </div>
+                            </div>
+
+                            {/* Formulario de corrección */}
+                            <div className="space-y-4">
+                                {/* Descripción */}
+                                <div>
+                                    <label className="block text-sm font-medium text-gray-700 mb-1">
+                                        Descripción del problema
+                                    </label>
+                                    <textarea
+                                        value={description}
+                                        onChange={(e) => setDescription(e.target.value)}
+                                        placeholder="Describe detalladamente el problema..."
+                                        className="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-orange-500 focus:border-transparent"
+                                        rows="3"
+                                        disabled={correctionLoading}
+                                    />
+                                </div>
+
+                                {/* Tipo de falla */}
+                                <div>
+                                    <label className="block text-sm font-medium text-gray-700 mb-1">
+                                        Tipo de falla
+                                    </label>
+                                    <select
+                                        value={failureType}
+                                        onChange={(e) => setFailureType(e.target.value)}
+                                        className="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-orange-500"
+                                        disabled={correctionLoading}
+                                    >
+                                        <option value="">Seleccionar tipo</option>
+                                        <option value="pantalla">Pantalla</option>
+                                        <option value="perifericos">Periféricos</option>
+                                        <option value="internet">Internet</option>
+                                        <option value="software">Software</option>
+                                        <option value="otro">Otro</option>
+                                    </select>
+                                </div>
+
+                                {/* Número de puesto */}
+                                <div>
+                                    <label className="block text-sm font-medium text-gray-700 mb-1">
+                                        Número de puesto
+                                    </label>
+                                    <input
+                                        type="number"
+                                        value={puestoNumero}
+                                        onChange={(e) => setPuestoNumero(e.target.value)}
+                                        placeholder="Ej: 45"
+                                        min="1"
+                                        max="300"
+                                        className="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-orange-500"
+                                        disabled={correctionLoading}
+                                    />
+                                </div>
+
+                                {/* Campos específicos para Barranquilla */}
+                                {selectedIncident.sede === 'barranquilla' && (
+                                    <>
+                                        <div>
+                                            <label className="block text-sm font-medium text-gray-700 mb-1">
+                                                Dirección AnyDesk
+                                            </label>
+                                            <input
+                                                type="text"
+                                                value={anydeskAddress}
+                                                onChange={(e) => setAnydeskAddress(e.target.value)}
+                                                placeholder="Ej: 123456789"
+                                                className="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-orange-500"
+                                                disabled={correctionLoading}
+                                            />
+                                        </div>
+
+                                        <div>
+                                            <label className="block text-sm font-medium text-gray-700 mb-1">
+                                                Cédula del asesor
+                                            </label>
+                                            <input
+                                                type="text"
+                                                value={advisorCedula}
+                                                onChange={(e) => setAdvisorCedula(e.target.value)}
+                                                placeholder="Ej: 1234567890"
+                                                className="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-orange-500"
+                                                disabled={correctionLoading}
+                                            />
+                                        </div>
+                                    </>
+                                )}
+                            </div>
+
+                            {/* Acciones del modal */}
+                            <div className="flex justify-end space-x-3 pt-6 border-t border-gray-200 mt-6">
+                                <button
+                                    onClick={closeCorrectionModal}
+                                    disabled={correctionLoading}
+                                    className="px-4 py-2 text-sm font-medium text-gray-700 bg-gray-100 border border-gray-300 rounded-md hover:bg-gray-200 transition duration-200 disabled:opacity-50"
+                                >
+                                    Cancelar
+                                </button>
+                                <button
+                                    onClick={handleSubmitCorrection}
+                                    disabled={correctionLoading}
+                                    className="flex items-center space-x-2 px-4 py-2 text-sm font-medium text-white bg-orange-600 border border-transparent rounded-md hover:bg-orange-700 transition duration-200 disabled:opacity-50"
+                                >
+                                    {correctionLoading ? (
+                                        <>
+                                            <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white"></div>
+                                            <span>Guardando...</span>
+                                        </>
+                                    ) : (
+                                        <>
+                                            <Save className="w-4 h-4" />
+                                            <span>Corregir y Reenviar</span>
+                                        </>
+                                    )}
+                                </button>
                             </div>
                         </div>
                     </div>
