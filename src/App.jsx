@@ -14,6 +14,7 @@ import MyIncidents from './components/incidents/MyIncidents';
 import ApprovedIncidents from './components/incidents/ApprovedIncidents';
 import ReturnedIncidents from './components/incidents/ReturnedIncidents';
 import MyIncidentsSupervision from './components/incidents/MyIncidentsSupervision';
+import MyReports from './components/incidents/MyReports';
 import UserManagement from './components/UserManagement';
 import WorkstationManagement from './components/WorkstationManagement';
 import Analytics from './components/Analytics';
@@ -224,6 +225,7 @@ function App() {
               <Route path="incidents/my-incidents" element={<NonAnonymousRoute><MyIncidents /></NonAnonymousRoute>} />
               <Route path="incidents/supervision" element={<NonAnonymousRoute><IncidentsSupervision /></NonAnonymousRoute>} />
               <Route path="incidents/my-supervision" element={<NonAnonymousRoute><MyIncidentsSupervision /></NonAnonymousRoute>} />
+              <Route path="incidents/my-reports" element={<NonAnonymousRoute><MyReports /></NonAnonymousRoute>} />
               <Route path="incidents/approved" element={<NonAnonymousRoute><ApprovedIncidents /></NonAnonymousRoute>} />
               <Route path="incidents/returned" element={<NonAnonymousRoute><ReturnedIncidents /></NonAnonymousRoute>} />
               

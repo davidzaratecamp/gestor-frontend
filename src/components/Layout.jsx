@@ -23,7 +23,8 @@ import {
     User,
     Heart,
     BarChart3,
-    RotateCcw
+    RotateCcw,
+    FileText
 } from 'lucide-react';
 
 const Layout = () => {
@@ -84,6 +85,7 @@ const Layout = () => {
         
         // Incidencias
         { name: 'Crear Incidencia', href: '/incidents/create', icon: AlertTriangle, roles: ['admin', 'supervisor', 'coordinador', 'jefe_operaciones', 'administrativo'] },
+        { name: 'Mis Casos Reportados', href: '/incidents/my-reports', icon: FileText, roles: ['supervisor', 'coordinador', 'jefe_operaciones', 'administrativo'] },
         { name: 'Incidencias Pendientes', href: '/incidents/pending', icon: Clock, roles: ['admin', 'technician', 'jefe_operaciones'] },
         { name: 'Mis Incidencias', href: '/incidents/my-incidents', icon: User, roles: ['technician'], showBadge: true },
         { name: 'En Supervisión', href: '/incidents/supervision', icon: Settings, roles: ['admin', 'supervisor', 'coordinador', 'jefe_operaciones', 'administrativo'] },

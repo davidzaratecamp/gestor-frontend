@@ -58,6 +58,7 @@ export const workstationService = {
 export const incidentService = {
     getAll: (params = {}) => api.get('/incidents', { params }),
     getMyIncidents: () => api.get('/incidents/my-incidents'),
+    getMyReports: () => api.get('/incidents/my-reports'),
     getPending: (params = {}) => api.get('/incidents/pending', { params }),
     getInSupervision: (params = {}) => api.get('/incidents/supervision', { params }),
     getApproved: (params = {}) => api.get('/incidents/approved', { params }),
