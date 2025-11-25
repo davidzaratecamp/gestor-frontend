@@ -4,6 +4,7 @@ import {
     Chart as ChartJS,
     CategoryScale,
     LinearScale,
+    RadialLinearScale,
     BarElement,
     Title,
     Tooltip,
@@ -32,6 +33,7 @@ import {
 ChartJS.register(
     CategoryScale,
     LinearScale,
+    RadialLinearScale,
     BarElement,
     Title,
     Tooltip,
