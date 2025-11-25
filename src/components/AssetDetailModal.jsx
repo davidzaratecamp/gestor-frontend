@@ -29,7 +29,7 @@ const AssetDetailModal = ({ isOpen, onClose, activo }) => {
 
     const handleDownloadFile = () => {
         if (activo.adjunto_archivo) {
-            const fileUrl = `${API_BASE_URL.replace('/api', '')}/uploads/activos/${activo.adjunto_archivo}`;
+            const fileUrl = `${API_BASE_URL}/files/activos/${activo.adjunto_archivo}`;
             window.open(fileUrl, '_blank');
         }
     };
@@ -250,7 +250,7 @@ const AssetDetailModal = ({ isOpen, onClose, activo }) => {
                                 {getFileType(activo.adjunto_archivo) === 'image' && (
                                     <div className="mt-4">
                                         <img
-                                            src={`${API_BASE_URL.replace('/api', '')}/uploads/activos/${activo.adjunto_archivo}`}
+                                            src={`${API_BASE_URL}/files/activos/${activo.adjunto_archivo}`}
                                             alt="Preview del activo"
                                             className="max-w-xs h-auto rounded-lg border border-gray-200"
                                             onError={(e) => {
