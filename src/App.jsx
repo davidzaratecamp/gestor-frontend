@@ -21,6 +21,7 @@ import Analytics from './components/Analytics';
 import AssetManagement from './components/AssetManagement';
 import AssetLayout from './components/AssetLayout';
 import AssetInventory from './components/AssetInventory';
+import AssetCharts from './components/AssetCharts';
 
 // Componente para determinar el layout según el rol
 const LayoutWrapper = ({ children }) => {
@@ -237,6 +238,7 @@ function App() {
               {/* Rutas de gestión de activos */}
               <Route path="activos" element={<GestorActivosRoute><AssetManagement /></GestorActivosRoute>} />
               <Route path="activos/inventario" element={<GestorActivosRoute><AssetInventory /></GestorActivosRoute>} />
+              <Route path="activos/charts" element={<GestorActivosRoute><AssetCharts /></GestorActivosRoute>} />
             </Route>
 
             {/* Ruta catch-all */}

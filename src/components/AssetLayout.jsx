@@ -7,6 +7,7 @@ import {
     Package,
     Plus,
     ClipboardList,
+    BarChart3,
     LogOut,
     User
 } from 'lucide-react';
@@ -34,6 +35,12 @@ const AssetLayout = () => {
             href: '/activos/inventario',
             icon: ClipboardList,
             current: location.pathname === '/activos/inventario'
+        },
+        {
+            name: 'Análisis y Gráficos',
+            href: '/activos/charts',
+            icon: BarChart3,
+            current: location.pathname === '/activos/charts'
         }
     ];
 
