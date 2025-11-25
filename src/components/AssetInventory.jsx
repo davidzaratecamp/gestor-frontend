@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useAuth } from '../context/AuthContext';
 import axios from 'axios';
+import AssetDetailModal from './AssetDetailModal';
 import { 
     Package, 
     Search, 
@@ -22,6 +23,8 @@ const AssetInventory = () => {
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState('');
     const [showFilters, setShowFilters] = useState(false);
+    const [showDetailModal, setShowDetailModal] = useState(false);
+    const [selectedActivo, setSelectedActivo] = useState(null);
 
     // Filtros
     const [filters, setFilters] = useState({
@@ -194,6 +197,11 @@ const AssetInventory = () => {
         document.body.appendChild(link);
         link.click();
         document.body.removeChild(link);
+    };
+
+    const handleViewActivo = (activo) => {
+        setSelectedActivo(activo);
+        setShowDetailModal(true);
     };
 
     if (loading) {
@@ -468,6 +476,9 @@ const AssetInventory = () => {
                                 <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                                     Clasificación
                                 </th>
+                                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                                    Acciones
+                                </th>
                             </tr>
                         </thead>
                         <tbody className="bg-white divide-y divide-gray-200">
@@ -523,6 +534,15 @@ const AssetInventory = () => {
                                             {activo.clasificacion}
                                         </span>
                                     </td>
+                                    <td className="px-6 py-4 whitespace-nowrap text-sm font-medium">
+                                        <button
+                                            onClick={() => handleViewActivo(activo)}
+                                            className="text-green-600 hover:text-green-900"
+                                            title="Ver detalles completos"
+                                        >
+                                            <Eye className="h-4 w-4" />
+                                        </button>
+                                    </td>
                                 </tr>
                             ))}
                         </tbody>
@@ -542,6 +562,13 @@ const AssetInventory = () => {
                     </div>
                 )}
             </div>
+
+            {/* Asset Detail Modal */}
+            <AssetDetailModal
+                isOpen={showDetailModal}
+                onClose={() => setShowDetailModal(false)}
+                activo={selectedActivo}
+            />
         </div>
     );
 };

@@ -2,7 +2,6 @@ import React, { useState, useEffect } from 'react';
 import { useAuth } from '../context/AuthContext';
 import axios from 'axios';
 import AssetForm from './AssetForm';
-import AssetDetailModal from './AssetDetailModal';
 import { 
     Package, 
     Plus, 
@@ -29,7 +28,6 @@ const AssetManagement = () => {
     const [stats, setStats] = useState({});
     const [showCreateForm, setShowCreateForm] = useState(false);
     const [showEditForm, setShowEditForm] = useState(false);
-    const [showDetailModal, setShowDetailModal] = useState(false);
     const [selectedActivo, setSelectedActivo] = useState(null);
     const [searchTerm, setSearchTerm] = useState('');
     const [filters, setFilters] = useState({});
@@ -85,10 +83,6 @@ const AssetManagement = () => {
         setShowEditForm(true);
     };
 
-    const handleViewActivo = (activo) => {
-        setSelectedActivo(activo);
-        setShowDetailModal(true);
-    };
 
     const handleFormSuccess = async () => {
         await fetchActivos();
@@ -290,13 +284,6 @@ const AssetManagement = () => {
                                     <td className="px-6 py-4 whitespace-nowrap text-sm font-medium">
                                         <div className="flex space-x-2">
                                             <button
-                                                onClick={() => handleViewActivo(activo)}
-                                                className="text-green-600 hover:text-green-900"
-                                                title="Ver detalles"
-                                            >
-                                                <Eye className="h-4 w-4" />
-                                            </button>
-                                            <button
                                                 onClick={() => handleEditActivo(activo)}
                                                 className="text-blue-600 hover:text-blue-900"
                                                 title="Editar activo"
@@ -344,12 +331,6 @@ const AssetManagement = () => {
                 onSuccess={handleFormSuccess}
             />
 
-            {/* Asset Detail Modal */}
-            <AssetDetailModal
-                isOpen={showDetailModal}
-                onClose={() => setShowDetailModal(false)}
-                activo={selectedActivo}
-            />
         </div>
     );
 };
