@@ -15,7 +15,9 @@ import {
     Building,
     User,
     Tag,
-    AlertCircle
+    AlertCircle,
+    DollarSign,
+    TrendingUp
 } from 'lucide-react';
 
 const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || 'http://localhost:5001/api';
@@ -145,7 +147,7 @@ const AssetManagement = () => {
             </div>
 
             {/* Stats Cards */}
-            <div className="grid grid-cols-1 md:grid-cols-4 gap-6 mb-6">
+            <div className="grid grid-cols-1 md:grid-cols-6 gap-6 mb-6">
                     <div className="bg-white p-6 rounded-lg shadow-sm border">
                         <div className="flex items-center">
                             <Package className="h-8 w-8 text-blue-600" />
@@ -182,6 +184,30 @@ const AssetManagement = () => {
                             <div className="ml-4">
                                 <p className="text-sm font-medium text-gray-500">Con Garantía</p>
                                 <p className="text-2xl font-bold text-gray-900">{stats.con_garantia || 0}</p>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div className="bg-white p-6 rounded-lg shadow-sm border">
+                        <div className="flex items-center">
+                            <DollarSign className="h-8 w-8 text-green-600" />
+                            <div className="ml-4">
+                                <p className="text-sm font-medium text-gray-500">Valor Total</p>
+                                <p className="text-2xl font-bold text-gray-900">
+                                    ${new Intl.NumberFormat('es-CO').format(stats.valor_total || 0)}
+                                </p>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div className="bg-white p-6 rounded-lg shadow-sm border">
+                        <div className="flex items-center">
+                            <TrendingUp className="h-8 w-8 text-indigo-600" />
+                            <div className="ml-4">
+                                <p className="text-sm font-medium text-gray-500">Valor Promedio</p>
+                                <p className="text-2xl font-bold text-gray-900">
+                                    ${new Intl.NumberFormat('es-CO').format(stats.valor_promedio || 0)}
+                                </p>
                             </div>
                         </div>
                     </div>
@@ -238,6 +264,9 @@ const AssetManagement = () => {
                                     Garantía
                                 </th>
                                 <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                                    Valor
+                                </th>
+                                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                                     Acciones
                                 </th>
                             </tr>
@@ -280,6 +309,12 @@ const AssetManagement = () => {
                                         }`}>
                                             {activo.garantia}
                                         </span>
+                                    </td>
+                                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+                                        {activo.valor ? 
+                                            `$${new Intl.NumberFormat('es-CO').format(activo.valor)}` : 
+                                            'No especificado'
+                                        }
                                     </td>
                                     <td className="px-6 py-4 whitespace-nowrap text-sm font-medium">
                                         <div className="flex space-x-2">

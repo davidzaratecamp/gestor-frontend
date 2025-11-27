@@ -11,6 +11,7 @@ const AssetForm = ({ isOpen, onClose, activo = null, onSuccess }) => {
         ubicacion: '',
         responsable: '',
         proveedor: '',
+        valor: '',
         fecha_compra: '',
         numero_social: '',
         poliza: '',
@@ -47,6 +48,7 @@ const AssetForm = ({ isOpen, onClose, activo = null, onSuccess }) => {
                     ubicacion: activo.ubicacion || '',
                     responsable: activo.responsable || '',
                     proveedor: activo.proveedor || '',
+                    valor: activo.valor || '',
                     fecha_compra: activo.fecha_compra || '',
                     numero_social: activo.numero_social || '',
                     poliza: activo.poliza || '',
@@ -67,6 +69,7 @@ const AssetForm = ({ isOpen, onClose, activo = null, onSuccess }) => {
                     ubicacion: '',
                     responsable: '',
                     proveedor: '',
+                    valor: '',
                     fecha_compra: '',
                     numero_social: '',
                     poliza: '',
@@ -303,6 +306,23 @@ const AssetForm = ({ isOpen, onClose, activo = null, onSuccess }) => {
                                 onChange={handleInputChange}
                                 className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
                                 placeholder="Nombre del proveedor"
+                            />
+                        </div>
+
+                        {/* Valor del Activo */}
+                        <div>
+                            <label className="block text-sm font-medium text-gray-700 mb-2">
+                                Valor del Activo (COP)
+                            </label>
+                            <input
+                                type="number"
+                                name="valor"
+                                value={formData.valor}
+                                onChange={handleInputChange}
+                                min="0"
+                                step="0.01"
+                                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                                placeholder="0.00"
                             />
                         </div>
 
