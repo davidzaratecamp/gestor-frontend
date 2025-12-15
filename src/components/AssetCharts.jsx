@@ -350,12 +350,12 @@ const AssetCharts = () => {
                         <div key={index} className="bg-white p-6 rounded-lg shadow-sm border">
                             <div className="flex items-center justify-between">
                                 <div className="flex items-center">
-                                    <div className={`p-2 rounded-lg bg-${stat.color}-100`}>
+                                    <div className={`p-2 rounded-lg bg-${stat.color}-100 flex-shrink-0`}>
                                         <Icon className={`h-6 w-6 text-${stat.color}-600`} />
                                     </div>
-                                    <div className="ml-4">
+                                    <div className="ml-4 min-w-0 flex-1">
                                         <p className="text-sm font-medium text-gray-500">{stat.title}</p>
-                                        <p className="text-2xl font-bold text-gray-900">{stat.value}</p>
+                                        <p className="font-bold text-gray-900 text-xs sm:text-sm md:text-base lg:text-lg xl:text-xl overflow-hidden whitespace-nowrap">{stat.value}</p>
                                     </div>
                                 </div>
                                 <div className={`text-sm font-medium ${
@@ -464,9 +464,9 @@ const AssetCharts = () => {
                             <span className="text-sm font-semibold text-orange-600">-2.4%</span>
                         </div>
                         <div className="pt-2 border-t border-gray-200">
-                            <div className="flex justify-between items-center">
-                                <span className="text-sm font-medium text-gray-900">Valor Total Actual</span>
-                                <span className="text-lg font-bold text-indigo-600">$2,399,784</span>
+                            <div className="flex justify-between items-center gap-2">
+                                <span className="text-sm font-medium text-gray-900 flex-shrink-0">Valor Total Actual</span>
+                                <span className="font-bold text-indigo-600 text-xs sm:text-sm md:text-base lg:text-lg overflow-hidden whitespace-nowrap">$2,399,784</span>
                             </div>
                         </div>
                     </div>

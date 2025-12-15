@@ -482,32 +482,29 @@ const AssetInventory = () => {
             <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mb-6">
                 <div className="bg-white p-4 rounded-lg shadow-sm border">
                     <div className="flex items-center">
-                        <Package className="h-8 w-8 text-indigo-600" />
-                        <div className="ml-3">
+                        <Package className="h-8 w-8 text-indigo-600 flex-shrink-0" />
+                        <div className="ml-3 min-w-0 flex-1">
                             <p className="text-sm font-medium text-gray-500">Total Mostrado</p>
-                            <p className="text-xl font-bold text-gray-900">{filteredActivos.length}</p>
+                            <p className="font-bold text-gray-900 text-xs sm:text-sm md:text-base lg:text-lg xl:text-xl overflow-hidden whitespace-nowrap">{filteredActivos.length}</p>
                         </div>
                     </div>
                 </div>
                 
                 <div className="bg-white p-4 rounded-lg shadow-sm border">
-                    <div className="flex items-center">
-                        <FileText className="h-8 w-8 text-green-600" />
-                        <div className="ml-3">
-                            <p className="text-sm font-medium text-gray-500">Con Garantía</p>
-                            <p className="text-xl font-bold text-gray-900">
-                                {filteredActivos.filter(a => a.garantia === 'Si').length}
-                            </p>
-                        </div>
+                    <div className="flex flex-col">
+                        <p className="text-sm font-medium text-gray-500 mb-2">Con Garantía</p>
+                        <p className="font-bold text-gray-900 text-xs sm:text-sm md:text-base lg:text-lg xl:text-xl overflow-hidden whitespace-nowrap">
+                            {filteredActivos.filter(a => a.garantia === 'Si').length}
+                        </p>
                     </div>
                 </div>
 
                 <div className="bg-white p-4 rounded-lg shadow-sm border">
-                    <div className="flex items-center">
-                        <Package className="h-8 w-8 text-blue-600" />
-                        <div className="ml-3">
+                    <div className="flex items-start">
+                        <Package className="h-8 w-8 text-blue-600 flex-shrink-0" />
+                        <div className="ml-3 min-w-0 flex-1">
                             <p className="text-sm font-medium text-gray-500">Productivos</p>
-                            <p className="text-xl font-bold text-gray-900">
+                            <p className="text-xl font-bold text-gray-900 break-words">
                                 {filteredActivos.filter(a => a.clasificacion === 'Activo productivo').length}
                             </p>
                         </div>
@@ -515,11 +512,11 @@ const AssetInventory = () => {
                 </div>
 
                 <div className="bg-white p-4 rounded-lg shadow-sm border">
-                    <div className="flex items-center">
-                        <Calendar className="h-8 w-8 text-orange-600" />
-                        <div className="ml-3">
+                    <div className="flex items-start">
+                        <Calendar className="h-8 w-8 text-orange-600 flex-shrink-0" />
+                        <div className="ml-3 min-w-0 flex-1">
                             <p className="text-sm font-medium text-gray-500">Con Fecha Compra</p>
-                            <p className="text-xl font-bold text-gray-900">
+                            <p className="text-xl font-bold text-gray-900 break-words">
                                 {filteredActivos.filter(a => a.fecha_compra).length}
                             </p>
                         </div>

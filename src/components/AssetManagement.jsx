@@ -147,7 +147,7 @@ const AssetManagement = () => {
             </div>
 
             {/* Stats Cards */}
-            <div className="grid grid-cols-1 md:grid-cols-6 gap-6 mb-6">
+            <div className="grid grid-cols-1 md:grid-cols-5 gap-6 mb-6">
                     <div className="bg-white p-6 rounded-lg shadow-sm border">
                         <div className="flex items-center">
                             <Package className="h-8 w-8 text-blue-600" />
@@ -178,22 +178,13 @@ const AssetManagement = () => {
                         </div>
                     </div>
 
-                    <div className="bg-white p-6 rounded-lg shadow-sm border">
-                        <div className="flex items-center">
-                            <FileText className="h-8 w-8 text-purple-600" />
-                            <div className="ml-4">
-                                <p className="text-sm font-medium text-gray-500">Con Garantía</p>
-                                <p className="text-2xl font-bold text-gray-900">{stats.con_garantia || 0}</p>
-                            </div>
-                        </div>
-                    </div>
 
                     <div className="bg-white p-6 rounded-lg shadow-sm border">
                         <div className="flex items-center">
-                            <DollarSign className="h-8 w-8 text-green-600" />
-                            <div className="ml-4">
+                            <DollarSign className="h-8 w-8 text-green-600 flex-shrink-0" />
+                            <div className="ml-4 min-w-0 flex-1">
                                 <p className="text-sm font-medium text-gray-500">Valor Total</p>
-                                <p className="text-2xl font-bold text-gray-900">
+                                <p className="font-bold text-gray-900 text-xs sm:text-sm md:text-base lg:text-lg xl:text-xl overflow-hidden whitespace-nowrap">
                                     ${new Intl.NumberFormat('es-CO').format(stats.valor_total || 0)}
                                 </p>
                             </div>
@@ -202,10 +193,10 @@ const AssetManagement = () => {
 
                     <div className="bg-white p-6 rounded-lg shadow-sm border">
                         <div className="flex items-center">
-                            <TrendingUp className="h-8 w-8 text-indigo-600" />
-                            <div className="ml-4">
+                            <TrendingUp className="h-8 w-8 text-indigo-600 flex-shrink-0" />
+                            <div className="ml-4 min-w-0 flex-1">
                                 <p className="text-sm font-medium text-gray-500">Valor Promedio</p>
-                                <p className="text-2xl font-bold text-gray-900">
+                                <p className="font-bold text-gray-900 text-xs sm:text-sm md:text-base lg:text-lg xl:text-xl overflow-hidden whitespace-nowrap">
                                     ${new Intl.NumberFormat('es-CO').format(stats.valor_promedio || 0)}
                                 </p>
                             </div>
