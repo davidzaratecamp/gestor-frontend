@@ -21,13 +21,25 @@ const AssetForm = ({ isOpen, onClose, activo = null, onSuccess }) => {
         orden_compra: '',
         clasificacion: '',
         clasificacion_activo_fijo: '',
-        adjunto_archivo: null
+        adjunto_archivo: null,
+        // Campo Site
+        site: '',
+        // Nuevos campos dinámicos
+        marca_modelo: '',
+        numero_serie_fabricante: '',
+        cpu_procesador: '',
+        memoria_ram: '',
+        almacenamiento: '',
+        sistema_operativo: '',
+        pulgadas: '',
+        estado: 'funcional'
     });
 
     const [responsables, setResponsables] = useState([]);
     const [loading, setLoading] = useState(false);
     const [error, setError] = useState('');
     const [fileName, setFileName] = useState('');
+    const [assetType, setAssetType] = useState('');
 
     const ubicaciones = [
         'Claro', 'Obama', 'IT', 'Contratación', 'Reclutamiento', 'Selección', 'Finanzas'
@@ -36,6 +48,61 @@ const AssetForm = ({ isOpen, onClose, activo = null, onSuccess }) => {
     const clasificaciones = [
         'Activo productivo', 'Activo no productivo'
     ];
+
+    const sites = [
+        'Site A', 'Site B'
+    ];
+
+    const estados = [
+        'funcional', 'en_reparacion', 'dado_de_baja', 'en_mantenimiento', 
+        'disponible', 'asignado', 'fuera_de_servicio'
+    ];
+
+    // Función para detectar el tipo de activo basado en el número de placa
+    // Patrón esperado: ECC-CPU-001, ECC-SER-002, ECC-MON-001, etc.
+    const detectAssetType = (numeroPlaca) => {
+        if (!numeroPlaca) return '';
+        
+        // Convertir a mayúsculas para comparación
+        const placa = numeroPlaca.toUpperCase();
+        
+        // Detectar patrones con guión y consecutivo
+        if (placa.match(/^ECC-CPU-\d+$/)) return 'ECC-CPU';
+        if (placa.match(/^ECC-SER-\d+$/)) return 'ECC-SER';
+        if (placa.match(/^ECC-MON-\d+$/)) return 'ECC-MON';
+        if (placa.match(/^ECC-IMP-\d+$/)) return 'ECC-IMP';
+        if (placa.match(/^ECC-POR-\d+$/)) return 'ECC-POR';
+        if (placa.match(/^ECC-TV-\d+$/)) return 'ECC-TV';
+        
+        // También detectar mientras se está escribiendo (solo el prefijo)
+        if (placa.startsWith('ECC-CPU')) return 'ECC-CPU';
+        if (placa.startsWith('ECC-SER')) return 'ECC-SER';
+        if (placa.startsWith('ECC-MON')) return 'ECC-MON';
+        if (placa.startsWith('ECC-IMP')) return 'ECC-IMP';
+        if (placa.startsWith('ECC-POR')) return 'ECC-POR';
+        if (placa.startsWith('ECC-TV')) return 'ECC-TV';
+        
+        return 'OTHER';
+    };
+
+    // Función para determinar qué campos mostrar según el tipo
+    const getFieldsForType = (type) => {
+        const commonFields = ['marca_modelo', 'numero_serie_fabricante', 'estado'];
+        
+        switch (type) {
+            case 'ECC-CPU':
+            case 'ECC-SER':
+            case 'ECC-POR':
+                return [...commonFields, 'cpu_procesador', 'memoria_ram', 'almacenamiento', 'sistema_operativo'];
+            case 'ECC-MON':
+            case 'ECC-TV':
+                return [...commonFields, 'pulgadas'];
+            case 'ECC-IMP':
+                return commonFields; // Solo marca, serie y estado
+            default:
+                return [];
+        }
+    };
 
     useEffect(() => {
         if (isOpen) {
@@ -58,9 +125,21 @@ const AssetForm = ({ isOpen, onClose, activo = null, onSuccess }) => {
                     orden_compra: activo.orden_compra || '',
                     clasificacion: activo.clasificacion || '',
                     clasificacion_activo_fijo: activo.clasificacion_activo_fijo || '',
-                    adjunto_archivo: null
+                    adjunto_archivo: null,
+                    // Campo Site
+                    site: activo.site || '',
+                    // Nuevos campos dinámicos
+                    marca_modelo: activo.marca_modelo || '',
+                    numero_serie_fabricante: activo.numero_serie_fabricante || '',
+                    cpu_procesador: activo.cpu_procesador || '',
+                    memoria_ram: activo.memoria_ram || '',
+                    almacenamiento: activo.almacenamiento || '',
+                    sistema_operativo: activo.sistema_operativo || '',
+                    pulgadas: activo.pulgadas || '',
+                    estado: activo.estado || 'funcional'
                 });
                 setFileName(activo.adjunto_archivo || '');
+                setAssetType(detectAssetType(activo.numero_placa));
             } else {
                 // Si estamos creando, resetear formulario
                 setFormData({
@@ -79,9 +158,21 @@ const AssetForm = ({ isOpen, onClose, activo = null, onSuccess }) => {
                     orden_compra: '',
                     clasificacion: '',
                     clasificacion_activo_fijo: '',
-                    adjunto_archivo: null
+                    adjunto_archivo: null,
+                    // Campo Site
+                    site: '',
+                    // Nuevos campos dinámicos
+                    marca_modelo: '',
+                    numero_serie_fabricante: '',
+                    cpu_procesador: '',
+                    memoria_ram: '',
+                    almacenamiento: '',
+                    sistema_operativo: '',
+                    pulgadas: '',
+                    estado: 'funcional'
                 });
                 setFileName('');
+                setAssetType('');
             }
             setError('');
         }
@@ -102,6 +193,12 @@ const AssetForm = ({ isOpen, onClose, activo = null, onSuccess }) => {
             ...prev,
             [name]: value
         }));
+
+        // Si cambia el número de placa, detectar tipo de activo
+        if (name === 'numero_placa') {
+            const newType = detectAssetType(value);
+            setAssetType(newType);
+        }
 
         // Si cambia la garantía a "No", limpiar fecha de vencimiento
         if (name === 'garantia' && value === 'No') {
@@ -130,8 +227,8 @@ const AssetForm = ({ isOpen, onClose, activo = null, onSuccess }) => {
 
         try {
             // Validaciones
-            if (!formData.numero_placa || !formData.ubicacion || !formData.responsable || !formData.clasificacion) {
-                throw new Error('Los campos número de placa, ubicación, responsable y clasificación son obligatorios');
+            if (!formData.numero_placa || !formData.ubicacion || !formData.site || !formData.responsable || !formData.clasificacion) {
+                throw new Error('Los campos número de placa, ubicación, site, responsable y clasificación son obligatorios');
             }
 
             if (formData.garantia === 'Si' && !formData.fecha_vencimiento_garantia) {
@@ -221,9 +318,159 @@ const AssetForm = ({ isOpen, onClose, activo = null, onSuccess }) => {
                                 onChange={handleInputChange}
                                 required
                                 className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-                                placeholder="Ingrese el número de placa"
+                                placeholder="Ej: ECC-CPU-001, ECC-MON-001, ECC-IMP-001..."
                             />
+                            <p className="text-xs text-gray-500 mt-1">
+                                Formatos: ECC-CPU-### (Computadoras), ECC-SER-### (Servidores), ECC-MON-### (Monitores), 
+                                ECC-IMP-### (Impresoras), ECC-POR-### (Portátiles), ECC-TV-### (TVs)
+                            </p>
                         </div>
+
+                        {/* Campos dinámicos según el tipo de activo - MOVIDOS ARRIBA */}
+                        {assetType && assetType !== 'OTHER' && (
+                            <>
+                                <div className="md:col-span-2">
+                                    <div className="bg-blue-50 border border-blue-200 rounded-lg p-4 mb-4">
+                                        <h3 className="text-lg font-medium text-blue-900 mb-2">
+                                            Campos específicos para {assetType}
+                                        </h3>
+                                        <p className="text-sm text-blue-700">
+                                            Los siguientes campos son específicos para este tipo de activo.
+                                        </p>
+                                    </div>
+                                </div>
+
+                                {/* Estado - Para todos los tipos */}
+                                <div>
+                                    <label className="block text-sm font-medium text-gray-700 mb-2">
+                                        Estado *
+                                    </label>
+                                    <select
+                                        name="estado"
+                                        value={formData.estado}
+                                        onChange={handleInputChange}
+                                        required
+                                        className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                                    >
+                                        {estados.map(estado => (
+                                            <option key={estado} value={estado}>
+                                                {estado.replace('_', ' ').charAt(0).toUpperCase() + estado.replace('_', ' ').slice(1)}
+                                            </option>
+                                        ))}
+                                    </select>
+                                </div>
+
+                                {/* Marca y Modelo - Para todos los tipos */}
+                                <div>
+                                    <label className="block text-sm font-medium text-gray-700 mb-2">
+                                        Marca y Modelo *
+                                    </label>
+                                    <input
+                                        type="text"
+                                        name="marca_modelo"
+                                        value={formData.marca_modelo}
+                                        onChange={handleInputChange}
+                                        required
+                                        className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                                        placeholder="Ej. Dell OptiPlex 7080"
+                                    />
+                                </div>
+
+                                {/* Número de Serie del Fabricante - Para todos los tipos */}
+                                <div>
+                                    <label className="block text-sm font-medium text-gray-700 mb-2">
+                                        Número de Serie del Fabricante *
+                                    </label>
+                                    <input
+                                        type="text"
+                                        name="numero_serie_fabricante"
+                                        value={formData.numero_serie_fabricante}
+                                        onChange={handleInputChange}
+                                        required
+                                        className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                                        placeholder="Número de serie del fabricante"
+                                    />
+                                </div>
+
+                                {/* Campos específicos para equipos de cómputo */}
+                                {(['ECC-CPU', 'ECC-SER', 'ECC-POR'].includes(assetType)) && (
+                                    <>
+                                        <div>
+                                            <label className="block text-sm font-medium text-gray-700 mb-2">
+                                                CPU / Procesador
+                                            </label>
+                                            <input
+                                                type="text"
+                                                name="cpu_procesador"
+                                                value={formData.cpu_procesador}
+                                                onChange={handleInputChange}
+                                                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                                                placeholder="Ej. Intel Core i5-10400 2.9GHz"
+                                            />
+                                        </div>
+
+                                        <div>
+                                            <label className="block text-sm font-medium text-gray-700 mb-2">
+                                                Memoria RAM
+                                            </label>
+                                            <input
+                                                type="text"
+                                                name="memoria_ram"
+                                                value={formData.memoria_ram}
+                                                onChange={handleInputChange}
+                                                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                                                placeholder="Ej. 16GB DDR4"
+                                            />
+                                        </div>
+
+                                        <div>
+                                            <label className="block text-sm font-medium text-gray-700 mb-2">
+                                                Disco Duro / Almacenamiento
+                                            </label>
+                                            <input
+                                                type="text"
+                                                name="almacenamiento"
+                                                value={formData.almacenamiento}
+                                                onChange={handleInputChange}
+                                                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                                                placeholder="Ej. SSD 512GB"
+                                            />
+                                        </div>
+
+                                        <div>
+                                            <label className="block text-sm font-medium text-gray-700 mb-2">
+                                                Sistema Operativo
+                                            </label>
+                                            <input
+                                                type="text"
+                                                name="sistema_operativo"
+                                                value={formData.sistema_operativo}
+                                                onChange={handleInputChange}
+                                                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                                                placeholder="Ej. Windows 11 Pro"
+                                            />
+                                        </div>
+                                    </>
+                                )}
+
+                                {/* Campos específicos para monitores y TV */}
+                                {(['ECC-MON', 'ECC-TV'].includes(assetType)) && (
+                                    <div>
+                                        <label className="block text-sm font-medium text-gray-700 mb-2">
+                                            Pulgadas
+                                        </label>
+                                        <input
+                                            type="text"
+                                            name="pulgadas"
+                                            value={formData.pulgadas}
+                                            onChange={handleInputChange}
+                                            className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                                            placeholder="Ej. 24 pulgadas"
+                                        />
+                                    </div>
+                                )}
+                            </>
+                        )}
 
                         {/* Centro de Costes */}
                         <div>
@@ -258,6 +505,25 @@ const AssetForm = ({ isOpen, onClose, activo = null, onSuccess }) => {
                                 <option value="">Seleccione una ubicación</option>
                                 {ubicaciones.map(ubicacion => (
                                     <option key={ubicacion} value={ubicacion}>{ubicacion}</option>
+                                ))}
+                            </select>
+                        </div>
+
+                        {/* Site */}
+                        <div>
+                            <label className="block text-sm font-medium text-gray-700 mb-2">
+                                Site *
+                            </label>
+                            <select
+                                name="site"
+                                value={formData.site}
+                                onChange={handleInputChange}
+                                required
+                                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                            >
+                                <option value="">Seleccione un site</option>
+                                {sites.map(site => (
+                                    <option key={site} value={site}>{site}</option>
                                 ))}
                             </select>
                         </div>
@@ -467,6 +733,7 @@ const AssetForm = ({ isOpen, onClose, activo = null, onSuccess }) => {
                                 placeholder="Descripción de la clasificación del activo fijo"
                             />
                         </div>
+
 
                         {/* Archivo Adjunto */}
                         <div className="md:col-span-2">

@@ -13,7 +13,11 @@ import {
     Truck,
     CreditCard,
     Download,
-    Eye
+    Eye,
+    Cpu,
+    HardDrive,
+    Monitor,
+    Globe
 } from 'lucide-react';
 
 const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || 'http://localhost:5001/api';
@@ -25,6 +29,44 @@ const AssetDetailModal = ({ isOpen, onClose, activo }) => {
         if (!dateString) return 'No especificada';
         const date = new Date(dateString);
         return date.toLocaleDateString('es-ES');
+    };
+
+    // Función para detectar el tipo de activo
+    const detectAssetType = (numeroPlaca) => {
+        if (!numeroPlaca) return '';
+        const placa = numeroPlaca.toUpperCase();
+        
+        if (placa.match(/^ECC-CPU-\d+$/)) return 'ECC-CPU';
+        if (placa.match(/^ECC-SER-\d+$/)) return 'ECC-SER';
+        if (placa.match(/^ECC-MON-\d+$/)) return 'ECC-MON';
+        if (placa.match(/^ECC-IMP-\d+$/)) return 'ECC-IMP';
+        if (placa.match(/^ECC-POR-\d+$/)) return 'ECC-POR';
+        if (placa.match(/^ECC-TV-\d+$/)) return 'ECC-TV';
+        
+        if (placa.startsWith('ECC-CPU')) return 'ECC-CPU';
+        if (placa.startsWith('ECC-SER')) return 'ECC-SER';
+        if (placa.startsWith('ECC-MON')) return 'ECC-MON';
+        if (placa.startsWith('ECC-IMP')) return 'ECC-IMP';
+        if (placa.startsWith('ECC-POR')) return 'ECC-POR';
+        if (placa.startsWith('ECC-TV')) return 'ECC-TV';
+        
+        return 'OTHER';
+    };
+
+    const assetType = detectAssetType(activo?.numero_placa);
+
+    // Función para obtener el nombre amigable del tipo
+    const getAssetTypeName = (type) => {
+        const names = {
+            'ECC-CPU': 'Computadora',
+            'ECC-SER': 'Servidor',
+            'ECC-MON': 'Monitor',
+            'ECC-IMP': 'Impresora',
+            'ECC-POR': 'Portátil',
+            'ECC-TV': 'Televisor',
+            'OTHER': 'Otro'
+        };
+        return names[type] || 'Otro';
     };
 
     const handleDownloadFile = () => {
@@ -94,6 +136,25 @@ const AssetDetailModal = ({ isOpen, onClose, activo }) => {
                             {activo.clasificacion}
                         </span>
                         
+                        {assetType !== 'OTHER' && (
+                            <span className="inline-flex items-center px-3 py-1 rounded-full text-sm font-medium bg-purple-100 text-purple-800">
+                                <Package className="h-4 w-4 mr-1" />
+                                {getAssetTypeName(assetType)}
+                            </span>
+                        )}
+
+                        {activo.estado && (
+                            <span className={`inline-flex items-center px-3 py-1 rounded-full text-sm font-medium ${
+                                activo.estado === 'funcional' ? 'bg-green-100 text-green-800' :
+                                activo.estado === 'en_reparacion' ? 'bg-yellow-100 text-yellow-800' :
+                                activo.estado === 'dado_de_baja' ? 'bg-red-100 text-red-800' :
+                                'bg-gray-100 text-gray-800'
+                            }`}>
+                                <Shield className="h-4 w-4 mr-1" />
+                                {activo.estado.replace('_', ' ').charAt(0).toUpperCase() + activo.estado.replace('_', ' ').slice(1)}
+                            </span>
+                        )}
+                        
                         <span className={`inline-flex items-center px-3 py-1 rounded-full text-sm font-medium ${
                             activo.garantia === 'Si' 
                                 ? 'bg-green-100 text-green-800' 
@@ -107,6 +168,13 @@ const AssetDetailModal = ({ isOpen, onClose, activo }) => {
                             <MapPin className="h-4 w-4 mr-1" />
                             {activo.ubicacion}
                         </span>
+
+                        {activo.site && (
+                            <span className="inline-flex items-center px-3 py-1 rounded-full text-sm font-medium bg-indigo-100 text-indigo-800">
+                                <Globe className="h-4 w-4 mr-1" />
+                                {activo.site}
+                            </span>
+                        )}
                     </div>
 
                     {/* Main Details Grid */}
@@ -133,6 +201,12 @@ const AssetDetailModal = ({ isOpen, onClose, activo }) => {
                             icon={MapPin}
                             label="Ubicación"
                             value={activo.ubicacion}
+                        />
+
+                        <DetailRow 
+                            icon={Globe}
+                            label="Site"
+                            value={activo.site}
                         />
 
                         <DetailRow 
@@ -258,6 +332,81 @@ const AssetDetailModal = ({ isOpen, onClose, activo }) => {
                                             }}
                                         />
                                     </div>
+                                )}
+                            </div>
+                        </div>
+                    )}
+
+                    {/* Campos Dinámicos Específicos del Tipo de Activo */}
+                    {assetType && assetType !== 'OTHER' && (
+                        <div className="mb-6">
+                            <h3 className="text-lg font-medium text-gray-900 mb-3 flex items-center">
+                                <Package className="h-5 w-5 mr-2" />
+                                Información Técnica ({getAssetTypeName(assetType)})
+                            </h3>
+                            
+                            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                {/* Campos comunes para todos los tipos */}
+                                {activo.marca_modelo && (
+                                    <DetailRow 
+                                        icon={Tag}
+                                        label="Marca y Modelo"
+                                        value={activo.marca_modelo}
+                                    />
+                                )}
+
+                                {activo.numero_serie_fabricante && (
+                                    <DetailRow 
+                                        icon={Hash}
+                                        label="Número de Serie del Fabricante"
+                                        value={activo.numero_serie_fabricante}
+                                    />
+                                )}
+
+                                {/* Campos específicos para equipos de cómputo */}
+                                {['ECC-CPU', 'ECC-SER', 'ECC-POR'].includes(assetType) && (
+                                    <>
+                                        {activo.cpu_procesador && (
+                                            <DetailRow 
+                                                icon={Cpu}
+                                                label="CPU / Procesador"
+                                                value={activo.cpu_procesador}
+                                            />
+                                        )}
+
+                                        {activo.memoria_ram && (
+                                            <DetailRow 
+                                                icon={HardDrive}
+                                                label="Memoria RAM"
+                                                value={activo.memoria_ram}
+                                            />
+                                        )}
+
+                                        {activo.almacenamiento && (
+                                            <DetailRow 
+                                                icon={HardDrive}
+                                                label="Almacenamiento"
+                                                value={activo.almacenamiento}
+                                            />
+                                        )}
+
+                                        {activo.sistema_operativo && (
+                                            <DetailRow 
+                                                icon={Monitor}
+                                                label="Sistema Operativo"
+                                                value={activo.sistema_operativo}
+                                            />
+                                        )}
+                                    </>
+                                )}
+
+                                {/* Campos específicos para monitores y TV */}
+                                {['ECC-MON', 'ECC-TV'].includes(assetType) && activo.pulgadas && (
+                                    <DetailRow 
+                                        icon={Monitor}
+                                        label="Pulgadas"
+                                        value={activo.pulgadas}
+                                    />
                                 )}
                             </div>
                         </div>

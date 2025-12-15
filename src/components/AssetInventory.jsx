@@ -35,7 +35,10 @@ const AssetInventory = () => {
         ordenCompra: '',
         ubicacion: '',
         clasificacion: '',
-        garantia: ''
+        garantia: '',
+        site: '',
+        estado: '',
+        tipoActivo: ''
     });
 
     // Si no es gestor de activos, mostrar mensaje de acceso denegado
@@ -128,6 +131,31 @@ const AssetInventory = () => {
             filtered = filtered.filter(activo => activo.garantia === filters.garantia);
         }
 
+        // Filtro por site
+        if (filters.site) {
+            filtered = filtered.filter(activo => activo.site === filters.site);
+        }
+
+        // Filtro por estado
+        if (filters.estado) {
+            filtered = filtered.filter(activo => activo.estado === filters.estado);
+        }
+
+        // Filtro por tipo de activo
+        if (filters.tipoActivo) {
+            filtered = filtered.filter(activo => {
+                const numeroPlaca = activo.numero_placa || '';
+                const placa = numeroPlaca.toUpperCase();
+                if (filters.tipoActivo === 'ECC-CPU') return placa.startsWith('ECC-CPU');
+                if (filters.tipoActivo === 'ECC-SER') return placa.startsWith('ECC-SER');
+                if (filters.tipoActivo === 'ECC-MON') return placa.startsWith('ECC-MON');
+                if (filters.tipoActivo === 'ECC-IMP') return placa.startsWith('ECC-IMP');
+                if (filters.tipoActivo === 'ECC-POR') return placa.startsWith('ECC-POR');
+                if (filters.tipoActivo === 'ECC-TV') return placa.startsWith('ECC-TV');
+                return true;
+            });
+        }
+
         setFilteredActivos(filtered);
     };
 
@@ -147,7 +175,10 @@ const AssetInventory = () => {
             ordenCompra: '',
             ubicacion: '',
             clasificacion: '',
-            garantia: ''
+            garantia: '',
+            site: '',
+            estado: '',
+            tipoActivo: ''
         });
     };
 
@@ -384,6 +415,63 @@ const AssetInventory = () => {
                                 <option value="">Todas</option>
                                 <option value="Si">Con garantía</option>
                                 <option value="No">Sin garantía</option>
+                            </select>
+                        </div>
+
+                        {/* Site */}
+                        <div>
+                            <label className="block text-sm font-medium text-gray-700 mb-1">
+                                Site
+                            </label>
+                            <select
+                                value={filters.site}
+                                onChange={(e) => handleFilterChange('site', e.target.value)}
+                                className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500"
+                            >
+                                <option value="">Todos los sites</option>
+                                <option value="Site A">Site A</option>
+                                <option value="Site B">Site B</option>
+                            </select>
+                        </div>
+
+                        {/* Estado */}
+                        <div>
+                            <label className="block text-sm font-medium text-gray-700 mb-1">
+                                Estado
+                            </label>
+                            <select
+                                value={filters.estado}
+                                onChange={(e) => handleFilterChange('estado', e.target.value)}
+                                className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500"
+                            >
+                                <option value="">Todos los estados</option>
+                                <option value="funcional">Funcional</option>
+                                <option value="en_reparacion">En reparación</option>
+                                <option value="dado_de_baja">Dado de baja</option>
+                                <option value="en_mantenimiento">En mantenimiento</option>
+                                <option value="disponible">Disponible</option>
+                                <option value="asignado">Asignado</option>
+                                <option value="fuera_de_servicio">Fuera de servicio</option>
+                            </select>
+                        </div>
+
+                        {/* Tipo de Activo */}
+                        <div>
+                            <label className="block text-sm font-medium text-gray-700 mb-1">
+                                Tipo de Activo
+                            </label>
+                            <select
+                                value={filters.tipoActivo}
+                                onChange={(e) => handleFilterChange('tipoActivo', e.target.value)}
+                                className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500"
+                            >
+                                <option value="">Todos los tipos</option>
+                                <option value="ECC-CPU">Computadoras (ECC-CPU)</option>
+                                <option value="ECC-SER">Servidores (ECC-SER)</option>
+                                <option value="ECC-MON">Monitores (ECC-MON)</option>
+                                <option value="ECC-IMP">Impresoras (ECC-IMP)</option>
+                                <option value="ECC-POR">Portátiles (ECC-POR)</option>
+                                <option value="ECC-TV">Televisores (ECC-TV)</option>
                             </select>
                         </div>
                     </div>
