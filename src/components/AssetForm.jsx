@@ -59,28 +59,28 @@ const AssetForm = ({ isOpen, onClose, activo = null, onSuccess }) => {
     ];
 
     // Función para detectar el tipo de activo basado en el número de placa
-    // Patrón esperado: ECC-CPU-001, ECC-SER-002, ECC-MON-001, etc.
+    // Patrón esperado: ECC-CPU-001 o ECC'CPU'001 (pistola códigos lee guión como comilla)
     const detectAssetType = (numeroPlaca) => {
         if (!numeroPlaca) return '';
         
         // Convertir a mayúsculas para comparación
         const placa = numeroPlaca.toUpperCase();
         
-        // Detectar patrones con guión y consecutivo
-        if (placa.match(/^ECC-CPU-\d+$/)) return 'ECC-CPU';
-        if (placa.match(/^ECC-SER-\d+$/)) return 'ECC-SER';
-        if (placa.match(/^ECC-MON-\d+$/)) return 'ECC-MON';
-        if (placa.match(/^ECC-IMP-\d+$/)) return 'ECC-IMP';
-        if (placa.match(/^ECC-POR-\d+$/)) return 'ECC-POR';
-        if (placa.match(/^ECC-TV-\d+$/)) return 'ECC-TV';
+        // Detectar patrones con guión o comilla simple y consecutivo
+        if (placa.match(/^ECC[-']CPU[-']\d+$/)) return 'ECC-CPU';
+        if (placa.match(/^ECC[-']SER[-']\d+$/)) return 'ECC-SER';
+        if (placa.match(/^ECC[-']MON[-']\d+$/)) return 'ECC-MON';
+        if (placa.match(/^ECC[-']IMP[-']\d+$/)) return 'ECC-IMP';
+        if (placa.match(/^ECC[-']POR[-']\d+$/)) return 'ECC-POR';
+        if (placa.match(/^ECC[-']TV[-']\d+$/)) return 'ECC-TV';
         
         // También detectar mientras se está escribiendo (solo el prefijo)
-        if (placa.startsWith('ECC-CPU')) return 'ECC-CPU';
-        if (placa.startsWith('ECC-SER')) return 'ECC-SER';
-        if (placa.startsWith('ECC-MON')) return 'ECC-MON';
-        if (placa.startsWith('ECC-IMP')) return 'ECC-IMP';
-        if (placa.startsWith('ECC-POR')) return 'ECC-POR';
-        if (placa.startsWith('ECC-TV')) return 'ECC-TV';
+        if (placa.startsWith('ECC-CPU') || placa.startsWith("ECC'CPU")) return 'ECC-CPU';
+        if (placa.startsWith('ECC-SER') || placa.startsWith("ECC'SER")) return 'ECC-SER';
+        if (placa.startsWith('ECC-MON') || placa.startsWith("ECC'MON")) return 'ECC-MON';
+        if (placa.startsWith('ECC-IMP') || placa.startsWith("ECC'IMP")) return 'ECC-IMP';
+        if (placa.startsWith('ECC-POR') || placa.startsWith("ECC'POR")) return 'ECC-POR';
+        if (placa.startsWith('ECC-TV') || placa.startsWith("ECC'TV")) return 'ECC-TV';
         
         return 'OTHER';
     };
@@ -318,11 +318,12 @@ const AssetForm = ({ isOpen, onClose, activo = null, onSuccess }) => {
                                 onChange={handleInputChange}
                                 required
                                 className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-                                placeholder="Ej: ECC-CPU-001, ECC-MON-001, ECC-IMP-001..."
+                                placeholder="Ej: ECC-CPU-001, ECC'CPU'001, ECC-MON-001..."
                             />
                             <p className="text-xs text-gray-500 mt-1">
-                                Formatos: ECC-CPU-### (Computadoras), ECC-SER-### (Servidores), ECC-MON-### (Monitores), 
-                                ECC-IMP-### (Impresoras), ECC-POR-### (Portátiles), ECC-TV-### (TVs)
+                                Formatos: ECC-CPU-### o ECC'CPU'### (Computadoras), ECC-SER-### o ECC'SER'### (Servidores), 
+                                ECC-MON-### o ECC'MON'### (Monitores), ECC-IMP-### o ECC'IMP'### (Impresoras), 
+                                ECC-POR-### o ECC'POR'### (Portátiles), ECC-TV-### o ECC'TV'### (TVs)
                             </p>
                         </div>
 
