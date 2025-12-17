@@ -8,8 +8,8 @@ const AssetForm = ({ isOpen, onClose, activo = null, onSuccess }) => {
     const [formData, setFormData] = useState({
         numero_placa: '',
         centro_costes: 1,
-        ubicacion: '',
-        responsable: '',
+        ubicacion: 'Claro',
+        responsable: 'David Acero',
         proveedor: '',
         valor: '',
         fecha_compra: '',
@@ -19,11 +19,11 @@ const AssetForm = ({ isOpen, onClose, activo = null, onSuccess }) => {
         garantia: 'No',
         fecha_vencimiento_garantia: '',
         orden_compra: '',
-        clasificacion: '',
+        clasificacion: 'Activo no productivo',
         clasificacion_activo_fijo: '',
         adjunto_archivo: null,
         // Campo Site
-        site: '',
+        site: 'Site A',
         // Nuevos campos dinámicos
         marca_modelo: '',
         numero_serie_fabricante: '',
@@ -141,12 +141,12 @@ const AssetForm = ({ isOpen, onClose, activo = null, onSuccess }) => {
                 setFileName(activo.adjunto_archivo || '');
                 setAssetType(detectAssetType(activo.numero_placa));
             } else {
-                // Si estamos creando, resetear formulario
+                // Si estamos creando, resetear formulario con valores por defecto
                 setFormData({
                     numero_placa: '',
                     centro_costes: 1,
-                    ubicacion: '',
-                    responsable: '',
+                    ubicacion: 'Claro',
+                    responsable: 'David Acero',
                     proveedor: '',
                     valor: '',
                     fecha_compra: '',
@@ -156,11 +156,11 @@ const AssetForm = ({ isOpen, onClose, activo = null, onSuccess }) => {
                     garantia: 'No',
                     fecha_vencimiento_garantia: '',
                     orden_compra: '',
-                    clasificacion: '',
+                    clasificacion: 'Activo no productivo',
                     clasificacion_activo_fijo: '',
                     adjunto_archivo: null,
                     // Campo Site
-                    site: '',
+                    site: 'Site A',
                     // Nuevos campos dinámicos
                     marca_modelo: '',
                     numero_serie_fabricante: '',
@@ -194,10 +194,34 @@ const AssetForm = ({ isOpen, onClose, activo = null, onSuccess }) => {
             [name]: value
         }));
 
-        // Si cambia el número de placa, detectar tipo de activo
+        // Si cambia el número de placa, detectar tipo de activo y establecer valor por defecto
         if (name === 'numero_placa') {
             const newType = detectAssetType(value);
             setAssetType(newType);
+            
+            // Establecer valor por defecto según el tipo de activo
+            let defaultValue = '';
+            if (newType === 'ECC-CPU') {
+                defaultValue = '900000';
+            } else if (newType === 'ECC-MON') {
+                defaultValue = '500000';
+            }
+            
+            // Solo actualizar el valor si está vacío o es el valor anterior por defecto
+            setFormData(prev => {
+                const currentValue = prev.valor;
+                const shouldUpdateValue = !currentValue || 
+                                        currentValue === '900000' || 
+                                        currentValue === '500000' || 
+                                        currentValue === '';
+                
+                return {
+                    ...prev,
+                    [name]: value,
+                    ...(shouldUpdateValue && defaultValue ? { valor: defaultValue } : {})
+                };
+            });
+            return; // Evitar la actualización duplicada del formData
         }
 
         // Si cambia la garantía a "No", limpiar fecha de vencimiento
