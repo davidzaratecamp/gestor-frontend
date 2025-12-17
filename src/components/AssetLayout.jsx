@@ -8,6 +8,7 @@ import {
     Plus,
     ClipboardList,
     BarChart3,
+    FileText,
     LogOut,
     User
 } from 'lucide-react';
@@ -29,6 +30,12 @@ const AssetLayout = () => {
             href: '/activos',
             icon: Plus,
             current: location.pathname === '/activos'
+        },
+        {
+            name: 'Crear desde Script',
+            href: '/activos/script-parser',
+            icon: FileText,
+            current: location.pathname === '/activos/script-parser'
         },
         {
             name: 'Inventario',

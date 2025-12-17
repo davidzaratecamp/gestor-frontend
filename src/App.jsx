@@ -22,6 +22,7 @@ import AssetManagement from './components/AssetManagement';
 import AssetLayout from './components/AssetLayout';
 import AssetInventory from './components/AssetInventory';
 import AssetCharts from './components/AssetCharts';
+import ScriptParser from './components/ScriptParser';
 
 // Componente para determinar el layout según el rol
 const LayoutWrapper = ({ children }) => {
@@ -239,6 +240,7 @@ function App() {
               <Route path="activos" element={<GestorActivosRoute><AssetManagement /></GestorActivosRoute>} />
               <Route path="activos/inventario" element={<GestorActivosRoute><AssetInventory /></GestorActivosRoute>} />
               <Route path="activos/charts" element={<GestorActivosRoute><AssetCharts /></GestorActivosRoute>} />
+              <Route path="activos/script-parser" element={<GestorActivosRoute><ScriptParser /></GestorActivosRoute>} />
             </Route>
 
             {/* Ruta catch-all */}
