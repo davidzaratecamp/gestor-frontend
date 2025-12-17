@@ -34,11 +34,7 @@ const AssetDetailModal = ({ isOpen, onClose, activo }) => {
 
     const formatValue = (value) => {
         if (!value || value === 0) return 'No especificado';
-        return new Intl.NumberFormat('es-CO', {
-            style: 'currency',
-            currency: 'COP',
-            minimumFractionDigits: 0
-        }).format(value);
+        return `$${Math.floor(value)}`;
     };
 
     // Función para detectar el tipo de activo
