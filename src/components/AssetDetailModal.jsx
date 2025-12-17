@@ -36,19 +36,21 @@ const AssetDetailModal = ({ isOpen, onClose, activo }) => {
         if (!numeroPlaca) return '';
         const placa = numeroPlaca.toUpperCase();
         
-        if (placa.match(/^ECC-CPU-\d+$/)) return 'ECC-CPU';
-        if (placa.match(/^ECC-SER-\d+$/)) return 'ECC-SER';
-        if (placa.match(/^ECC-MON-\d+$/)) return 'ECC-MON';
-        if (placa.match(/^ECC-IMP-\d+$/)) return 'ECC-IMP';
-        if (placa.match(/^ECC-POR-\d+$/)) return 'ECC-POR';
-        if (placa.match(/^ECC-TV-\d+$/)) return 'ECC-TV';
+        // Detectar patrones con guión o comilla simple y consecutivo
+        if (placa.match(/^ECC[-']CPU[-']\d+$/)) return 'ECC-CPU';
+        if (placa.match(/^ECC[-']SER[-']\d+$/)) return 'ECC-SER';
+        if (placa.match(/^ECC[-']MON[-']\d+$/)) return 'ECC-MON';
+        if (placa.match(/^ECC[-']IMP[-']\d+$/)) return 'ECC-IMP';
+        if (placa.match(/^ECC[-']POR[-']\d+$/)) return 'ECC-POR';
+        if (placa.match(/^ECC[-']TV[-']\d+$/)) return 'ECC-TV';
         
-        if (placa.startsWith('ECC-CPU')) return 'ECC-CPU';
-        if (placa.startsWith('ECC-SER')) return 'ECC-SER';
-        if (placa.startsWith('ECC-MON')) return 'ECC-MON';
-        if (placa.startsWith('ECC-IMP')) return 'ECC-IMP';
-        if (placa.startsWith('ECC-POR')) return 'ECC-POR';
-        if (placa.startsWith('ECC-TV')) return 'ECC-TV';
+        // También detectar mientras se está escribiendo (solo el prefijo)
+        if (placa.startsWith('ECC-CPU') || placa.startsWith("ECC'CPU")) return 'ECC-CPU';
+        if (placa.startsWith('ECC-SER') || placa.startsWith("ECC'SER")) return 'ECC-SER';
+        if (placa.startsWith('ECC-MON') || placa.startsWith("ECC'MON")) return 'ECC-MON';
+        if (placa.startsWith('ECC-IMP') || placa.startsWith("ECC'IMP")) return 'ECC-IMP';
+        if (placa.startsWith('ECC-POR') || placa.startsWith("ECC'POR")) return 'ECC-POR';
+        if (placa.startsWith('ECC-TV') || placa.startsWith("ECC'TV")) return 'ECC-TV';
         
         return 'OTHER';
     };
