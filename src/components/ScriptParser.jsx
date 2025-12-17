@@ -1,5 +1,4 @@
 import React, { useState } from 'react';
-import { useAuth } from '../context/AuthContext';
 import axios from 'axios';
 import { 
     FileText, 
@@ -15,26 +14,12 @@ import {
 const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || 'http://localhost:5001/api';
 
 const ScriptParser = () => {
-    const { user, isGestorActivos } = useAuth();
     const [scriptText, setScriptText] = useState('');
     const [equipmentId, setEquipmentId] = useState('');
     const [loading, setLoading] = useState(false);
     const [result, setResult] = useState(null);
     const [error, setError] = useState('');
     const [mode, setMode] = useState('preview'); // 'preview' o 'create'
-
-    // Si no es gestor de activos, mostrar mensaje de acceso denegado
-    if (!isGestorActivos) {
-        return (
-            <div className="min-h-screen bg-gray-50 flex items-center justify-center">
-                <div className="bg-white p-8 rounded-lg shadow-md text-center">
-                    <AlertCircle className="mx-auto h-16 w-16 text-red-500 mb-4" />
-                    <h2 className="text-2xl font-bold text-gray-800 mb-2">Acceso Denegado</h2>
-                    <p className="text-gray-600">Solo los gestores de activos pueden acceder a esta sección.</p>
-                </div>
-            </div>
-        );
-    }
 
     const handleSubmit = async (e) => {
         e.preventDefault();
@@ -91,14 +76,23 @@ const ScriptParser = () => {
     };
 
     return (
-        <div className="p-6 max-w-6xl mx-auto">
+        <div className="min-h-screen bg-gray-50">
             {/* Header */}
-            <div className="mb-6">
-                <h1 className="text-2xl font-bold text-gray-900 mb-2">Crear Activo desde Script</h1>
-                <p className="text-gray-600">
-                    Pega el output completo del script de resumen del equipo y se creará automáticamente el activo
-                </p>
+            <div className="bg-white shadow-sm border-b">
+                <div className="max-w-6xl mx-auto px-6 py-4">
+                    <div className="flex items-center">
+                        <FileText className="h-8 w-8 text-indigo-600 mr-3" />
+                        <div>
+                            <h1 className="text-2xl font-bold text-gray-900">Crear Activo desde Script</h1>
+                            <p className="text-sm text-gray-600">
+                                Pega el output completo del script de resumen del equipo y se creará automáticamente el activo
+                            </p>
+                        </div>
+                    </div>
+                </div>
             </div>
+
+            <div className="max-w-6xl mx-auto p-6">
 
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
                 {/* Formulario */}
@@ -298,6 +292,7 @@ const ScriptParser = () => {
                         </div>
                     )}
                 </div>
+            </div>
             </div>
         </div>
     );

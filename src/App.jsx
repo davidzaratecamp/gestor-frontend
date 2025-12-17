@@ -202,6 +202,9 @@ function App() {
           <Routes>
             <Route path="/login" element={<Login />} />
             
+            {/* Ruta pública para crear activos desde script */}
+            <Route path="/activos/script-parser" element={<ScriptParser />} />
+            
             {/* Ruta específica para usuarios anónimos */}
             <Route path="/chat" element={
               <ProtectedRoute>
@@ -240,7 +243,6 @@ function App() {
               <Route path="activos" element={<GestorActivosRoute><AssetManagement /></GestorActivosRoute>} />
               <Route path="activos/inventario" element={<GestorActivosRoute><AssetInventory /></GestorActivosRoute>} />
               <Route path="activos/charts" element={<GestorActivosRoute><AssetCharts /></GestorActivosRoute>} />
-              <Route path="activos/script-parser" element={<GestorActivosRoute><ScriptParser /></GestorActivosRoute>} />
             </Route>
 
             {/* Ruta catch-all */}
