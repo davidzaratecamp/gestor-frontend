@@ -17,7 +17,8 @@ import {
     Cpu,
     HardDrive,
     Monitor,
-    Globe
+    Globe,
+    DollarSign
 } from 'lucide-react';
 
 const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || 'http://localhost:5001/api';
@@ -29,6 +30,15 @@ const AssetDetailModal = ({ isOpen, onClose, activo }) => {
         if (!dateString) return 'No especificada';
         const date = new Date(dateString);
         return date.toLocaleDateString('es-ES');
+    };
+
+    const formatValue = (value) => {
+        if (!value || value === 0) return 'No especificado';
+        return new Intl.NumberFormat('es-CO', {
+            style: 'currency',
+            currency: 'COP',
+            minimumFractionDigits: 0
+        }).format(value);
     };
 
     // Función para detectar el tipo de activo
@@ -221,6 +231,12 @@ const AssetDetailModal = ({ isOpen, onClose, activo }) => {
                             icon={Truck}
                             label="Proveedor"
                             value={activo.proveedor}
+                        />
+
+                        <DetailRow 
+                            icon={DollarSign}
+                            label="Valor del Activo"
+                            value={formatValue(activo.valor)}
                         />
 
                         <DetailRow 
