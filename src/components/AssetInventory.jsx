@@ -40,7 +40,9 @@ const AssetInventory = () => {
         site: '',
         estado: '',
         tipoActivo: '',
-        puesto: ''
+        puesto: '',
+        responsable: '',
+        asignado: ''
     });
 
     // Si no es gestor de activos, mostrar mensaje de acceso denegado
@@ -174,6 +176,22 @@ const AssetInventory = () => {
             );
         }
 
+        // Filtro por responsable
+        if (filters.responsable) {
+            filtered = filtered.filter(activo => 
+                activo.responsable && 
+                activo.responsable.toLowerCase().includes(filters.responsable.toLowerCase())
+            );
+        }
+
+        // Filtro por asignado
+        if (filters.asignado) {
+            filtered = filtered.filter(activo => 
+                activo.asignado && 
+                activo.asignado.toLowerCase().includes(filters.asignado.toLowerCase())
+            );
+        }
+
         setFilteredActivos(filtered);
     };
 
@@ -198,7 +216,9 @@ const AssetInventory = () => {
             site: '',
             estado: '',
             tipoActivo: '',
-            puesto: ''
+            puesto: '',
+            responsable: '',
+            asignado: ''
         });
     };
 
@@ -213,6 +233,7 @@ const AssetInventory = () => {
             'Centro de Costes',
             'Ubicación',
             'Responsable',
+            'Asignado',
             'Proveedor',
             'Fecha de Compra',
             'Número de Serie',
@@ -230,6 +251,7 @@ const AssetInventory = () => {
                 activo.centro_costes,
                 activo.ubicacion,
                 activo.responsable,
+                activo.asignado || '',
                 activo.proveedor || '',
                 activo.fecha_compra || '',
                 activo.numero_social || '',
@@ -524,6 +546,34 @@ const AssetInventory = () => {
                                 className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500"
                             />
                         </div>
+
+                        {/* Responsable */}
+                        <div>
+                            <label className="block text-sm font-medium text-gray-700 mb-1">
+                                Responsable
+                            </label>
+                            <input
+                                type="text"
+                                value={filters.responsable}
+                                onChange={(e) => handleFilterChange('responsable', e.target.value)}
+                                placeholder="Buscar por responsable..."
+                                className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500"
+                            />
+                        </div>
+
+                        {/* Asignado */}
+                        <div>
+                            <label className="block text-sm font-medium text-gray-700 mb-1">
+                                Asignado
+                            </label>
+                            <input
+                                type="text"
+                                value={filters.asignado}
+                                onChange={(e) => handleFilterChange('asignado', e.target.value)}
+                                placeholder="Buscar por asignado..."
+                                className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500"
+                            />
+                        </div>
                     </div>
                 </div>
             )}
@@ -597,6 +647,9 @@ const AssetInventory = () => {
                                     Responsable
                                 </th>
                                 <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                                    Asignado
+                                </th>
+                                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                                     Puesto
                                 </th>
                                 <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
@@ -639,6 +692,9 @@ const AssetInventory = () => {
                                     </td>
                                     <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
                                         {activo.responsable}
+                                    </td>
+                                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+                                        {activo.asignado || '-'}
                                     </td>
                                     <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
                                         {activo.puesto || '-'}
