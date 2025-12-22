@@ -39,7 +39,8 @@ const AssetInventory = () => {
         garantia: '',
         site: '',
         estado: '',
-        tipoActivo: ''
+        tipoActivo: '',
+        puesto: ''
     });
 
     // Si no es gestor de activos, mostrar mensaje de acceso denegado
@@ -165,6 +166,14 @@ const AssetInventory = () => {
             });
         }
 
+        // Filtro por puesto
+        if (filters.puesto) {
+            filtered = filtered.filter(activo => 
+                activo.puesto && 
+                activo.puesto.toLowerCase().includes(filters.puesto.toLowerCase())
+            );
+        }
+
         setFilteredActivos(filtered);
     };
 
@@ -188,7 +197,8 @@ const AssetInventory = () => {
             garantia: '',
             site: '',
             estado: '',
-            tipoActivo: ''
+            tipoActivo: '',
+            puesto: ''
         });
     };
 
@@ -206,6 +216,7 @@ const AssetInventory = () => {
             'Proveedor',
             'Fecha de Compra',
             'Número de Serie',
+            'Puesto',
             'Clasificación',
             'Garantía',
             'Fecha Venc. Garantía',
@@ -222,6 +233,7 @@ const AssetInventory = () => {
                 activo.proveedor || '',
                 activo.fecha_compra || '',
                 activo.numero_social || '',
+                activo.puesto || '',
                 activo.clasificacion,
                 activo.garantia,
                 activo.fecha_vencimiento_garantia || '',
@@ -498,6 +510,20 @@ const AssetInventory = () => {
                                 <option value="ECC-TV">Televisores (ECC-TV)</option>
                             </select>
                         </div>
+
+                        {/* Puesto */}
+                        <div>
+                            <label className="block text-sm font-medium text-gray-700 mb-1">
+                                Puesto
+                            </label>
+                            <input
+                                type="text"
+                                value={filters.puesto}
+                                onChange={(e) => handleFilterChange('puesto', e.target.value)}
+                                placeholder="001, 090, 106..."
+                                className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500"
+                            />
+                        </div>
                     </div>
                 </div>
             )}
@@ -571,6 +597,9 @@ const AssetInventory = () => {
                                     Responsable
                                 </th>
                                 <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                                    Puesto
+                                </th>
+                                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                                     Proveedor
                                 </th>
                                 <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
@@ -610,6 +639,9 @@ const AssetInventory = () => {
                                     </td>
                                     <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
                                         {activo.responsable}
+                                    </td>
+                                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+                                        {activo.puesto || '-'}
                                     </td>
                                     <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
                                         {activo.proveedor || '-'}

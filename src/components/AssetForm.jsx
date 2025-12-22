@@ -24,6 +24,8 @@ const AssetForm = ({ isOpen, onClose, activo = null, onSuccess }) => {
         adjunto_archivo: null,
         // Campo Site
         site: 'Site A',
+        // Campo Puesto
+        puesto: '',
         // Nuevos campos dinámicos
         marca_modelo: '',
         numero_serie_fabricante: '',
@@ -128,6 +130,8 @@ const AssetForm = ({ isOpen, onClose, activo = null, onSuccess }) => {
                     adjunto_archivo: null,
                     // Campo Site
                     site: activo.site || '',
+                    // Campo Puesto
+                    puesto: activo.puesto || '',
                     // Nuevos campos dinámicos
                     marca_modelo: activo.marca_modelo || '',
                     numero_serie_fabricante: activo.numero_serie_fabricante || '',
@@ -161,6 +165,8 @@ const AssetForm = ({ isOpen, onClose, activo = null, onSuccess }) => {
                     adjunto_archivo: null,
                     // Campo Site
                     site: 'Site A',
+                    // Campo Puesto
+                    puesto: '',
                     // Nuevos campos dinámicos
                     marca_modelo: '',
                     numero_serie_fabricante: '',
@@ -551,6 +557,25 @@ const AssetForm = ({ isOpen, onClose, activo = null, onSuccess }) => {
                                     <option key={site} value={site}>{site}</option>
                                 ))}
                             </select>
+                        </div>
+
+                        {/* Puesto */}
+                        <div>
+                            <label className="block text-sm font-medium text-gray-700 mb-2">
+                                Puesto
+                            </label>
+                            <input
+                                type="text"
+                                name="puesto"
+                                value={formData.puesto}
+                                onChange={handleInputChange}
+                                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                                placeholder="Ej: 001, 090, 106"
+                                maxLength={50}
+                            />
+                            <p className="text-xs text-gray-500 mt-1">
+                                Número o identificación del puesto físico donde está ubicado el activo (opcional)
+                            </p>
                         </div>
 
                         {/* Empresa (solo lectura) */}
