@@ -305,7 +305,13 @@ const AssetForm = ({ isOpen, onClose, activo = null, onSuccess }) => {
             }
         } catch (error) {
             console.error('Error al guardar activo:', error);
-            setError(error.response?.data?.message || error.message || 'Error al guardar el activo');
+            
+            // Manejar error específico de placa duplicada
+            if (error.response?.data?.type === 'DUPLICATE_PLATE') {
+                setError(`❌ ${error.response.data.message}`);
+            } else {
+                setError(error.response?.data?.message || error.message || 'Error al guardar el activo');
+            }
         } finally {
             setLoading(false);
         }
@@ -333,7 +339,16 @@ const AssetForm = ({ isOpen, onClose, activo = null, onSuccess }) => {
                 <form onSubmit={handleSubmit} className="p-6">
                     {error && (
                         <div className="mb-6 bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded-lg">
-                            {error}
+                            <div className="flex items-start">
+                                <div className="flex-1">
+                                    {error}
+                                    {error.includes('ya existe en el sistema') && (
+                                        <div className="mt-2 text-sm text-red-600">
+                                            💡 <strong>Sugerencia:</strong> Verifica que no hayas ingresado este número de placa anteriormente, o modifica el número si es correcto.
+                                        </div>
+                                    )}
+                                </div>
+                            </div>
                         </div>
                     )}
 
