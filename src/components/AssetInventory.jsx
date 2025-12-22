@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { useAuth } from '../context/AuthContext';
 import axios from 'axios';
 import AssetDetailModal from './AssetDetailModal';
+import AssetForm from './AssetForm';
 import { 
     Package, 
     Search, 
@@ -9,6 +10,7 @@ import {
     Calendar,
     Download,
     Eye,
+    Edit,
     FileText,
     AlertCircle,
     RefreshCw
@@ -24,6 +26,7 @@ const AssetInventory = () => {
     const [error, setError] = useState('');
     const [showFilters, setShowFilters] = useState(false);
     const [showDetailModal, setShowDetailModal] = useState(false);
+    const [showEditModal, setShowEditModal] = useState(false);
     const [selectedActivo, setSelectedActivo] = useState(null);
 
     // Filtros
@@ -277,6 +280,18 @@ const AssetInventory = () => {
     const handleViewActivo = (activo) => {
         setSelectedActivo(activo);
         setShowDetailModal(true);
+    };
+
+    const handleEditActivo = (activo) => {
+        setSelectedActivo(activo);
+        setShowEditModal(true);
+    };
+
+    const handleEditSuccess = () => {
+        setShowEditModal(false);
+        setSelectedActivo(null);
+        // Recargar la lista de activos
+        fetchActivos();
     };
 
     if (loading) {
@@ -703,13 +718,22 @@ const AssetInventory = () => {
                                         </span>
                                     </td>
                                     <td className="px-6 py-4 whitespace-nowrap text-sm font-medium">
-                                        <button
-                                            onClick={() => handleViewActivo(activo)}
-                                            className="text-green-600 hover:text-green-900"
-                                            title="Ver detalles completos"
-                                        >
-                                            <Eye className="h-4 w-4" />
-                                        </button>
+                                        <div className="flex space-x-2">
+                                            <button
+                                                onClick={() => handleViewActivo(activo)}
+                                                className="text-green-600 hover:text-green-900"
+                                                title="Ver detalles completos"
+                                            >
+                                                <Eye className="h-4 w-4" />
+                                            </button>
+                                            <button
+                                                onClick={() => handleEditActivo(activo)}
+                                                className="text-blue-600 hover:text-blue-900"
+                                                title="Editar activo"
+                                            >
+                                                <Edit className="h-4 w-4" />
+                                            </button>
+                                        </div>
                                     </td>
                                 </tr>
                             ))}
@@ -736,6 +760,17 @@ const AssetInventory = () => {
                 isOpen={showDetailModal}
                 onClose={() => setShowDetailModal(false)}
                 activo={selectedActivo}
+            />
+
+            {/* Asset Edit Modal */}
+            <AssetForm
+                isOpen={showEditModal}
+                onClose={() => {
+                    setShowEditModal(false);
+                    setSelectedActivo(null);
+                }}
+                activo={selectedActivo}
+                onSuccess={handleEditSuccess}
             />
         </div>
     );
