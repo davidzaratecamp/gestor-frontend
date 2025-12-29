@@ -134,6 +134,8 @@ const AssetForm = ({ isOpen, onClose, activo = null, onSuccess }) => {
                     site: activo.site || '',
                     // Campo Puesto
                     puesto: activo.puesto || '',
+                    // Campo Asignado
+                    asignado: activo.asignado || '',
                     // Nuevos campos dinámicos
                     marca_modelo: activo.marca_modelo || '',
                     numero_serie_fabricante: activo.numero_serie_fabricante || '',
@@ -169,6 +171,8 @@ const AssetForm = ({ isOpen, onClose, activo = null, onSuccess }) => {
                     site: 'Site A',
                     // Campo Puesto
                     puesto: '',
+                    // Campo Asignado
+                    asignado: '',
                     // Nuevos campos dinámicos
                     marca_modelo: '',
                     numero_serie_fabricante: '',
