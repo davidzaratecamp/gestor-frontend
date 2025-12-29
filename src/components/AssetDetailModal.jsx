@@ -224,6 +224,18 @@ const AssetDetailModal = ({ isOpen, onClose, activo }) => {
                         />
 
                         <DetailRow 
+                            icon={User}
+                            label="Asignado"
+                            value={activo.asignado || 'No asignado'}
+                        />
+
+                        <DetailRow 
+                            icon={MapPin}
+                            label="Puesto"
+                            value={activo.puesto || 'No especificado'}
+                        />
+
+                        <DetailRow 
                             icon={Truck}
                             label="Proveedor"
                             value={activo.proveedor}
