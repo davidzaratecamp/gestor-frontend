@@ -325,7 +325,7 @@ const AssetInventory = () => {
         const totalNoClasificado = cpusConTipo.filter(c => c.tipoDisco === 'No clasificado' || c.tipoDisco === 'No especificado').length;
 
         // Estadísticas por ubicación
-        const ubicaciones = [...new Set(cpus.map(c => c.ubicacion).filter(Boolean))];
+        const ubicaciones = [...new Set(cpusConTipo.map(c => c.ubicacion).filter(Boolean))];
         const statsPorUbicacion = ubicaciones.map(ub => {
             const cpusUb = cpusConTipo.filter(c => c.ubicacion === ub);
             return {
@@ -337,7 +337,7 @@ const AssetInventory = () => {
         });
 
         // Estadísticas por Site
-        const sites = [...new Set(cpus.map(c => c.site).filter(Boolean))];
+        const sites = [...new Set(cpusConTipo.map(c => c.site).filter(Boolean))];
         const statsPorSite = sites.map(site => {
             const cpusSite = cpusConTipo.filter(c => c.site === site);
             return {
@@ -351,112 +351,73 @@ const AssetInventory = () => {
         const fechaReporte = new Date().toLocaleDateString('es-CO', {
             year: 'numeric',
             month: 'long',
-            day: 'numeric',
-            hour: '2-digit',
-            minute: '2-digit'
+            day: 'numeric'
         });
 
-        // Construir el CSV con estructura profesional
+        // Construir el CSV limpio
         const lineas = [];
 
-        // ═══════════════════════════════════════════════════════════════
         // ENCABEZADO
-        // ═══════════════════════════════════════════════════════════════
+        lineas.push('REPORTE CPUs - RAM Y ALMACENAMIENTO');
+        lineas.push(`Fecha: ${fechaReporte}`);
         lineas.push('');
-        lineas.push('"","","REPORTE DE EQUIPOS (CPUs)","","",""');
-        lineas.push('"","","MEMORIA RAM Y ALMACENAMIENTO","","",""');
-        lineas.push('');
-        lineas.push(`"Generado:","${fechaReporte}","","","",""`)
-        lineas.push('');
-        lineas.push('"══════════════════════════════════════════════════════════════════════════════════════════"');
 
-        // ═══════════════════════════════════════════════════════════════
         // RESUMEN GENERAL
-        // ═══════════════════════════════════════════════════════════════
+        lineas.push('RESUMEN GENERAL');
+        lineas.push(`Total CPUs,${cpus.length}`);
         lineas.push('');
-        lineas.push('"▐ RESUMEN GENERAL","","","","",""');
-        lineas.push('"─────────────────────────────────────────────────────────────────"');
+        lineas.push('Tipo Disco,Cantidad,Porcentaje');
+        lineas.push(`SSD (Solido),${totalSSD},${cpus.length > 0 ? ((totalSSD/cpus.length)*100).toFixed(1) : 0}%`);
+        lineas.push(`HDD (Mecanico),${totalHDD},${cpus.length > 0 ? ((totalHDD/cpus.length)*100).toFixed(1) : 0}%`);
+        lineas.push(`Sin clasificar,${totalNoClasificado},${cpus.length > 0 ? ((totalNoClasificado/cpus.length)*100).toFixed(1) : 0}%`);
         lineas.push('');
-        lineas.push(`"Total de CPUs:","${cpus.length}","","","",""`);
-        lineas.push('');
-        lineas.push('"TIPO DE DISCO","CANTIDAD","PORCENTAJE","","",""');
-        lineas.push(`"SSD (Disco Sólido)","${totalSSD}","${cpus.length > 0 ? ((totalSSD/cpus.length)*100).toFixed(1) : 0}%","","",""`);
-        lineas.push(`"HDD (Disco Mecánico)","${totalHDD}","${cpus.length > 0 ? ((totalHDD/cpus.length)*100).toFixed(1) : 0}%","","",""`);
-        lineas.push(`"Sin clasificar","${totalNoClasificado}","${cpus.length > 0 ? ((totalNoClasificado/cpus.length)*100).toFixed(1) : 0}%","","",""`);
 
-        // ═══════════════════════════════════════════════════════════════
         // DISTRIBUCIÓN POR UBICACIÓN
-        // ═══════════════════════════════════════════════════════════════
-        lineas.push('');
-        lineas.push('"══════════════════════════════════════════════════════════════════════════════════════════"');
-        lineas.push('');
-        lineas.push('"▐ DISTRIBUCIÓN POR UBICACIÓN","","","","",""');
-        lineas.push('"─────────────────────────────────────────────────────────────────"');
-        lineas.push('');
-        lineas.push('"UBICACIÓN","TOTAL","SSD","HDD","",""');
+        lineas.push('DISTRIBUCION POR UBICACION');
+        lineas.push('Ubicacion,Total,SSD,HDD');
         statsPorUbicacion.forEach(stat => {
-            lineas.push(`"${stat.ubicacion}","${stat.total}","${stat.ssd}","${stat.hdd}","",""`);
+            lineas.push(`${stat.ubicacion},${stat.total},${stat.ssd},${stat.hdd}`);
         });
+        lineas.push('');
 
-        // ═══════════════════════════════════════════════════════════════
         // DISTRIBUCIÓN POR SITE
-        // ═══════════════════════════════════════════════════════════════
         if (sites.length > 0) {
-            lineas.push('');
-            lineas.push('"══════════════════════════════════════════════════════════════════════════════════════════"');
-            lineas.push('');
-            lineas.push('"▐ DISTRIBUCIÓN POR SITE","","","","",""');
-            lineas.push('"─────────────────────────────────────────────────────────────────"');
-            lineas.push('');
-            lineas.push('"SITE","TOTAL","SSD","HDD","",""');
+            lineas.push('DISTRIBUCION POR SITE');
+            lineas.push('Site,Total,SSD,HDD');
             statsPorSite.forEach(stat => {
-                lineas.push(`"${stat.site}","${stat.total}","${stat.ssd}","${stat.hdd}","",""`);
+                lineas.push(`${stat.site},${stat.total},${stat.ssd},${stat.hdd}`);
             });
+            lineas.push('');
         }
 
-        // ═══════════════════════════════════════════════════════════════
         // DETALLE DE EQUIPOS
-        // ═══════════════════════════════════════════════════════════════
-        lineas.push('');
-        lineas.push('"══════════════════════════════════════════════════════════════════════════════════════════"');
-        lineas.push('');
-        lineas.push('"▐ DETALLE DE EQUIPOS","","","","",""');
-        lineas.push('"─────────────────────────────────────────────────────────────────"');
-        lineas.push('');
+        lineas.push('DETALLE DE EQUIPOS');
+        lineas.push('N,Placa,Ubicacion,Site,Puesto,Asignado,RAM,Almacenamiento,Tipo Disco');
 
-        // Encabezados de la tabla
-        lineas.push('"N°","PLACA","UBICACIÓN","SITE","PUESTO","ASIGNADO","RAM","ALMACENAMIENTO","TIPO DISCO"');
-        lineas.push('"─","─────","────────","────","──────","────────","───","──────────────","──────────"');
-
-        // Datos ordenados por ubicación y luego por tipo de disco
+        // Ordenar por ubicación y tipo de disco
         const cpusOrdenados = [...cpusConTipo].sort((a, b) => {
             if (a.ubicacion !== b.ubicacion) return (a.ubicacion || '').localeCompare(b.ubicacion || '');
             return (a.tipoDisco || '').localeCompare(b.tipoDisco || '');
         });
 
         cpusOrdenados.forEach((cpu, index) => {
-            lineas.push([
-                `"${index + 1}"`,
-                `"${cpu.numero_placa || ''}"`,
-                `"${cpu.ubicacion || ''}"`,
-                `"${cpu.site || ''}"`,
-                `"${cpu.puesto || ''}"`,
-                `"${cpu.asignado || ''}"`,
-                `"${cpu.memoria_ram || '-'}"`,
-                `"${cpu.almacenamiento || '-'}"`,
-                `"${cpu.tipoDisco}"`
-            ].join(','));
+            const fila = [
+                index + 1,
+                cpu.numero_placa || '',
+                cpu.ubicacion || '',
+                cpu.site || '',
+                cpu.puesto || '',
+                (cpu.asignado || '').replace(/,/g, ' '),
+                (cpu.memoria_ram || '-').replace(/,/g, ' '),
+                (cpu.almacenamiento || '-').replace(/,/g, ' '),
+                cpu.tipoDisco
+            ];
+            lineas.push(fila.join(','));
         });
-
-        // Pie del documento
-        lineas.push('');
-        lineas.push('"══════════════════════════════════════════════════════════════════════════════════════════"');
-        lineas.push('"","","FIN DEL REPORTE","","",""');
-        lineas.push('"══════════════════════════════════════════════════════════════════════════════════════════"');
 
         const csvContent = lineas.join('\n');
 
-        // BOM para que Excel reconozca UTF-8
+        // BOM para UTF-8 en Excel
         const BOM = '\uFEFF';
         const blob = new Blob([BOM + csvContent], { type: 'text/csv;charset=utf-8;' });
         const link = document.createElement('a');
