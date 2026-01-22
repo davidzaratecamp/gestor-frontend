@@ -346,6 +346,13 @@ const AssetInventory = () => {
             };
         });
 
+        // Stats por RAM
+        const tiposRAM = [...new Set(cpusConTipo.map(c => c.memoria_ram || 'Sin especificar'))].sort();
+        const statsPorRAM = tiposRAM.map(ram => ({
+            ram,
+            cantidad: cpusConTipo.filter(c => (c.memoria_ram || 'Sin especificar') === ram).length
+        }));
+
         const fechaReporte = new Date().toLocaleDateString('es-CO', {
             year: 'numeric', month: 'long', day: 'numeric'
         });
@@ -359,6 +366,11 @@ const AssetInventory = () => {
             [''],
             ['Fecha de generación:', fechaReporte],
             ['Total de equipos:', cpus.length],
+            [''],
+            [''],
+            ['RESUMEN POR MEMORIA RAM'],
+            ['RAM', 'Cantidad', 'Porcentaje'],
+            ...statsPorRAM.map(s => [s.ram, s.cantidad, cpus.length > 0 ? `${((s.cantidad/cpus.length)*100).toFixed(1)}%` : '0%']),
             [''],
             [''],
             ['RESUMEN POR TIPO DE DISCO'],
