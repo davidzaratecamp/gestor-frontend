@@ -3,17 +3,18 @@ import { useAuth } from '../context/AuthContext';
 import axios from 'axios';
 import AssetDetailModal from './AssetDetailModal';
 import AssetForm from './AssetForm';
-import { 
-    Package, 
-    Search, 
-    Filter, 
+import {
+    Package,
+    Search,
+    Filter,
     Calendar,
     Download,
     Eye,
     Edit,
     FileText,
     AlertCircle,
-    RefreshCw
+    RefreshCw,
+    HardDrive
 } from 'lucide-react';
 
 const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || 'http://localhost:5001/api';
@@ -277,6 +278,85 @@ const AssetInventory = () => {
         document.body.removeChild(link);
     };
 
+    // Función para clasificar el tipo de disco
+    const clasificarTipoDisco = (almacenamiento) => {
+        if (!almacenamiento) return 'No especificado';
+
+        const storage = almacenamiento.toUpperCase();
+
+        // Detectar SSD
+        if (storage.includes('SSD') || storage.includes('SÓLIDO') || storage.includes('SOLIDO') ||
+            storage.includes('NVME') || storage.includes('M.2') || storage.includes('SOLID STATE')) {
+            return 'SSD (Sólido)';
+        }
+
+        // Detectar HDD
+        if (storage.includes('HDD') || storage.includes('MECÁNICO') || storage.includes('MECANICO') ||
+            storage.includes('DISCO DURO') || storage.includes('HARD DRIVE') || storage.includes('RPM')) {
+            return 'HDD (Mecánico)';
+        }
+
+        // Si no se puede determinar pero hay información
+        return 'No clasificado';
+    };
+
+    // Exportar solo CPUs con información de almacenamiento
+    const exportCPUStorageToExcel = () => {
+        // Filtrar solo CPUs (ECC-CPU)
+        const cpus = activos.filter(activo => {
+            const placa = (activo.numero_placa || '').toUpperCase();
+            return placa.startsWith('ECC-CPU') || placa.startsWith("ECC'CPU");
+        });
+
+        if (cpus.length === 0) {
+            alert('No hay CPUs registradas en el inventario');
+            return;
+        }
+
+        const headers = [
+            'Número de Placa',
+            'Marca/Modelo',
+            'Número de Serie',
+            'Almacenamiento',
+            'Tipo de Disco',
+            'Ubicación',
+            'Site',
+            'Puesto',
+            'Asignado',
+            'Responsable',
+            'Estado'
+        ];
+
+        const csvContent = [
+            headers.join(','),
+            ...cpus.map(cpu => [
+                `"${cpu.numero_placa || ''}"`,
+                `"${cpu.marca_modelo || ''}"`,
+                `"${cpu.numero_serie_fabricante || cpu.numero_social || ''}"`,
+                `"${cpu.almacenamiento || ''}"`,
+                `"${clasificarTipoDisco(cpu.almacenamiento)}"`,
+                `"${cpu.ubicacion || ''}"`,
+                `"${cpu.site || ''}"`,
+                `"${cpu.puesto || ''}"`,
+                `"${cpu.asignado || ''}"`,
+                `"${cpu.responsable || ''}"`,
+                `"${cpu.estado || ''}"`,
+            ].join(','))
+        ].join('\n');
+
+        // BOM para que Excel reconozca UTF-8
+        const BOM = '\uFEFF';
+        const blob = new Blob([BOM + csvContent], { type: 'text/csv;charset=utf-8;' });
+        const link = document.createElement('a');
+        const url = URL.createObjectURL(blob);
+        link.setAttribute('href', url);
+        link.setAttribute('download', `reporte_cpus_almacenamiento_${new Date().toISOString().split('T')[0]}.csv`);
+        link.style.visibility = 'hidden';
+        document.body.appendChild(link);
+        link.click();
+        document.body.removeChild(link);
+    };
+
     const handleViewActivo = (activo) => {
         setSelectedActivo(activo);
         setShowDetailModal(true);
@@ -330,6 +410,14 @@ const AssetInventory = () => {
                         >
                             <Download className="h-4 w-4 mr-2" />
                             Exportar
+                        </button>
+                        <button
+                            onClick={exportCPUStorageToExcel}
+                            className="inline-flex items-center px-4 py-2 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-emerald-600 hover:bg-emerald-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-emerald-500"
+                            title="Exportar reporte de CPUs con tipo de disco (SSD/HDD)"
+                        >
+                            <HardDrive className="h-4 w-4 mr-2" />
+                            CPUs Disco
                         </button>
                         <button
                             onClick={fetchActivos}
