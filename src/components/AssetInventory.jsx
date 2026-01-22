@@ -300,7 +300,7 @@ const AssetInventory = () => {
         return 'No clasificado';
     };
 
-    // Exportar solo CPUs con información de almacenamiento
+    // Exportar solo CPUs con información de almacenamiento y RAM
     const exportCPUStorageToExcel = () => {
         // Filtrar solo CPUs (ECC-CPU)
         const cpus = activos.filter(activo => {
@@ -313,35 +313,56 @@ const AssetInventory = () => {
             return;
         }
 
+        // Encabezados organizados por secciones
         const headers = [
-            'Número de Placa',
-            'Marca/Modelo',
-            'Número de Serie',
-            'Almacenamiento',
-            'Tipo de Disco',
-            'Ubicación',
-            'Site',
-            'Puesto',
-            'Asignado',
-            'Responsable',
-            'Estado'
+            // === IDENTIFICACIÓN ===
+            'PLACA',
+            'MARCA/MODELO',
+            'N° SERIE',
+            // === UBICACIÓN ===
+            'UBICACIÓN',
+            'SITE',
+            'PUESTO',
+            'ASIGNADO',
+            // === MEMORIA RAM ===
+            'RAM',
+            // === ALMACENAMIENTO ===
+            'ALMACENAMIENTO',
+            'TIPO DISCO'
         ];
 
+        const rows = cpus.map(cpu => [
+            // Identificación
+            `"${cpu.numero_placa || ''}"`,
+            `"${cpu.marca_modelo || ''}"`,
+            `"${cpu.numero_serie_fabricante || cpu.numero_social || ''}"`,
+            // Ubicación
+            `"${cpu.ubicacion || ''}"`,
+            `"${cpu.site || ''}"`,
+            `"${cpu.puesto || ''}"`,
+            `"${cpu.asignado || ''}"`,
+            // RAM
+            `"${cpu.memoria_ram || 'No especificado'}"`,
+            // Almacenamiento
+            `"${cpu.almacenamiento || 'No especificado'}"`,
+            `"${clasificarTipoDisco(cpu.almacenamiento)}"`
+        ].join(','));
+
+        // Construir CSV con título y fecha
+        const fechaReporte = new Date().toLocaleDateString('es-CO', {
+            year: 'numeric',
+            month: 'long',
+            day: 'numeric'
+        });
+
         const csvContent = [
+            `"REPORTE DE CPUs - MEMORIA RAM Y ALMACENAMIENTO"`,
+            `"Fecha de generación: ${fechaReporte}"`,
+            `"Total de equipos: ${cpus.length}"`,
+            '', // Línea vacía
+            '--- IDENTIFICACIÓN ---,,, --- UBICACIÓN ---,,,, --- MEMORIA ---, --- ALMACENAMIENTO ---,',
             headers.join(','),
-            ...cpus.map(cpu => [
-                `"${cpu.numero_placa || ''}"`,
-                `"${cpu.marca_modelo || ''}"`,
-                `"${cpu.numero_serie_fabricante || cpu.numero_social || ''}"`,
-                `"${cpu.almacenamiento || ''}"`,
-                `"${clasificarTipoDisco(cpu.almacenamiento)}"`,
-                `"${cpu.ubicacion || ''}"`,
-                `"${cpu.site || ''}"`,
-                `"${cpu.puesto || ''}"`,
-                `"${cpu.asignado || ''}"`,
-                `"${cpu.responsable || ''}"`,
-                `"${cpu.estado || ''}"`,
-            ].join(','))
+            ...rows
         ].join('\n');
 
         // BOM para que Excel reconozca UTF-8
@@ -350,7 +371,7 @@ const AssetInventory = () => {
         const link = document.createElement('a');
         const url = URL.createObjectURL(blob);
         link.setAttribute('href', url);
-        link.setAttribute('download', `reporte_cpus_almacenamiento_${new Date().toISOString().split('T')[0]}.csv`);
+        link.setAttribute('download', `reporte_cpus_ram_disco_${new Date().toISOString().split('T')[0]}.csv`);
         link.style.visibility = 'hidden';
         document.body.appendChild(link);
         link.click();
@@ -414,10 +435,10 @@ const AssetInventory = () => {
                         <button
                             onClick={exportCPUStorageToExcel}
                             className="inline-flex items-center px-4 py-2 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-emerald-600 hover:bg-emerald-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-emerald-500"
-                            title="Exportar reporte de CPUs con tipo de disco (SSD/HDD)"
+                            title="Exportar reporte de CPUs con RAM y tipo de disco (SSD/HDD)"
                         >
                             <HardDrive className="h-4 w-4 mr-2" />
-                            CPUs Disco
+                            CPUs RAM/Disco
                         </button>
                         <button
                             onClick={fetchActivos}
