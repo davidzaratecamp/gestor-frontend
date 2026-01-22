@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useAuth } from '../context/AuthContext';
 import axios from 'axios';
+import * as XLSX from 'xlsx';
 import AssetDetailModal from './AssetDetailModal';
 import AssetForm from './AssetForm';
 import {
@@ -280,29 +281,26 @@ const AssetInventory = () => {
 
     // Función para clasificar el tipo de disco
     const clasificarTipoDisco = (almacenamiento) => {
-        if (!almacenamiento) return 'No especificado';
+        if (!almacenamiento) return 'Sin especificar';
 
         const storage = almacenamiento.toUpperCase();
 
-        // Detectar SSD
         if (storage.includes('SSD') || storage.includes('SÓLIDO') || storage.includes('SOLIDO') ||
             storage.includes('NVME') || storage.includes('M.2') || storage.includes('SOLID STATE')) {
-            return 'SSD (Sólido)';
+            return 'SSD';
         }
 
-        // Detectar HDD
         if (storage.includes('HDD') || storage.includes('MECÁNICO') || storage.includes('MECANICO') ||
             storage.includes('DISCO DURO') || storage.includes('HARD DRIVE') || storage.includes('RPM')) {
-            return 'HDD (Mecánico)';
+            return 'HDD';
         }
 
-        // Si no se puede determinar pero hay información
-        return 'No clasificado';
+        return 'Sin clasificar';
     };
 
-    // Exportar solo CPUs con información de almacenamiento y RAM
+    // Exportar CPUs con RAM y Almacenamiento a Excel
     const exportCPUStorageToExcel = () => {
-        // Filtrar solo CPUs (ECC-CPU)
+        // Filtrar solo CPUs
         const cpus = activos.filter(activo => {
             const placa = (activo.numero_placa || '').toUpperCase();
             return placa.startsWith('ECC-CPU') || placa.startsWith("ECC'CPU");
@@ -319,115 +317,173 @@ const AssetInventory = () => {
             tipoDisco: clasificarTipoDisco(cpu.almacenamiento)
         }));
 
-        // Calcular estadísticas
-        const totalSSD = cpusConTipo.filter(c => c.tipoDisco === 'SSD (Sólido)').length;
-        const totalHDD = cpusConTipo.filter(c => c.tipoDisco === 'HDD (Mecánico)').length;
-        const totalNoClasificado = cpusConTipo.filter(c => c.tipoDisco === 'No clasificado' || c.tipoDisco === 'No especificado').length;
+        // Estadísticas
+        const totalSSD = cpusConTipo.filter(c => c.tipoDisco === 'SSD').length;
+        const totalHDD = cpusConTipo.filter(c => c.tipoDisco === 'HDD').length;
+        const totalSinClasificar = cpusConTipo.filter(c => c.tipoDisco === 'Sin clasificar' || c.tipoDisco === 'Sin especificar').length;
 
-        // Estadísticas por ubicación
-        const ubicaciones = [...new Set(cpusConTipo.map(c => c.ubicacion).filter(Boolean))];
+        // Stats por ubicación
+        const ubicaciones = [...new Set(cpusConTipo.map(c => c.ubicacion).filter(Boolean))].sort();
         const statsPorUbicacion = ubicaciones.map(ub => {
             const cpusUb = cpusConTipo.filter(c => c.ubicacion === ub);
             return {
                 ubicacion: ub,
                 total: cpusUb.length,
-                ssd: cpusUb.filter(c => c.tipoDisco === 'SSD (Sólido)').length,
-                hdd: cpusUb.filter(c => c.tipoDisco === 'HDD (Mecánico)').length
+                ssd: cpusUb.filter(c => c.tipoDisco === 'SSD').length,
+                hdd: cpusUb.filter(c => c.tipoDisco === 'HDD').length
             };
         });
 
-        // Estadísticas por Site
-        const sites = [...new Set(cpusConTipo.map(c => c.site).filter(Boolean))];
+        // Stats por Site
+        const sites = [...new Set(cpusConTipo.map(c => c.site).filter(Boolean))].sort();
         const statsPorSite = sites.map(site => {
             const cpusSite = cpusConTipo.filter(c => c.site === site);
             return {
-                site: site,
+                site,
                 total: cpusSite.length,
-                ssd: cpusSite.filter(c => c.tipoDisco === 'SSD (Sólido)').length,
-                hdd: cpusSite.filter(c => c.tipoDisco === 'HDD (Mecánico)').length
+                ssd: cpusSite.filter(c => c.tipoDisco === 'SSD').length,
+                hdd: cpusSite.filter(c => c.tipoDisco === 'HDD').length
             };
         });
 
         const fechaReporte = new Date().toLocaleDateString('es-CO', {
-            year: 'numeric',
-            month: 'long',
-            day: 'numeric'
+            year: 'numeric', month: 'long', day: 'numeric'
         });
 
-        // Construir el CSV limpio
-        const lineas = [];
+        // Crear workbook
+        const wb = XLSX.utils.book_new();
 
-        // ENCABEZADO
-        lineas.push('REPORTE CPUs - RAM Y ALMACENAMIENTO');
-        lineas.push(`Fecha: ${fechaReporte}`);
-        lineas.push('');
+        // ========== HOJA 1: RESUMEN ==========
+        const resumenData = [
+            ['REPORTE DE CPUs - RAM Y ALMACENAMIENTO'],
+            [''],
+            ['Fecha de generación:', fechaReporte],
+            ['Total de equipos:', cpus.length],
+            [''],
+            [''],
+            ['RESUMEN POR TIPO DE DISCO'],
+            ['Tipo', 'Cantidad', 'Porcentaje'],
+            ['SSD (Disco Sólido)', totalSSD, cpus.length > 0 ? `${((totalSSD/cpus.length)*100).toFixed(1)}%` : '0%'],
+            ['HDD (Disco Mecánico)', totalHDD, cpus.length > 0 ? `${((totalHDD/cpus.length)*100).toFixed(1)}%` : '0%'],
+            ['Sin clasificar', totalSinClasificar, cpus.length > 0 ? `${((totalSinClasificar/cpus.length)*100).toFixed(1)}%` : '0%'],
+            [''],
+            [''],
+            ['DISTRIBUCIÓN POR UBICACIÓN'],
+            ['Ubicación', 'Total', 'SSD', 'HDD'],
+            ...statsPorUbicacion.map(s => [s.ubicacion, s.total, s.ssd, s.hdd]),
+            [''],
+            [''],
+            ['DISTRIBUCIÓN POR SITE'],
+            ['Site', 'Total', 'SSD', 'HDD'],
+            ...statsPorSite.map(s => [s.site, s.total, s.ssd, s.hdd])
+        ];
 
-        // RESUMEN GENERAL
-        lineas.push('RESUMEN GENERAL');
-        lineas.push(`Total CPUs,${cpus.length}`);
-        lineas.push('');
-        lineas.push('Tipo Disco,Cantidad,Porcentaje');
-        lineas.push(`SSD (Solido),${totalSSD},${cpus.length > 0 ? ((totalSSD/cpus.length)*100).toFixed(1) : 0}%`);
-        lineas.push(`HDD (Mecanico),${totalHDD},${cpus.length > 0 ? ((totalHDD/cpus.length)*100).toFixed(1) : 0}%`);
-        lineas.push(`Sin clasificar,${totalNoClasificado},${cpus.length > 0 ? ((totalNoClasificado/cpus.length)*100).toFixed(1) : 0}%`);
-        lineas.push('');
+        const wsResumen = XLSX.utils.aoa_to_sheet(resumenData);
 
-        // DISTRIBUCIÓN POR UBICACIÓN
-        lineas.push('DISTRIBUCION POR UBICACION');
-        lineas.push('Ubicacion,Total,SSD,HDD');
-        statsPorUbicacion.forEach(stat => {
-            lineas.push(`${stat.ubicacion},${stat.total},${stat.ssd},${stat.hdd}`);
-        });
-        lineas.push('');
+        // Anchos de columna para Resumen
+        wsResumen['!cols'] = [
+            { wch: 25 }, { wch: 12 }, { wch: 12 }, { wch: 12 }
+        ];
 
-        // DISTRIBUCIÓN POR SITE
-        if (sites.length > 0) {
-            lineas.push('DISTRIBUCION POR SITE');
-            lineas.push('Site,Total,SSD,HDD');
-            statsPorSite.forEach(stat => {
-                lineas.push(`${stat.site},${stat.total},${stat.ssd},${stat.hdd}`);
-            });
-            lineas.push('');
-        }
+        XLSX.utils.book_append_sheet(wb, wsResumen, 'Resumen');
 
-        // DETALLE DE EQUIPOS
-        lineas.push('DETALLE DE EQUIPOS');
-        lineas.push('N,Placa,Ubicacion,Site,Puesto,Asignado,RAM,Almacenamiento,Tipo Disco');
-
-        // Ordenar por ubicación y tipo de disco
+        // ========== HOJA 2: DETALLE DE EQUIPOS ==========
         const cpusOrdenados = [...cpusConTipo].sort((a, b) => {
-            if (a.ubicacion !== b.ubicacion) return (a.ubicacion || '').localeCompare(b.ubicacion || '');
+            const ubicacionCompare = (a.ubicacion || '').localeCompare(b.ubicacion || '');
+            if (ubicacionCompare !== 0) return ubicacionCompare;
             return (a.tipoDisco || '').localeCompare(b.tipoDisco || '');
         });
 
-        cpusOrdenados.forEach((cpu, index) => {
-            const fila = [
-                index + 1,
+        const detalleData = [
+            ['DETALLE DE EQUIPOS'],
+            [''],
+            ['#', 'Placa', 'Ubicación', 'Site', 'Puesto', 'Asignado', 'RAM', 'Almacenamiento', 'Tipo Disco'],
+            ...cpusOrdenados.map((cpu, i) => [
+                i + 1,
                 cpu.numero_placa || '',
                 cpu.ubicacion || '',
                 cpu.site || '',
                 cpu.puesto || '',
-                (cpu.asignado || '').replace(/,/g, ' '),
-                (cpu.memoria_ram || '-').replace(/,/g, ' '),
-                (cpu.almacenamiento || '-').replace(/,/g, ' '),
+                cpu.asignado || '',
+                cpu.memoria_ram || '',
+                cpu.almacenamiento || '',
                 cpu.tipoDisco
-            ];
-            lineas.push(fila.join(','));
-        });
+            ])
+        ];
 
-        const csvContent = lineas.join('\n');
+        const wsDetalle = XLSX.utils.aoa_to_sheet(detalleData);
 
-        // BOM para UTF-8 en Excel
-        const BOM = '\uFEFF';
-        const blob = new Blob([BOM + csvContent], { type: 'text/csv;charset=utf-8;' });
-        const link = document.createElement('a');
-        const url = URL.createObjectURL(blob);
-        link.setAttribute('href', url);
-        link.setAttribute('download', `reporte_cpus_ram_disco_${new Date().toISOString().split('T')[0]}.csv`);
-        link.style.visibility = 'hidden';
-        document.body.appendChild(link);
-        link.click();
-        document.body.removeChild(link);
+        // Anchos de columna para Detalle
+        wsDetalle['!cols'] = [
+            { wch: 5 },   // #
+            { wch: 18 },  // Placa
+            { wch: 15 },  // Ubicación
+            { wch: 10 },  // Site
+            { wch: 10 },  // Puesto
+            { wch: 25 },  // Asignado
+            { wch: 15 },  // RAM
+            { wch: 20 },  // Almacenamiento
+            { wch: 15 }   // Tipo Disco
+        ];
+
+        XLSX.utils.book_append_sheet(wb, wsDetalle, 'Detalle Equipos');
+
+        // ========== HOJA 3: SOLO SSD ==========
+        const cpusSSD = cpusOrdenados.filter(c => c.tipoDisco === 'SSD');
+        const ssdData = [
+            ['EQUIPOS CON DISCO SSD (SÓLIDO)'],
+            [''],
+            [`Total: ${cpusSSD.length} equipos`],
+            [''],
+            ['#', 'Placa', 'Ubicación', 'Site', 'Puesto', 'Asignado', 'RAM', 'Almacenamiento'],
+            ...cpusSSD.map((cpu, i) => [
+                i + 1,
+                cpu.numero_placa || '',
+                cpu.ubicacion || '',
+                cpu.site || '',
+                cpu.puesto || '',
+                cpu.asignado || '',
+                cpu.memoria_ram || '',
+                cpu.almacenamiento || ''
+            ])
+        ];
+
+        const wsSSD = XLSX.utils.aoa_to_sheet(ssdData);
+        wsSSD['!cols'] = [
+            { wch: 5 }, { wch: 18 }, { wch: 15 }, { wch: 10 },
+            { wch: 10 }, { wch: 25 }, { wch: 15 }, { wch: 20 }
+        ];
+        XLSX.utils.book_append_sheet(wb, wsSSD, 'SSD');
+
+        // ========== HOJA 4: SOLO HDD ==========
+        const cpusHDD = cpusOrdenados.filter(c => c.tipoDisco === 'HDD');
+        const hddData = [
+            ['EQUIPOS CON DISCO HDD (MECÁNICO)'],
+            [''],
+            [`Total: ${cpusHDD.length} equipos`],
+            [''],
+            ['#', 'Placa', 'Ubicación', 'Site', 'Puesto', 'Asignado', 'RAM', 'Almacenamiento'],
+            ...cpusHDD.map((cpu, i) => [
+                i + 1,
+                cpu.numero_placa || '',
+                cpu.ubicacion || '',
+                cpu.site || '',
+                cpu.puesto || '',
+                cpu.asignado || '',
+                cpu.memoria_ram || '',
+                cpu.almacenamiento || ''
+            ])
+        ];
+
+        const wsHDD = XLSX.utils.aoa_to_sheet(hddData);
+        wsHDD['!cols'] = [
+            { wch: 5 }, { wch: 18 }, { wch: 15 }, { wch: 10 },
+            { wch: 10 }, { wch: 25 }, { wch: 15 }, { wch: 20 }
+        ];
+        XLSX.utils.book_append_sheet(wb, wsHDD, 'HDD');
+
+        // Descargar archivo
+        XLSX.writeFile(wb, `Reporte_CPUs_RAM_Disco_${new Date().toISOString().split('T')[0]}.xlsx`);
     };
 
     const handleViewActivo = (activo) => {
