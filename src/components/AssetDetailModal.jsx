@@ -1,13 +1,13 @@
 import React from 'react';
-import { 
-    X, 
-    Package, 
-    Building, 
-    User, 
-    Calendar, 
-    FileText, 
-    Shield, 
-    Tag, 
+import {
+    X,
+    Package,
+    Building,
+    User,
+    Calendar,
+    FileText,
+    Shield,
+    Tag,
     MapPin,
     Hash,
     Truck,
@@ -20,10 +20,14 @@ import {
     Globe,
     DollarSign
 } from 'lucide-react';
+import { useAuth } from '../context/AuthContext';
+import AssetHistoryPanel from './AssetHistoryPanel';
 
 const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || 'http://localhost:5001/api';
 
 const AssetDetailModal = ({ isOpen, onClose, activo }) => {
+    const { canViewAssetHistory } = useAuth();
+
     if (!isOpen || !activo) return null;
 
     const formatDate = (dateString) => {
@@ -444,20 +448,20 @@ const AssetDetailModal = ({ isOpen, onClose, activo }) => {
                             Información del Sistema
                         </h3>
                         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                            <DetailRow 
+                            <DetailRow
                                 icon={Calendar}
                                 label="Fecha de Creación"
                                 value={formatDate(activo.created_at)}
                             />
-                            
-                            <DetailRow 
+
+                            <DetailRow
                                 icon={Calendar}
                                 label="Última Actualización"
                                 value={formatDate(activo.updated_at)}
                             />
-                            
+
                             {activo.created_by_name && (
-                                <DetailRow 
+                                <DetailRow
                                     icon={User}
                                     label="Creado por"
                                     value={activo.created_by_name}
@@ -465,6 +469,12 @@ const AssetDetailModal = ({ isOpen, onClose, activo }) => {
                             )}
                         </div>
                     </div>
+
+                    {/* Panel de Historial de Cambios (solo para admin/gestorActivos) */}
+                    <AssetHistoryPanel
+                        activoId={activo.id}
+                        canViewHistory={canViewAssetHistory}
+                    />
 
                     {/* Close Button */}
                     <div className="flex justify-end mt-8 pt-6 border-t border-gray-200">

@@ -116,8 +116,12 @@ export const AuthProvider = ({ children }) => {
         isTechnician: user?.role === 'technician',
         isAnonimo: user?.role === 'anonimo',
         isGestorActivos: user?.role === 'gestorActivos',
+        isTecnicoInventario: user?.role === 'tecnicoInventario',
         canSupervise: user?.role === 'admin' || user?.role === 'supervisor' || user?.role === 'coordinador' || user?.role === 'administrativo' || user?.role === 'jefe_operaciones',
-        canCreateIncidents: user?.role === 'admin' || user?.role === 'supervisor' || user?.role === 'coordinador' || user?.role === 'jefe_operaciones'
+        canCreateIncidents: user?.role === 'admin' || user?.role === 'supervisor' || user?.role === 'coordinador' || user?.role === 'jefe_operaciones',
+        // Permisos para activos
+        canAccessAssets: user?.role === 'tecnicoInventario' || user?.role === 'gestorActivos' || user?.role === 'admin',
+        canViewAssetHistory: user?.role === 'gestorActivos' || user?.role === 'admin'
     };
 
     return (
