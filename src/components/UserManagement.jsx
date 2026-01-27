@@ -48,7 +48,8 @@ const UserManagement = () => {
         { value: 'technician', label: 'Técnico', color: 'bg-green-100 text-green-800' },
         { value: 'jefe_operaciones', label: 'Jefe de Operaciones', color: 'bg-purple-100 text-purple-800' },
         { value: 'administrativo', label: 'Administrativo', color: 'bg-orange-100 text-orange-800' },
-        { value: 'gestorActivos', label: 'Gestor de Activos', color: 'bg-indigo-100 text-indigo-800' }
+        { value: 'gestorActivos', label: 'Gestor de Activos', color: 'bg-indigo-100 text-indigo-800' },
+        { value: 'tecnicoInventario', label: 'Técnico Inventario', color: 'bg-teal-100 text-teal-800' }
     ];
 
     const sedes = [
@@ -201,8 +202,8 @@ const UserManagement = () => {
                 submitData.departamento = null;
             }
             
-            // Para gestores de activos, no asignar sede ni departamento
-            if (submitData.role === 'gestorActivos') {
+            // Para gestores de activos y técnicos de inventario, no asignar sede ni departamento
+            if (submitData.role === 'gestorActivos' || submitData.role === 'tecnicoInventario') {
                 submitData.sede = null;
                 submitData.departamento = null;
             }
@@ -330,6 +331,7 @@ const UserManagement = () => {
                             <option value="technician">Técnicos</option>
                             <option value="jefe_operaciones">Jefes de Operaciones</option>
                             <option value="gestorActivos">Gestores de Activos</option>
+                            <option value="tecnicoInventario">Técnicos Inventario</option>
                         </select>
                     </div>
 
@@ -397,8 +399,8 @@ const UserManagement = () => {
                                                 <div className="flex items-center">
                                                     <MapPin className="h-4 w-4 mr-1" />
                                                     <span>
-                                                        {user.role === 'gestorActivos' 
-                                                            ? 'Gestión de Activos - Sin sede específica'
+                                                        {(user.role === 'gestorActivos' || user.role === 'tecnicoInventario')
+                                                            ? (user.role === 'gestorActivos' ? 'Gestión de Activos - Sin sede específica' : 'Técnico Inventario - Sin sede específica')
                                                             : `${sedes.find(s => s.value === user.sede)?.label || user.sede}${user.departamento ? ` - ${departamentos.find(d => d.value === user.departamento)?.label || user.departamento}` : ''}`
                                                         }
                                                     </span>
@@ -532,7 +534,7 @@ const UserManagement = () => {
                                 </div>
 
                                 {/* Sede - Solo mostrar si NO es gestorActivos */}
-                                {formData.role !== 'gestorActivos' && (
+                                {formData.role !== 'gestorActivos' && formData.role !== 'tecnicoInventario' && (
                                     <div>
                                         <label className="block text-sm font-medium text-gray-700 mb-1">
                                             Sede *
@@ -588,6 +590,16 @@ const UserManagement = () => {
                                     <div className="bg-indigo-50 border border-indigo-200 rounded-md p-3">
                                         <p className="text-sm text-indigo-700">
                                             <strong>Nota:</strong> Los gestores de activos tienen acceso exclusivo al módulo de gestión de activos. 
+                                            No requieren sede ni departamento específico.
+                                        </p>
+                                    </div>
+                                )}
+
+                                {/* Mensaje informativo para técnicos de inventario */}
+                                {formData.role === 'tecnicoInventario' && (
+                                    <div className="bg-teal-50 border border-teal-200 rounded-md p-3">
+                                        <p className="text-sm text-teal-700">
+                                            <strong>Nota:</strong> Los técnicos de inventario tienen acceso al módulo de inventario.
                                             No requieren sede ni departamento específico.
                                         </p>
                                     </div>
