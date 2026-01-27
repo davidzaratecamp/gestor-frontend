@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { analyticsService } from '../services/api';
+import { useAuth } from '../context/AuthContext';
 import {
     Chart as ChartJS,
     CategoryScale,
@@ -49,6 +50,9 @@ ChartJS.register(
 );
 
 const Analytics = () => {
+    const { user } = useAuth();
+    const isIronManTheme = user?.username === 'davidlopez10';
+
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState('');
     const [selectedPeriod, setSelectedPeriod] = useState(30);
@@ -194,7 +198,17 @@ const Analytics = () => {
     };
 
     // Configuraciones de colores para gráficos
-    const chartColors = {
+    // Colores Iron Man: Cyan #00E5FF, Cyan Dark #00B4D8, Red #E10600, Orange #FF6A00
+    const chartColors = isIronManTheme ? {
+        primary: ['#00E5FF', '#00B4D8', '#E10600', '#FF6A00', '#00E5FF', '#00B4D8', '#E10600', '#FF6A00'],
+        pastel: ['rgba(0, 229, 255, 0.3)', 'rgba(0, 180, 216, 0.3)', 'rgba(225, 6, 0, 0.3)', 'rgba(255, 106, 0, 0.3)', 'rgba(0, 229, 255, 0.3)', 'rgba(0, 180, 216, 0.3)', 'rgba(225, 6, 0, 0.3)', 'rgba(255, 106, 0, 0.3)'],
+        gradient: {
+            blue: 'rgba(0, 229, 255, 0.6)',
+            green: 'rgba(0, 180, 216, 0.6)',
+            yellow: 'rgba(255, 106, 0, 0.6)',
+            red: 'rgba(225, 6, 0, 0.6)'
+        }
+    } : {
         primary: ['#3B82F6', '#10B981', '#F59E0B', '#EF4444', '#8B5CF6', '#06B6D4', '#84CC16', '#F97316'],
         pastel: ['#DBEAFE', '#D1FAE5', '#FEF3C7', '#FEE2E2', '#EDE9FE', '#CFFAFE', '#ECFCCB', '#FED7AA'],
         gradient: {
@@ -220,28 +234,28 @@ const Analytics = () => {
                 label: 'Pendientes',
                 data: incidentsBySede.map(item => item.pendiente),
                 backgroundColor: chartColors.gradient.yellow,
-                borderColor: '#F59E0B',
+                borderColor: isIronManTheme ? '#FF6A00' : '#F59E0B',
                 borderWidth: 2
             },
             {
                 label: 'En Proceso',
                 data: incidentsBySede.map(item => item.en_proceso),
                 backgroundColor: chartColors.gradient.blue,
-                borderColor: '#3B82F6',
+                borderColor: isIronManTheme ? '#00E5FF' : '#3B82F6',
                 borderWidth: 2
             },
             {
                 label: 'En Supervisión',
                 data: incidentsBySede.map(item => item.en_supervision),
-                backgroundColor: '#8B5CF6',
-                borderColor: '#7C3AED',
+                backgroundColor: isIronManTheme ? 'rgba(0, 180, 216, 0.6)' : '#8B5CF6',
+                borderColor: isIronManTheme ? '#00B4D8' : '#7C3AED',
                 borderWidth: 2
             },
             {
                 label: 'Aprobadas',
                 data: incidentsBySede.map(item => item.aprobado),
                 backgroundColor: chartColors.gradient.green,
-                borderColor: '#10B981',
+                borderColor: isIronManTheme ? '#00B4D8' : '#10B981',
                 borderWidth: 2
             }
         ]
@@ -275,24 +289,24 @@ const Analytics = () => {
             {
                 label: 'Incidencias Creadas',
                 data: temporalTrend.map(item => item.total),
-                borderColor: '#3B82F6',
-                backgroundColor: 'rgba(59, 130, 246, 0.1)',
+                borderColor: isIronManTheme ? '#00E5FF' : '#3B82F6',
+                backgroundColor: isIronManTheme ? 'rgba(0, 229, 255, 0.15)' : 'rgba(59, 130, 246, 0.1)',
                 tension: 0.4,
                 fill: true,
-                pointBackgroundColor: '#3B82F6',
-                pointBorderColor: '#ffffff',
+                pointBackgroundColor: isIronManTheme ? '#00E5FF' : '#3B82F6',
+                pointBorderColor: isIronManTheme ? '#0B0F14' : '#ffffff',
                 pointBorderWidth: 2,
                 pointRadius: 4
             },
             {
                 label: 'Incidencias Resueltas',
                 data: temporalTrend.map(item => item.resolved),
-                borderColor: '#10B981',
-                backgroundColor: 'rgba(16, 185, 129, 0.1)',
+                borderColor: isIronManTheme ? '#FF6A00' : '#10B981',
+                backgroundColor: isIronManTheme ? 'rgba(255, 106, 0, 0.15)' : 'rgba(16, 185, 129, 0.1)',
                 tension: 0.4,
                 fill: true,
-                pointBackgroundColor: '#10B981',
-                pointBorderColor: '#ffffff',
+                pointBackgroundColor: isIronManTheme ? '#FF6A00' : '#10B981',
+                pointBorderColor: isIronManTheme ? '#0B0F14' : '#ffffff',
                 pointBorderWidth: 2,
                 pointRadius: 4
             }
@@ -306,7 +320,7 @@ const Analytics = () => {
             label: 'Incidencias por Hora',
             data: hourlyDistribution.map(item => item.total_incidents),
             backgroundColor: chartColors.gradient.blue,
-            borderColor: '#3B82F6',
+            borderColor: isIronManTheme ? '#00E5FF' : '#3B82F6',
             borderWidth: 2,
             borderRadius: 4,
             borderSkipped: false,
@@ -346,14 +360,15 @@ const Analytics = () => {
                     usePointStyle: true,
                     font: {
                         size: 12
-                    }
+                    },
+                    color: isIronManTheme ? '#E5E7EB' : undefined
                 }
             },
             tooltip: {
-                backgroundColor: 'rgba(0, 0, 0, 0.8)',
-                titleColor: '#ffffff',
+                backgroundColor: isIronManTheme ? 'rgba(15, 23, 42, 0.95)' : 'rgba(0, 0, 0, 0.8)',
+                titleColor: isIronManTheme ? '#00E5FF' : '#ffffff',
                 bodyColor: '#ffffff',
-                borderColor: '#ffffff',
+                borderColor: isIronManTheme ? '#00E5FF' : '#ffffff',
                 borderWidth: 1,
                 cornerRadius: 8,
                 displayColors: true,
@@ -364,22 +379,25 @@ const Analytics = () => {
         scales: {
             x: {
                 grid: {
-                    display: false
+                    display: false,
+                    color: isIronManTheme ? 'rgba(0, 229, 255, 0.1)' : undefined
                 },
                 ticks: {
                     font: {
                         size: 11
-                    }
+                    },
+                    color: isIronManTheme ? '#94A3B8' : undefined
                 }
             },
             y: {
                 grid: {
-                    color: 'rgba(0, 0, 0, 0.1)'
+                    color: isIronManTheme ? 'rgba(0, 229, 255, 0.1)' : 'rgba(0, 0, 0, 0.1)'
                 },
                 ticks: {
                     font: {
                         size: 11
-                    }
+                    },
+                    color: isIronManTheme ? '#94A3B8' : undefined
                 }
             }
         }
@@ -396,13 +414,16 @@ const Analytics = () => {
                     usePointStyle: true,
                     font: {
                         size: 12
-                    }
+                    },
+                    color: isIronManTheme ? '#E5E7EB' : undefined
                 }
             },
             tooltip: {
-                backgroundColor: 'rgba(0, 0, 0, 0.8)',
-                titleColor: '#ffffff',
+                backgroundColor: isIronManTheme ? 'rgba(15, 23, 42, 0.95)' : 'rgba(0, 0, 0, 0.8)',
+                titleColor: isIronManTheme ? '#00E5FF' : '#ffffff',
                 bodyColor: '#ffffff',
+                borderColor: isIronManTheme ? '#00E5FF' : undefined,
+                borderWidth: isIronManTheme ? 1 : 0,
                 callbacks: {
                     label: function(context) {
                         const total = context.dataset.data.reduce((a, b) => a + b, 0);
@@ -416,30 +437,42 @@ const Analytics = () => {
 
     if (loading) {
         return (
-            <div className="flex items-center justify-center h-64">
-                <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600"></div>
+            <div className={`flex items-center justify-center h-64 ${isIronManTheme ? 'bg-[#0B0F14] rounded-xl' : ''}`}>
+                <div className={`animate-spin rounded-full h-12 w-12 border-b-2 ${isIronManTheme ? 'border-[#00E5FF]' : 'border-blue-600'}`}></div>
             </div>
         );
     }
 
     if (error) {
         return (
-            <div className="bg-red-50 border border-red-200 rounded-md p-4">
+            <div className={`border rounded-md p-4 ${isIronManTheme ? 'bg-red-500/10 border-red-500/30' : 'bg-red-50 border-red-200'}`}>
                 <div className="flex items-center">
-                    <AlertTriangle className="h-5 w-5 text-red-400 mr-2" />
-                    <p className="text-red-700">{error}</p>
+                    <AlertTriangle className={`h-5 w-5 mr-2 ${isIronManTheme ? 'text-[#E10600]' : 'text-red-400'}`} />
+                    <p className={isIronManTheme ? 'text-[#E10600]' : 'text-red-700'}>{error}</p>
                 </div>
             </div>
         );
     }
 
+    // Clases condicionales para Iron Man theme
+    const cardClass = isIronManTheme
+        ? 'bg-[#0F172A] rounded-lg shadow-lg shadow-cyan-500/10 p-6 border border-cyan-500/20'
+        : 'bg-white rounded-lg shadow p-6';
+    const textPrimaryClass = isIronManTheme ? 'text-[#E5E7EB]' : 'text-gray-900';
+    const textSecondaryClass = isIronManTheme ? 'text-[#94A3B8]' : 'text-gray-600';
+    const iconContainerClass = (colorBase) => isIronManTheme
+        ? `p-2 bg-[#0B0F14] rounded-lg border border-cyan-500/30`
+        : `p-2 ${colorBase} rounded-lg`;
+
     return (
-        <div className="space-y-6">
+        <div className={`space-y-6 ${isIronManTheme ? 'bg-[#0B0F14] p-6 rounded-xl' : ''}`}>
             {/* Header */}
             <div className="flex flex-col sm:flex-row sm:items-center justify-between space-y-4 sm:space-y-0">
                 <div>
-                    <h1 className="text-2xl font-bold text-gray-900">Analíticas del Sistema</h1>
-                    <p className="text-gray-600 mt-1">
+                    <h1 className={`text-2xl font-bold ${textPrimaryClass} ${isIronManTheme ? 'ironman-glow' : ''}`}>
+                        {isIronManTheme ? 'J.A.R.V.I.S. Analytics' : 'Analíticas del Sistema'}
+                    </h1>
+                    <p className={`${textSecondaryClass} mt-1`}>
                         Análisis completo de incidencias, rendimiento y métricas de calidad
                     </p>
                 </div>
@@ -447,7 +480,11 @@ const Analytics = () => {
                     <select
                         value={selectedPeriod}
                         onChange={(e) => setSelectedPeriod(parseInt(e.target.value))}
-                        className="border border-gray-300 rounded-md px-3 py-2 bg-white focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                        className={`border rounded-md px-3 py-2 focus:outline-none focus:ring-2 ${
+                            isIronManTheme
+                                ? 'border-cyan-500/30 bg-[#0F172A] text-[#E5E7EB] focus:ring-cyan-500/50 focus:border-cyan-500'
+                                : 'border-gray-300 bg-white focus:ring-blue-500 focus:border-blue-500'
+                        }`}
                     >
                         <option value={7}>Últimos 7 días</option>
                         <option value={30}>Últimos 30 días</option>
@@ -456,9 +493,13 @@ const Analytics = () => {
                     </select>
                     <button
                         onClick={loadAllAnalytics}
-                        className="inline-flex items-center px-3 py-2 border border-gray-300 rounded-md text-sm font-medium text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500"
+                        className={`inline-flex items-center px-3 py-2 border rounded-md text-sm font-medium focus:outline-none focus:ring-2 focus:ring-offset-2 ${
+                            isIronManTheme
+                                ? 'border-cyan-500/30 text-[#00E5FF] bg-[#0F172A] hover:bg-[#0B0F14] focus:ring-cyan-500/50'
+                                : 'border-gray-300 text-gray-700 bg-white hover:bg-gray-50 focus:ring-blue-500'
+                        }`}
                     >
-                        <RefreshCw className="h-4 w-4 mr-2" />
+                        <RefreshCw className={`h-4 w-4 mr-2 ${isIronManTheme ? 'text-[#00E5FF]' : ''}`} />
                         Actualizar
                     </button>
                 </div>
@@ -466,55 +507,55 @@ const Analytics = () => {
 
             {/* Resumen General */}
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-                <div className="bg-white rounded-lg shadow p-6">
+                <div className={cardClass}>
                     <div className="flex items-center">
-                        <div className="p-2 bg-blue-100 rounded-lg">
-                            <Monitor className="h-6 w-6 text-blue-600" />
+                        <div className={iconContainerClass('bg-blue-100')}>
+                            <Monitor className={`h-6 w-6 ${isIronManTheme ? 'text-[#00E5FF]' : 'text-blue-600'}`} />
                         </div>
                         <div className="ml-4">
-                            <p className="text-sm font-medium text-gray-500">Total Incidencias</p>
-                            <p className="text-2xl font-bold text-gray-900">{overview.total_incidents || 0}</p>
+                            <p className={`text-sm font-medium ${textSecondaryClass}`}>Total Incidencias</p>
+                            <p className={`text-2xl font-bold ${textPrimaryClass}`}>{overview.total_incidents || 0}</p>
                         </div>
                     </div>
                 </div>
 
-                <div className="bg-white rounded-lg shadow p-6">
+                <div className={cardClass}>
                     <div className="flex items-center">
-                        <div className="p-2 bg-green-100 rounded-lg">
-                            <Award className="h-6 w-6 text-green-600" />
+                        <div className={iconContainerClass('bg-green-100')}>
+                            <Award className={`h-6 w-6 ${isIronManTheme ? 'text-[#00B4D8]' : 'text-green-600'}`} />
                         </div>
                         <div className="ml-4">
-                            <p className="text-sm font-medium text-gray-500">Tasa de Resolución</p>
-                            <p className="text-2xl font-bold text-gray-900">
-                                {overview.total_incidents ? 
+                            <p className={`text-sm font-medium ${textSecondaryClass}`}>Tasa de Resolución</p>
+                            <p className={`text-2xl font-bold ${textPrimaryClass}`}>
+                                {overview.total_incidents ?
                                     Math.round((overview.approved_incidents / overview.total_incidents) * 100) : 0}%
                             </p>
                         </div>
                     </div>
                 </div>
 
-                <div className="bg-white rounded-lg shadow p-6">
+                <div className={cardClass}>
                     <div className="flex items-center">
-                        <div className="p-2 bg-yellow-100 rounded-lg">
-                            <Clock className="h-6 w-6 text-yellow-600" />
+                        <div className={iconContainerClass('bg-yellow-100')}>
+                            <Clock className={`h-6 w-6 ${isIronManTheme ? 'text-[#FF6A00]' : 'text-yellow-600'}`} />
                         </div>
                         <div className="ml-4">
-                            <p className="text-sm font-medium text-gray-500">Tiempo Promedio</p>
-                            <p className="text-2xl font-bold text-gray-900">
+                            <p className={`text-sm font-medium ${textSecondaryClass}`}>Tiempo Promedio</p>
+                            <p className={`text-2xl font-bold ${textPrimaryClass}`}>
                                 {Math.round(overview.avg_resolution_time_hours || 0)}h
                             </p>
                         </div>
                     </div>
                 </div>
 
-                <div className="bg-white rounded-lg shadow p-6">
+                <div className={cardClass}>
                     <div className="flex items-center">
-                        <div className="p-2 bg-purple-100 rounded-lg">
-                            <Users className="h-6 w-6 text-purple-600" />
+                        <div className={iconContainerClass('bg-purple-100')}>
+                            <Users className={`h-6 w-6 ${isIronManTheme ? 'text-[#E10600]' : 'text-purple-600'}`} />
                         </div>
                         <div className="ml-4">
-                            <p className="text-sm font-medium text-gray-500">Técnicos Activos</p>
-                            <p className="text-2xl font-bold text-gray-900">{overview.total_technicians || 0}</p>
+                            <p className={`text-sm font-medium ${textSecondaryClass}`}>Técnicos Activos</p>
+                            <p className={`text-2xl font-bold ${textPrimaryClass}`}>{overview.total_technicians || 0}</p>
                         </div>
                     </div>
                 </div>
@@ -523,10 +564,10 @@ const Analytics = () => {
             {/* Gráficos Principales */}
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
                 {/* Incidencias por Sede */}
-                <div className="bg-white rounded-lg shadow p-6">
+                <div className={cardClass}>
                     <div className="flex items-center justify-between mb-4">
-                        <h3 className="text-lg font-semibold text-gray-900 flex items-center">
-                            <MapPin className="h-5 w-5 text-blue-600 mr-2" />
+                        <h3 className={`text-lg font-semibold ${textPrimaryClass} flex items-center`}>
+                            <MapPin className={`h-5 w-5 ${isIronManTheme ? 'text-[#00E5FF]' : 'text-blue-600'} mr-2`} />
                             Incidencias por Sede
                         </h3>
                     </div>
@@ -536,10 +577,10 @@ const Analytics = () => {
                 </div>
 
                 {/* Tipos de Falla */}
-                <div className="bg-white rounded-lg shadow p-6">
+                <div className={cardClass}>
                     <div className="flex items-center justify-between mb-4">
-                        <h3 className="text-lg font-semibold text-gray-900 flex items-center">
-                            <PieChart className="h-5 w-5 text-green-600 mr-2" />
+                        <h3 className={`text-lg font-semibold ${textPrimaryClass} flex items-center`}>
+                            <PieChart className={`h-5 w-5 ${isIronManTheme ? 'text-[#00B4D8]' : 'text-green-600'} mr-2`} />
                             Distribución por Tipo de Falla
                         </h3>
                     </div>
@@ -550,10 +591,10 @@ const Analytics = () => {
             </div>
 
             {/* Tendencia Temporal */}
-            <div className="bg-white rounded-lg shadow p-6">
+            <div className={cardClass}>
                 <div className="flex items-center justify-between mb-4">
-                    <h3 className="text-lg font-semibold text-gray-900 flex items-center">
-                        <TrendingUp className="h-5 w-5 text-purple-600 mr-2" />
+                    <h3 className={`text-lg font-semibold ${textPrimaryClass} flex items-center`}>
+                        <TrendingUp className={`h-5 w-5 ${isIronManTheme ? 'text-[#FF6A00]' : 'text-purple-600'} mr-2`} />
                         Tendencia Temporal ({selectedPeriod} días)
                     </h3>
                 </div>
@@ -565,10 +606,10 @@ const Analytics = () => {
             {/* Distribución por Hora y Día */}
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
                 {/* Distribución por Hora */}
-                <div className="bg-white rounded-lg shadow p-6">
+                <div className={cardClass}>
                     <div className="flex items-center justify-between mb-4">
-                        <h3 className="text-lg font-semibold text-gray-900 flex items-center">
-                            <Clock className="h-5 w-5 text-orange-600 mr-2" />
+                        <h3 className={`text-lg font-semibold ${textPrimaryClass} flex items-center`}>
+                            <Clock className={`h-5 w-5 ${isIronManTheme ? 'text-[#FF6A00]' : 'text-orange-600'} mr-2`} />
                             Distribución por Hora del Día
                         </h3>
                     </div>
@@ -578,10 +619,10 @@ const Analytics = () => {
                 </div>
 
                 {/* Distribución por Día de la Semana */}
-                <div className="bg-white rounded-lg shadow p-6">
+                <div className={cardClass}>
                     <div className="flex items-center justify-between mb-4">
-                        <h3 className="text-lg font-semibold text-gray-900 flex items-center">
-                            <Calendar className="h-5 w-5 text-indigo-600 mr-2" />
+                        <h3 className={`text-lg font-semibold ${textPrimaryClass} flex items-center`}>
+                            <Calendar className={`h-5 w-5 ${isIronManTheme ? 'text-[#00E5FF]' : 'text-indigo-600'} mr-2`} />
                             Distribución por Día de la Semana
                         </h3>
                     </div>
@@ -592,85 +633,86 @@ const Analytics = () => {
             </div>
 
             {/* Estaciones que Más Fallan */}
-            <div className="bg-white rounded-lg shadow p-6">
+            <div className={cardClass}>
                 <div className="flex items-center justify-between mb-4">
-                    <h3 className="text-lg font-semibold text-gray-900 flex items-center">
-                        <AlertTriangle className="h-5 w-5 text-red-600 mr-2" />
+                    <h3 className={`text-lg font-semibold ${textPrimaryClass} flex items-center`}>
+                        <AlertTriangle className={`h-5 w-5 ${isIronManTheme ? 'text-[#E10600]' : 'text-red-600'} mr-2`} />
                         Top 10 Estaciones con Más Fallas
                     </h3>
                 </div>
                 <div className="overflow-x-auto">
-                    <table className="min-w-full divide-y divide-gray-200">
-                        <thead className="bg-gray-50">
+                    <table className={`min-w-full divide-y ${isIronManTheme ? 'divide-cyan-500/20' : 'divide-gray-200'}`}>
+                        <thead className={isIronManTheme ? 'bg-[#0B0F14]' : 'bg-gray-50'}>
                             <tr>
-                                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                                <th className={`px-6 py-3 text-left text-xs font-medium ${textSecondaryClass} uppercase tracking-wider`}>
                                     Estación
                                 </th>
-                                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                                <th className={`px-6 py-3 text-left text-xs font-medium ${textSecondaryClass} uppercase tracking-wider`}>
                                     Sede
                                 </th>
-                                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                                <th className={`px-6 py-3 text-left text-xs font-medium ${textSecondaryClass} uppercase tracking-wider`}>
                                     Departamento
                                 </th>
-                                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                                <th className={`px-6 py-3 text-left text-xs font-medium ${textSecondaryClass} uppercase tracking-wider`}>
                                     Total Incidencias
                                 </th>
-                                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                                <th className={`px-6 py-3 text-left text-xs font-medium ${textSecondaryClass} uppercase tracking-wider`}>
                                     Pendientes
                                 </th>
-                                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                                <th className={`px-6 py-3 text-left text-xs font-medium ${textSecondaryClass} uppercase tracking-wider`}>
                                     Resueltas
                                 </th>
-                                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                                <th className={`px-6 py-3 text-left text-xs font-medium ${textSecondaryClass} uppercase tracking-wider`}>
                                     Tiempo Promedio
                                 </th>
                             </tr>
                         </thead>
-                        <tbody className="bg-white divide-y divide-gray-200">
+                        <tbody className={`${isIronManTheme ? 'bg-[#0F172A]' : 'bg-white'} divide-y ${isIronManTheme ? 'divide-cyan-500/10' : 'divide-gray-200'}`}>
                             {topFailingStations.map((station, index) => (
-                                <tr key={station.station_code} className={index % 2 === 0 ? 'bg-white' : 'bg-gray-50'}>
+                                <tr key={station.station_code} className={isIronManTheme ? '' : (index % 2 === 0 ? 'bg-white' : 'bg-gray-50')}>
                                     <td className="px-6 py-4 whitespace-nowrap">
                                         <div className="flex items-center">
                                             <div className="flex-shrink-0">
                                                 <span className={`inline-flex items-center justify-center h-8 w-8 rounded-full text-xs font-bold text-white ${
-                                                    index < 3 ? 'bg-red-500' : 
-                                                    index < 6 ? 'bg-yellow-500' : 'bg-gray-500'
+                                                    isIronManTheme
+                                                        ? (index < 3 ? 'bg-[#E10600]' : index < 6 ? 'bg-[#FF6A00]' : 'bg-[#00B4D8]')
+                                                        : (index < 3 ? 'bg-red-500' : index < 6 ? 'bg-yellow-500' : 'bg-gray-500')
                                                 }`}>
                                                     {index + 1}
                                                 </span>
                                             </div>
                                             <div className="ml-4">
-                                                <div className="text-sm font-medium text-gray-900">
+                                                <div className={`text-sm font-medium ${textPrimaryClass}`}>
                                                     {station.station_code}
                                                 </div>
-                                                <div className="text-sm text-gray-500">
+                                                <div className={`text-sm ${textSecondaryClass}`}>
                                                     {station.location_details}
                                                 </div>
                                             </div>
                                         </div>
                                     </td>
-                                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900 capitalize">
+                                    <td className={`px-6 py-4 whitespace-nowrap text-sm ${textPrimaryClass} capitalize`}>
                                         {station.sede}
                                     </td>
-                                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900 capitalize">
+                                    <td className={`px-6 py-4 whitespace-nowrap text-sm ${textPrimaryClass} capitalize`}>
                                         {station.departamento}
                                     </td>
                                     <td className="px-6 py-4 whitespace-nowrap">
-                                        <span className="inline-flex px-2 py-1 text-xs font-semibold rounded-full bg-blue-100 text-blue-800">
+                                        <span className={`inline-flex px-2 py-1 text-xs font-semibold rounded-full ${isIronManTheme ? 'bg-cyan-500/20 text-[#00E5FF]' : 'bg-blue-100 text-blue-800'}`}>
                                             {station.total_incidents}
                                         </span>
                                     </td>
                                     <td className="px-6 py-4 whitespace-nowrap">
-                                        <span className="inline-flex px-2 py-1 text-xs font-semibold rounded-full bg-yellow-100 text-yellow-800">
+                                        <span className={`inline-flex px-2 py-1 text-xs font-semibold rounded-full ${isIronManTheme ? 'bg-orange-500/20 text-[#FF6A00]' : 'bg-yellow-100 text-yellow-800'}`}>
                                             {station.pending}
                                         </span>
                                     </td>
                                     <td className="px-6 py-4 whitespace-nowrap">
-                                        <span className="inline-flex px-2 py-1 text-xs font-semibold rounded-full bg-green-100 text-green-800">
+                                        <span className={`inline-flex px-2 py-1 text-xs font-semibold rounded-full ${isIronManTheme ? 'bg-cyan-500/20 text-[#00B4D8]' : 'bg-green-100 text-green-800'}`}>
                                             {station.resolved}
                                         </span>
                                     </td>
-                                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+                                    <td className={`px-6 py-4 whitespace-nowrap text-sm ${textPrimaryClass}`}>
                                         {Math.round(station.avg_resolution_time_hours || 0)}h
                                     </td>
                                 </tr>
@@ -681,74 +723,74 @@ const Analytics = () => {
             </div>
 
             {/* Rendimiento de Técnicos */}
-            <div className="bg-white rounded-lg shadow p-6">
+            <div className={cardClass}>
                 <div className="flex items-center justify-between mb-4">
-                    <h3 className="text-lg font-semibold text-gray-900 flex items-center">
-                        <Users className="h-5 w-5 text-green-600 mr-2" />
+                    <h3 className={`text-lg font-semibold ${textPrimaryClass} flex items-center`}>
+                        <Users className={`h-5 w-5 ${isIronManTheme ? 'text-[#00B4D8]' : 'text-green-600'} mr-2`} />
                         Rendimiento de Técnicos
                     </h3>
                 </div>
                 <div className="overflow-x-auto">
-                    <table className="min-w-full divide-y divide-gray-200">
-                        <thead className="bg-gray-50">
+                    <table className={`min-w-full divide-y ${isIronManTheme ? 'divide-cyan-500/20' : 'divide-gray-200'}`}>
+                        <thead className={isIronManTheme ? 'bg-[#0B0F14]' : 'bg-gray-50'}>
                             <tr>
-                                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                                <th className={`px-6 py-3 text-left text-xs font-medium ${textSecondaryClass} uppercase tracking-wider`}>
                                     Técnico
                                 </th>
-                                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                                <th className={`px-6 py-3 text-left text-xs font-medium ${textSecondaryClass} uppercase tracking-wider`}>
                                     Sede
                                 </th>
-                                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                                <th className={`px-6 py-3 text-left text-xs font-medium ${textSecondaryClass} uppercase tracking-wider`}>
                                     Asignadas
                                 </th>
-                                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                                <th className={`px-6 py-3 text-left text-xs font-medium ${textSecondaryClass} uppercase tracking-wider`}>
                                     Resueltas
                                 </th>
-                                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                                <th className={`px-6 py-3 text-left text-xs font-medium ${textSecondaryClass} uppercase tracking-wider`}>
                                     En Trabajo
                                 </th>
-                                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                                <th className={`px-6 py-3 text-left text-xs font-medium ${textSecondaryClass} uppercase tracking-wider`}>
                                     Tiempo Promedio
                                 </th>
-                                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                                <th className={`px-6 py-3 text-left text-xs font-medium ${textSecondaryClass} uppercase tracking-wider`}>
                                     Calificación
                                 </th>
                             </tr>
                         </thead>
-                        <tbody className="bg-white divide-y divide-gray-200">
+                        <tbody className={`${isIronManTheme ? 'bg-[#0F172A]' : 'bg-white'} divide-y ${isIronManTheme ? 'divide-cyan-500/10' : 'divide-gray-200'}`}>
                             {technicianPerformance.map((tech, index) => (
-                                <tr key={tech.id} className={index % 2 === 0 ? 'bg-white' : 'bg-gray-50'}>
+                                <tr key={tech.id} className={isIronManTheme ? '' : (index % 2 === 0 ? 'bg-white' : 'bg-gray-50')}>
                                     <td className="px-6 py-4 whitespace-nowrap">
-                                        <div className="text-sm font-medium text-gray-900">
+                                        <div className={`text-sm font-medium ${textPrimaryClass}`}>
                                             {tech.full_name}
                                         </div>
                                     </td>
-                                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900 capitalize">
+                                    <td className={`px-6 py-4 whitespace-nowrap text-sm ${textPrimaryClass} capitalize`}>
                                         {tech.sede}
                                     </td>
-                                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+                                    <td className={`px-6 py-4 whitespace-nowrap text-sm ${textPrimaryClass}`}>
                                         {tech.total_assigned || 0}
                                     </td>
                                     <td className="px-6 py-4 whitespace-nowrap">
-                                        <span className="inline-flex px-2 py-1 text-xs font-semibold rounded-full bg-green-100 text-green-800">
+                                        <span className={`inline-flex px-2 py-1 text-xs font-semibold rounded-full ${isIronManTheme ? 'bg-cyan-500/20 text-[#00B4D8]' : 'bg-green-100 text-green-800'}`}>
                                             {tech.total_resolved || 0}
                                         </span>
                                     </td>
                                     <td className="px-6 py-4 whitespace-nowrap">
-                                        <span className="inline-flex px-2 py-1 text-xs font-semibold rounded-full bg-blue-100 text-blue-800">
+                                        <span className={`inline-flex px-2 py-1 text-xs font-semibold rounded-full ${isIronManTheme ? 'bg-cyan-500/20 text-[#00E5FF]' : 'bg-blue-100 text-blue-800'}`}>
                                             {tech.currently_working || 0}
                                         </span>
                                     </td>
-                                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+                                    <td className={`px-6 py-4 whitespace-nowrap text-sm ${textPrimaryClass}`}>
                                         {Math.round(tech.avg_resolution_time_hours || 0)}h
                                     </td>
                                     <td className="px-6 py-4 whitespace-nowrap">
                                         <div className="flex items-center">
-                                            <Star className="h-4 w-4 text-yellow-400 mr-1" />
-                                            <span className="text-sm font-medium text-gray-900">
+                                            <Star className={`h-4 w-4 ${isIronManTheme ? 'text-[#FF6A00]' : 'text-yellow-400'} mr-1`} />
+                                            <span className={`text-sm font-medium ${textPrimaryClass}`}>
                                                 {parseFloat(tech.avg_rating || 0).toFixed(1)}
                                             </span>
-                                            <span className="text-xs text-gray-500 ml-1">
+                                            <span className={`text-xs ${textSecondaryClass} ml-1`}>
                                                 ({tech.total_ratings || 0})
                                             </span>
                                         </div>
@@ -761,66 +803,66 @@ const Analytics = () => {
             </div>
 
             {/* Usuarios que Más Reportan */}
-            <div className="bg-white rounded-lg shadow p-6">
+            <div className={cardClass}>
                 <div className="flex items-center justify-between mb-4">
-                    <h3 className="text-lg font-semibold text-gray-900 flex items-center">
-                        <Activity className="h-5 w-5 text-purple-600 mr-2" />
+                    <h3 className={`text-lg font-semibold ${textPrimaryClass} flex items-center`}>
+                        <Activity className={`h-5 w-5 ${isIronManTheme ? 'text-[#00E5FF]' : 'text-purple-600'} mr-2`} />
                         Top Usuarios que Más Reportan
                     </h3>
                 </div>
                 <div className="overflow-x-auto">
-                    <table className="min-w-full divide-y divide-gray-200">
-                        <thead className="bg-gray-50">
+                    <table className={`min-w-full divide-y ${isIronManTheme ? 'divide-cyan-500/20' : 'divide-gray-200'}`}>
+                        <thead className={isIronManTheme ? 'bg-[#0B0F14]' : 'bg-gray-50'}>
                             <tr>
-                                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                                <th className={`px-6 py-3 text-left text-xs font-medium ${textSecondaryClass} uppercase tracking-wider`}>
                                     Usuario
                                 </th>
-                                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                                <th className={`px-6 py-3 text-left text-xs font-medium ${textSecondaryClass} uppercase tracking-wider`}>
                                     Rol
                                 </th>
-                                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                                <th className={`px-6 py-3 text-left text-xs font-medium ${textSecondaryClass} uppercase tracking-wider`}>
                                     Sede
                                 </th>
-                                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                                <th className={`px-6 py-3 text-left text-xs font-medium ${textSecondaryClass} uppercase tracking-wider`}>
                                     Total Reportes
                                 </th>
-                                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                                <th className={`px-6 py-3 text-left text-xs font-medium ${textSecondaryClass} uppercase tracking-wider`}>
                                     Pendientes
                                 </th>
-                                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                                <th className={`px-6 py-3 text-left text-xs font-medium ${textSecondaryClass} uppercase tracking-wider`}>
                                     Resueltos
                                 </th>
                             </tr>
                         </thead>
-                        <tbody className="bg-white divide-y divide-gray-200">
-                            {reportsByUser.slice(0, 10).map((user, index) => (
-                                <tr key={user.full_name} className={index % 2 === 0 ? 'bg-white' : 'bg-gray-50'}>
+                        <tbody className={`${isIronManTheme ? 'bg-[#0F172A]' : 'bg-white'} divide-y ${isIronManTheme ? 'divide-cyan-500/10' : 'divide-gray-200'}`}>
+                            {reportsByUser.slice(0, 10).map((reportUser, index) => (
+                                <tr key={reportUser.full_name} className={isIronManTheme ? '' : (index % 2 === 0 ? 'bg-white' : 'bg-gray-50')}>
                                     <td className="px-6 py-4 whitespace-nowrap">
-                                        <div className="text-sm font-medium text-gray-900">
-                                            {user.full_name}
+                                        <div className={`text-sm font-medium ${textPrimaryClass}`}>
+                                            {reportUser.full_name}
                                         </div>
                                     </td>
                                     <td className="px-6 py-4 whitespace-nowrap">
-                                        <span className="inline-flex px-2 py-1 text-xs font-semibold rounded-full bg-gray-100 text-gray-800 capitalize">
-                                            {user.role}
+                                        <span className={`inline-flex px-2 py-1 text-xs font-semibold rounded-full capitalize ${isIronManTheme ? 'bg-[#0B0F14] text-[#94A3B8] border border-cyan-500/20' : 'bg-gray-100 text-gray-800'}`}>
+                                            {reportUser.role}
                                         </span>
                                     </td>
-                                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900 capitalize">
-                                        {user.sede}
+                                    <td className={`px-6 py-4 whitespace-nowrap text-sm ${textPrimaryClass} capitalize`}>
+                                        {reportUser.sede}
                                     </td>
                                     <td className="px-6 py-4 whitespace-nowrap">
-                                        <span className="inline-flex px-2 py-1 text-xs font-semibold rounded-full bg-blue-100 text-blue-800">
-                                            {user.total_reports}
-                                        </span>
-                                    </td>
-                                    <td className="px-6 py-4 whitespace-nowrap">
-                                        <span className="inline-flex px-2 py-1 text-xs font-semibold rounded-full bg-yellow-100 text-yellow-800">
-                                            {user.pending_reports}
+                                        <span className={`inline-flex px-2 py-1 text-xs font-semibold rounded-full ${isIronManTheme ? 'bg-cyan-500/20 text-[#00E5FF]' : 'bg-blue-100 text-blue-800'}`}>
+                                            {reportUser.total_reports}
                                         </span>
                                     </td>
                                     <td className="px-6 py-4 whitespace-nowrap">
-                                        <span className="inline-flex px-2 py-1 text-xs font-semibold rounded-full bg-green-100 text-green-800">
-                                            {user.resolved_reports}
+                                        <span className={`inline-flex px-2 py-1 text-xs font-semibold rounded-full ${isIronManTheme ? 'bg-orange-500/20 text-[#FF6A00]' : 'bg-yellow-100 text-yellow-800'}`}>
+                                            {reportUser.pending_reports}
+                                        </span>
+                                    </td>
+                                    <td className="px-6 py-4 whitespace-nowrap">
+                                        <span className={`inline-flex px-2 py-1 text-xs font-semibold rounded-full ${isIronManTheme ? 'bg-cyan-500/20 text-[#00B4D8]' : 'bg-green-100 text-green-800'}`}>
+                                            {reportUser.resolved_reports}
                                         </span>
                                     </td>
                                 </tr>

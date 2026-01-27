@@ -12,7 +12,8 @@ import {
     CheckCircle,
     RefreshCw,
     Edit3,
-    X
+    X,
+    Tag
 } from 'lucide-react';
 
 const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || 'http://localhost:5001/api';
@@ -104,6 +105,8 @@ const TecnicoInventarioEdicion = () => {
                 return <HardDrive className="h-4 w-4" />;
             case 'sistema_operativo':
                 return <Monitor className="h-4 w-4" />;
+            case 'clasificacion':
+                return <Tag className="h-4 w-4" />;
             default:
                 return <Edit3 className="h-4 w-4" />;
         }
@@ -311,6 +314,18 @@ const TecnicoInventarioEdicion = () => {
                                     {selectedActivo.asignado && (
                                         <p><strong>Asignado a:</strong> {selectedActivo.asignado}</p>
                                     )}
+                                    {componentes.find(c => c.campo === 'clasificacion') && (
+                                        <p>
+                                            <strong>Clasificación:</strong>{' '}
+                                            <span className={`inline-block px-2 py-0.5 rounded text-xs font-medium ${
+                                                componentes.find(c => c.campo === 'clasificacion')?.valorActual === 'Activo productivo'
+                                                    ? 'bg-green-100 text-green-800'
+                                                    : 'bg-yellow-100 text-yellow-800'
+                                            }`}>
+                                                {componentes.find(c => c.campo === 'clasificacion')?.valorActual || 'No especificada'}
+                                            </span>
+                                        </p>
+                                    )}
                                 </div>
                             </div>
 
@@ -336,14 +351,26 @@ const TecnicoInventarioEdicion = () => {
 
                                         {editingField === comp.campo ? (
                                             <div className="space-y-2">
-                                                <input
-                                                    type="text"
-                                                    value={newValue}
-                                                    onChange={(e) => setNewValue(e.target.value)}
-                                                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500"
-                                                    placeholder={`Nuevo valor para ${comp.label}`}
-                                                    autoFocus
-                                                />
+                                                {comp.campo === 'clasificacion' ? (
+                                                    <select
+                                                        value={newValue}
+                                                        onChange={(e) => setNewValue(e.target.value)}
+                                                        className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500"
+                                                        autoFocus
+                                                    >
+                                                        <option value="Activo productivo">Activo productivo</option>
+                                                        <option value="Activo no productivo">Activo no productivo</option>
+                                                    </select>
+                                                ) : (
+                                                    <input
+                                                        type="text"
+                                                        value={newValue}
+                                                        onChange={(e) => setNewValue(e.target.value)}
+                                                        className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500"
+                                                        placeholder={`Nuevo valor para ${comp.label}`}
+                                                        autoFocus
+                                                    />
+                                                )}
                                                 <div className="flex space-x-2">
                                                     <button
                                                         onClick={prepareToSave}

@@ -30,6 +30,7 @@ import {
 
 const PendingIncidents = () => {
     const { user, isAdmin, isTechnician, isJefeOperaciones, canSupervise } = useAuth();
+    const isIronManTheme = user?.username === 'davidlopez10';
     const location = useLocation();
     const navigate = useNavigate();
     const [incidents, setIncidents] = useState([]);
@@ -457,14 +458,14 @@ const PendingIncidents = () => {
 
     if (loading) {
         return (
-            <div className="flex items-center justify-center h-64">
-                <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600"></div>
+            <div className={`flex items-center justify-center h-64 ${isIronManTheme ? 'bg-[#0B0F14] rounded-xl' : ''}`}>
+                <div className={`animate-spin rounded-full h-12 w-12 border-b-2 ${isIronManTheme ? 'border-[#00E5FF]' : 'border-blue-600'}`}></div>
             </div>
         );
     }
 
     return (
-        <div className="space-y-4 md:space-y-6">
+        <div className={`space-y-4 md:space-y-6 ${isIronManTheme ? 'bg-[#0B0F14] p-6 rounded-xl' : ''}`}>
             {/* Header responsivo */}
             <div className="flex flex-col space-y-4 lg:flex-row lg:items-center lg:justify-between lg:space-y-0">
                 <div className="space-y-3">
@@ -472,7 +473,7 @@ const PendingIncidents = () => {
                         {fromDashboard && (
                             <button
                                 onClick={handleBackToDashboard}
-                                className="inline-flex items-center px-3 py-2 border border-gray-300 shadow-sm text-sm leading-4 font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 self-start"
+                                className={`inline-flex items-center px-3 py-2 border shadow-sm text-sm leading-4 font-medium rounded-md focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 self-start ${isIronManTheme ? 'text-[#94A3B8] bg-[#0F172A] hover:bg-[#0B0F14] border-cyan-500/30' : 'text-gray-700 bg-white hover:bg-gray-50 border-gray-300'}`}
                             >
                                 <ArrowLeft className="h-4 w-4 mr-1" />
                                 <span className="hidden sm:inline">Volver al Dashboard</span>
@@ -480,10 +481,10 @@ const PendingIncidents = () => {
                             </button>
                         )}
                         <div>
-                            <h1 className="text-xl md:text-2xl font-bold text-gray-900 break-words">
+                            <h1 className={`text-xl md:text-2xl font-bold break-words ${isIronManTheme ? 'text-[#E5E7EB] ironman-glow' : 'text-gray-900'}`}>
                                 {currentStatus === 'en_proceso' ? 'Incidencias En Proceso' : 'Incidencias Pendientes'}{getFilterDisplayText()}
                             </h1>
-                            <p className="text-sm md:text-base text-gray-600 mt-1">
+                            <p className={`text-sm md:text-base mt-1 ${isIronManTheme ? 'text-[#94A3B8]' : 'text-gray-600'}`}>
                                 {currentStatus === 'en_proceso' 
                                     ? 'Incidencias que están siendo trabajadas por técnicos'
                                     : isAdmin 
@@ -495,10 +496,14 @@ const PendingIncidents = () => {
                     </div>
                 </div>
                 <div className={`px-3 py-2 md:px-4 rounded-lg self-start lg:self-auto ${
-                    currentStatus === 'en_proceso' ? 'bg-blue-50' : 'bg-yellow-50'
+                    isIronManTheme
+                        ? (currentStatus === 'en_proceso' ? 'bg-cyan-500/10' : 'bg-orange-500/10')
+                        : (currentStatus === 'en_proceso' ? 'bg-blue-50' : 'bg-yellow-50')
                 }`}>
                     <span className={`font-medium text-sm md:text-base ${
-                        currentStatus === 'en_proceso' ? 'text-blue-700' : 'text-yellow-700'
+                        isIronManTheme
+                            ? (currentStatus === 'en_proceso' ? 'text-[#00E5FF]' : 'text-[#FF6A00]')
+                            : (currentStatus === 'en_proceso' ? 'text-blue-700' : 'text-yellow-700')
                     }`}>
                         {incidents.length} incidencia(s) {currentStatus === 'en_proceso' ? 'en proceso' : 'pendiente(s)'}
                     </span>
@@ -507,12 +512,12 @@ const PendingIncidents = () => {
 
             {/* Filtros responsivos */}
             {(isAdmin || isTechnician || isJefeOperaciones) && (
-                <div className="bg-white p-3 md:p-4 rounded-lg shadow">
+                <div className={`p-3 md:p-4 rounded-lg shadow ${isIronManTheme ? 'bg-[#0F172A] border border-cyan-500/20' : 'bg-white'}`}>
                     <div className="space-y-3">
                         {/* Título de filtros */}
                         <div className="flex items-center space-x-2">
-                            <Filter className="h-4 w-4 text-gray-500" />
-                            <span className="text-sm font-medium text-gray-700">Filtros:</span>
+                            <Filter className={`h-4 w-4 ${isIronManTheme ? 'text-[#00E5FF]' : 'text-gray-500'}`} />
+                            <span className={`text-sm font-medium ${isIronManTheme ? 'text-[#E5E7EB]' : 'text-gray-700'}`}>Filtros:</span>
                         </div>
                         
                         {/* Contenedor de filtros flexibles */}
@@ -526,7 +531,7 @@ const PendingIncidents = () => {
                                         <select
                                             value={filters.coordinador}
                                             onChange={(e) => handleFilterChange('coordinador', e.target.value)}
-                                            className="w-full sm:w-auto text-xs sm:text-sm border border-gray-300 rounded-md px-2 sm:px-3 py-1 focus:outline-none focus:ring-1 focus:ring-blue-500 focus:border-blue-500"
+                                            className={`w-full sm:w-auto text-xs sm:text-sm border rounded-md px-2 sm:px-3 py-1 focus:outline-none focus:ring-1 ${isIronManTheme ? 'border-cyan-500/30 bg-[#0B0F14] text-[#E5E7EB] focus:ring-cyan-500/50' : 'border-gray-300 focus:ring-blue-500 focus:border-blue-500'}`}
                                         >
                                             <option value="">Todos los coordinadores</option>
                                             {coordinators.map(coord => (
@@ -542,7 +547,7 @@ const PendingIncidents = () => {
                                         <select
                                             value={filters.fecha}
                                             onChange={(e) => handleFilterChange('fecha', e.target.value)}
-                                            className="w-full sm:w-auto text-xs sm:text-sm border border-gray-300 rounded-md px-2 sm:px-3 py-1 focus:outline-none focus:ring-1 focus:ring-blue-500 focus:border-blue-500"
+                                            className={`w-full sm:w-auto text-xs sm:text-sm border rounded-md px-2 sm:px-3 py-1 focus:outline-none focus:ring-1 ${isIronManTheme ? 'border-cyan-500/30 bg-[#0B0F14] text-[#E5E7EB] focus:ring-cyan-500/50' : 'border-gray-300 focus:ring-blue-500 focus:border-blue-500'}`}
                                         >
                                             <option value="">Todas las fechas</option>
                                             {dateFilters.map(date => (
@@ -561,7 +566,7 @@ const PendingIncidents = () => {
                                     <select
                                         value={filters.departamento}
                                         onChange={(e) => handleFilterChange('departamento', e.target.value)}
-                                        className="w-full sm:w-auto text-xs sm:text-sm border border-gray-300 rounded-md px-2 sm:px-3 py-1 focus:outline-none focus:ring-1 focus:ring-blue-500 focus:border-blue-500"
+                                        className={`w-full sm:w-auto text-xs sm:text-sm border rounded-md px-2 sm:px-3 py-1 focus:outline-none focus:ring-1 ${isIronManTheme ? 'border-cyan-500/30 bg-[#0B0F14] text-[#E5E7EB] focus:ring-cyan-500/50' : 'border-gray-300 focus:ring-blue-500 focus:border-blue-500'}`}
                                     >
                                         <option value="">Todas las campañas</option>
                                         {getAvailableDepartments(filters.sede).map(dept => (
@@ -579,7 +584,7 @@ const PendingIncidents = () => {
                                     <select
                                         value={filters.sede}
                                         onChange={(e) => handleFilterChange('sede', e.target.value)}
-                                        className="w-full sm:w-auto text-xs sm:text-sm border border-gray-300 rounded-md px-2 sm:px-3 py-1 focus:outline-none focus:ring-1 focus:ring-blue-500 focus:border-blue-500"
+                                        className={`w-full sm:w-auto text-xs sm:text-sm border rounded-md px-2 sm:px-3 py-1 focus:outline-none focus:ring-1 ${isIronManTheme ? 'border-cyan-500/30 bg-[#0B0F14] text-[#E5E7EB] focus:ring-cyan-500/50' : 'border-gray-300 focus:ring-blue-500 focus:border-blue-500'}`}
                                     >
                                         <option value="">Todas las sedes</option>
                                         {getAvailableSedes().map(sede => (
@@ -598,9 +603,9 @@ const PendingIncidents = () => {
                                     id="showTop3Only"
                                     checked={showTop3Only}
                                     onChange={(e) => setShowTop3Only(e.target.checked)}
-                                    className="h-4 w-4 text-red-600 focus:ring-red-500 border-gray-300 rounded"
+                                    className={`h-4 w-4 border-gray-300 rounded ${isIronManTheme ? 'text-[#E10600] focus:ring-red-500' : 'text-red-600 focus:ring-red-500'}`}
                                 />
-                                <label htmlFor="showTop3Only" className="flex items-center text-xs sm:text-sm font-medium text-gray-700 cursor-pointer">
+                                <label htmlFor="showTop3Only" className={`flex items-center text-xs sm:text-sm font-medium cursor-pointer ${isIronManTheme ? 'text-[#E5E7EB]' : 'text-gray-700'}`}>
                                     <Trophy className="h-3 w-3 sm:h-4 sm:w-4 mr-1 text-yellow-500" />
                                     <span className="hidden sm:inline">Top 3 con más retraso</span>
                                     <span className="sm:hidden">Top 3</span>
@@ -611,7 +616,7 @@ const PendingIncidents = () => {
                             {(filters.departamento || filters.sede || filters.coordinador || filters.fecha || showTop3Only) && (
                                 <button
                                     onClick={clearFilters}
-                                    className="text-xs sm:text-sm text-gray-500 hover:text-gray-700 flex items-center space-x-1 px-2 py-1 rounded hover:bg-gray-100 flex-shrink-0"
+                                    className={`text-xs sm:text-sm flex items-center space-x-1 px-2 py-1 rounded flex-shrink-0 ${isIronManTheme ? 'text-[#94A3B8] hover:text-[#E5E7EB] hover:bg-[#0B0F14]' : 'text-gray-500 hover:text-gray-700 hover:bg-gray-100'}`}
                                 >
                                     <X className="h-3 w-3" />
                                     <span>Limpiar</span>
@@ -621,10 +626,10 @@ const PendingIncidents = () => {
                         
                         {/* Contador y contexto */}
                         <div className="flex flex-col space-y-1 sm:flex-row sm:items-center sm:justify-between sm:space-y-0">
-                            <div className="text-xs sm:text-sm text-gray-500">
+                            <div className={`text-xs sm:text-sm ${isIronManTheme ? 'text-[#94A3B8]' : 'text-gray-500'}`}>
                                 <strong>{incidents.length}</strong> de <strong>{allIncidents.length}</strong> incidencia(s)
                             </div>
-                            <div className="text-xs text-gray-500">
+                            <div className={`text-xs ${isIronManTheme ? 'text-[#94A3B8]' : 'text-gray-500'}`}>
                                 {isTechnician && (
                                     <span>
                                         Visible: {user?.sede === 'bogota' ? 'Bogotá + Barranquilla' : 
@@ -644,17 +649,17 @@ const PendingIncidents = () => {
             )}
 
             {incidents.length === 0 ? (
-                <div className="text-center py-12 bg-white rounded-lg shadow">
-                    <Clock className="h-12 w-12 text-gray-400 mx-auto mb-4" />
-                    <h3 className="text-lg font-medium text-gray-900 mb-2">
+                <div className={`text-center py-12 rounded-lg shadow ${isIronManTheme ? 'bg-[#0F172A] border border-cyan-500/20' : 'bg-white'}`}>
+                    <Clock className={`h-12 w-12 mx-auto mb-4 ${isIronManTheme ? 'text-[#94A3B8]' : 'text-gray-400'}`} />
+                    <h3 className={`text-lg font-medium mb-2 ${isIronManTheme ? 'text-[#E5E7EB]' : 'text-gray-900'}`}>
                         No hay incidencias pendientes
                     </h3>
-                    <p className="text-gray-500">
+                    <p className={isIronManTheme ? 'text-[#94A3B8]' : 'text-gray-500'}>
                         Todas las incidencias han sido asignadas o están en proceso.
                     </p>
                 </div>
             ) : (
-                <div className="bg-white shadow overflow-hidden sm:rounded-lg">
+                <div className={`shadow overflow-hidden sm:rounded-lg ${isIronManTheme ? 'bg-[#0F172A] border border-cyan-500/20' : 'bg-white'}`}>
                     <div className="px-4 py-5 sm:p-6">
                         <div className="space-y-6">
                             {incidents.map((incident, index) => {
@@ -669,11 +674,11 @@ const PendingIncidents = () => {
                                     key={incident.id} 
                                     className={`
                                         border rounded p-3 sm:p-4 transition-colors relative cursor-pointer
-                                        ${isHighlighted ? 
+                                        ${isHighlighted ?
                                             'border-blue-500 bg-blue-50 border-2 ring-2 ring-blue-300 ring-opacity-50' :
-                                            alertInfo ? 
-                                                `${alertInfo.borderColor} ${alertInfo.bgColor} border-l-4 hover:shadow-md` : 
-                                                'border-gray-200 hover:bg-gray-50 hover:shadow-md'
+                                            alertInfo ?
+                                                `${alertInfo.borderColor} ${alertInfo.bgColor} border-l-4 hover:shadow-md` :
+                                                (isIronManTheme ? 'border-cyan-500/20 hover:bg-[#0B0F14] hover:shadow-md' : 'border-gray-200 hover:bg-gray-50 hover:shadow-md')
                                         }
                                         ${isHighlighted ? 'animate-pulse' : ''}
                                     `}
@@ -685,8 +690,8 @@ const PendingIncidents = () => {
                                         <div className="flex items-center justify-between">
                                             <div className="flex items-center space-x-3">
                                                 <Monitor className="h-5 w-5 text-blue-600" />
-                                                <span className="font-bold text-lg">{incident.station_code}</span>
-                                                <span className="text-sm bg-gray-100 px-2 py-1 rounded">
+                                                <span className={`font-bold text-lg ${isIronManTheme ? 'text-[#E5E7EB]' : ''}`}>{incident.station_code}</span>
+                                                <span className={`text-sm px-2 py-1 rounded ${isIronManTheme ? 'bg-[#0B0F14] text-[#94A3B8]' : 'bg-gray-100'}`}>
                                                     {incident.sede?.toUpperCase()} - {incident.departamento?.toUpperCase()}
                                                 </span>
                                                 <span className={`px-2 py-1 text-sm rounded ${getFailureTypeColor(incident.failure_type)}`}>
@@ -746,7 +751,7 @@ const PendingIncidents = () => {
                                     </div>
                                     
                                     {/* Descripción expandida */}
-                                    <div className="text-sm text-gray-700 mt-2 p-2 bg-gray-50 rounded">
+                                    <div className={`text-sm mt-2 p-2 rounded ${isIronManTheme ? 'bg-[#0B0F14] text-[#E5E7EB]' : 'bg-gray-50 text-gray-700'}`}>
                                         <strong>Descripción:</strong> {incident.description}
                                     </div>
                                     
@@ -759,7 +764,7 @@ const PendingIncidents = () => {
                                     )}
                                     
                                     {/* Botones de acción expandidos */}
-                                    <div className="flex items-center justify-between pt-3 mt-3 border-t border-gray-200">
+                                    <div className={`flex items-center justify-between pt-3 mt-3 border-t ${isIronManTheme ? 'border-cyan-500/20' : 'border-gray-200'}`}>
                                         <span className="text-sm text-gray-500">👁️ Clic para ver detalles completos</span>
                                         
                                         <div className="flex space-x-2">
@@ -771,7 +776,7 @@ const PendingIncidents = () => {
                                                                 e.stopPropagation();
                                                                 handleAssign(incident);
                                                             }}
-                                                            className="px-3 py-1.5 text-sm font-medium rounded text-white bg-blue-600 hover:bg-blue-700"
+                                                            className={`px-3 py-1.5 text-sm font-medium rounded ${isIronManTheme ? 'bg-[#00E5FF] text-[#0B0F14] hover:bg-[#00B4D8]' : 'text-white bg-blue-600 hover:bg-blue-700'}`}
                                                         >
                                                             <UserPlus className="h-3 w-3 mr-1 inline" />
                                                             Asignar
@@ -836,40 +841,40 @@ const PendingIncidents = () => {
 
             {/* Modal para asignar técnico */}
             {showAssignModal && (
-                <div className="fixed inset-0 bg-gray-600 bg-opacity-50 overflow-y-auto h-full w-full z-50">
-                    <div className="relative top-20 mx-auto p-5 border w-11/12 max-w-md shadow-lg rounded-md bg-white">
+                <div className={`fixed inset-0 overflow-y-auto h-full w-full z-50 ${isIronManTheme ? 'bg-black bg-opacity-70' : 'bg-gray-600 bg-opacity-50'}`}>
+                    <div className={`relative top-20 mx-auto p-5 border w-11/12 max-w-md shadow-lg rounded-md ${isIronManTheme ? 'bg-[#0F172A] border-cyan-500/30 shadow-cyan-500/20' : 'bg-white'}`}>
                         <div className="mt-3">
                             <div className="flex items-center mb-4">
-                                <UserPlus className="h-6 w-6 text-blue-600 mr-2" />
-                                <h3 className="text-lg font-medium text-gray-900">
+                                <UserPlus className={`h-6 w-6 mr-2 ${isIronManTheme ? 'text-[#00E5FF]' : 'text-blue-600'}`} />
+                                <h3 className={`text-lg font-medium ${isIronManTheme ? 'text-[#E5E7EB]' : 'text-gray-900'}`}>
                                     {isAdmin ? 'Asignar Técnico' : 'Confirmar Auto-asignación'}
                                 </h3>
                             </div>
-                            
-                            <div className="mb-4 p-3 bg-gray-50 rounded">
-                                <p className="text-sm text-gray-600">
+
+                            <div className={`mb-4 p-3 rounded ${isIronManTheme ? 'bg-[#0B0F14] border border-cyan-500/10' : 'bg-gray-50'}`}>
+                                <p className={`text-sm ${isIronManTheme ? 'text-[#94A3B8]' : 'text-gray-600'}`}>
                                     <strong>Estación:</strong> {selectedIncident?.station_code}
                                 </p>
-                                <p className="text-sm text-gray-600">
+                                <p className={`text-sm ${isIronManTheme ? 'text-[#94A3B8]' : 'text-gray-600'}`}>
                                     <strong>Sede:</strong> {selectedIncident?.sede?.toUpperCase()} - {selectedIncident?.departamento?.toUpperCase()}
                                 </p>
-                                <p className="text-sm text-gray-600">
+                                <p className={`text-sm ${isIronManTheme ? 'text-[#94A3B8]' : 'text-gray-600'}`}>
                                     <strong>Tipo:</strong> {getFailureTypeLabel(selectedIncident?.failure_type)}
                                 </p>
-                                <p className="text-sm text-gray-600">
+                                <p className={`text-sm ${isIronManTheme ? 'text-[#94A3B8]' : 'text-gray-600'}`}>
                                     <strong>Descripción:</strong> {selectedIncident?.description}
                                 </p>
                             </div>
 
                             {isAdmin ? (
                                 <div className="mb-4">
-                                    <label className="block text-sm font-medium text-gray-700 mb-2">
+                                    <label className={`block text-sm font-medium mb-2 ${isIronManTheme ? 'text-[#E5E7EB]' : 'text-gray-700'}`}>
                                         Seleccionar Técnico *
                                     </label>
                                     <select
                                         value={selectedTechnician}
                                         onChange={(e) => setSelectedTechnician(e.target.value)}
-                                        className="w-full border border-gray-300 rounded-md px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                                        className={`w-full border rounded-md px-3 py-2 focus:outline-none focus:ring-2 ${isIronManTheme ? 'border-cyan-500/30 bg-[#0B0F14] text-[#E5E7EB] focus:ring-cyan-500/50' : 'border-gray-300 focus:ring-blue-500 focus:border-blue-500'}`}
                                     >
                                         <option value="">Seleccionar técnico...</option>
                                         {technicians.map((tech) => (
@@ -880,8 +885,8 @@ const PendingIncidents = () => {
                                     </select>
                                 </div>
                             ) : (
-                                <div className="mb-4 p-3 bg-blue-50 rounded">
-                                    <p className="text-sm text-blue-700">
+                                <div className={`mb-4 p-3 rounded ${isIronManTheme ? 'bg-[#0B0F14] border border-cyan-500/10' : 'bg-blue-50'}`}>
+                                    <p className={`text-sm ${isIronManTheme ? 'text-[#00E5FF]' : 'text-blue-700'}`}>
                                         <strong>Te asignarás esta incidencia a:</strong> {user.fullName}
                                     </p>
                                 </div>
@@ -890,7 +895,7 @@ const PendingIncidents = () => {
                             <div className="flex justify-end space-x-3">
                                 <button
                                     onClick={() => setShowAssignModal(false)}
-                                    className="px-4 py-2 border border-gray-300 rounded-md text-sm font-medium text-gray-700 hover:bg-gray-50"
+                                    className={`px-4 py-2 border rounded-md text-sm font-medium ${isIronManTheme ? 'border-cyan-500/30 text-[#94A3B8] hover:bg-[#0B0F14]' : 'border-gray-300 text-gray-700 hover:bg-gray-50'}`}
                                     disabled={assignLoading}
                                 >
                                     Cancelar
@@ -898,7 +903,7 @@ const PendingIncidents = () => {
                                 <button
                                     onClick={confirmAssign}
                                     disabled={assignLoading}
-                                    className="px-4 py-2 border border-transparent rounded-md text-sm font-medium text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 disabled:opacity-50"
+                                    className={`px-4 py-2 border border-transparent rounded-md text-sm font-medium focus:outline-none focus:ring-2 focus:ring-offset-2 disabled:opacity-50 ${isIronManTheme ? 'bg-[#00E5FF] text-[#0B0F14] hover:bg-[#00B4D8] focus:ring-cyan-500' : 'text-white bg-blue-600 hover:bg-blue-700 focus:ring-blue-500'}`}
                                 >
                                     {assignLoading ? (isAdmin ? 'Asignando...' : 'Tomando...') : (isAdmin ? 'Asignar' : 'Tomar Incidencia')}
                                 </button>
@@ -910,39 +915,39 @@ const PendingIncidents = () => {
 
             {/* Modal para reasignar técnico */}
             {showReassignModal && (
-                <div className="fixed inset-0 bg-gray-600 bg-opacity-50 overflow-y-auto h-full w-full z-50">
-                    <div className="relative top-20 mx-auto p-5 border w-11/12 max-w-md shadow-lg rounded-md bg-white">
+                <div className={`fixed inset-0 overflow-y-auto h-full w-full z-50 ${isIronManTheme ? 'bg-black bg-opacity-70' : 'bg-gray-600 bg-opacity-50'}`}>
+                    <div className={`relative top-20 mx-auto p-5 border w-11/12 max-w-md shadow-lg rounded-md ${isIronManTheme ? 'bg-[#0F172A] border-cyan-500/30 shadow-cyan-500/20' : 'bg-white'}`}>
                         <div className="mt-3">
                             <div className="flex items-center mb-4">
-                                <UserPlus className="h-6 w-6 text-orange-600 mr-2" />
-                                <h3 className="text-lg font-medium text-gray-900">
+                                <UserPlus className={`h-6 w-6 mr-2 ${isIronManTheme ? 'text-[#FF6A00]' : 'text-orange-600'}`} />
+                                <h3 className={`text-lg font-medium ${isIronManTheme ? 'text-[#E5E7EB]' : 'text-gray-900'}`}>
                                     Reasignar Técnico
                                 </h3>
                             </div>
-                            
-                            <div className="mb-4 p-3 bg-gray-50 rounded">
-                                <p className="text-sm text-gray-600">
+
+                            <div className={`mb-4 p-3 rounded ${isIronManTheme ? 'bg-[#0B0F14] border border-cyan-500/10' : 'bg-gray-50'}`}>
+                                <p className={`text-sm ${isIronManTheme ? 'text-[#94A3B8]' : 'text-gray-600'}`}>
                                     <strong>Estación:</strong> {selectedIncident?.station_code}
                                 </p>
-                                <p className="text-sm text-gray-600">
+                                <p className={`text-sm ${isIronManTheme ? 'text-[#94A3B8]' : 'text-gray-600'}`}>
                                     <strong>Técnico actual:</strong> {selectedIncident?.assigned_to_name}
                                 </p>
-                                <p className="text-sm text-gray-600">
+                                <p className={`text-sm ${isIronManTheme ? 'text-[#94A3B8]' : 'text-gray-600'}`}>
                                     <strong>Tipo:</strong> {getFailureTypeLabel(selectedIncident?.failure_type)}
                                 </p>
-                                <p className="text-sm text-gray-600">
+                                <p className={`text-sm ${isIronManTheme ? 'text-[#94A3B8]' : 'text-gray-600'}`}>
                                     <strong>Descripción:</strong> {selectedIncident?.description}
                                 </p>
                             </div>
 
                             <div className="mb-4">
-                                <label className="block text-sm font-medium text-gray-700 mb-2">
+                                <label className={`block text-sm font-medium mb-2 ${isIronManTheme ? 'text-[#E5E7EB]' : 'text-gray-700'}`}>
                                     Nuevo Técnico *
                                 </label>
                                 <select
                                     value={selectedTechnician}
                                     onChange={(e) => setSelectedTechnician(e.target.value)}
-                                    className="w-full border border-gray-300 rounded-md px-3 py-2 focus:outline-none focus:ring-2 focus:ring-orange-500 focus:border-orange-500"
+                                    className={`w-full border rounded-md px-3 py-2 focus:outline-none focus:ring-2 ${isIronManTheme ? 'border-cyan-500/30 bg-[#0B0F14] text-[#E5E7EB] focus:ring-cyan-500/50' : 'border-gray-300 focus:ring-orange-500 focus:border-orange-500'}`}
                                 >
                                     <option value="">Seleccionar nuevo técnico...</option>
                                     {technicians
@@ -956,13 +961,13 @@ const PendingIncidents = () => {
                             </div>
 
                             <div className="mb-4">
-                                <label className="block text-sm font-medium text-gray-700 mb-2">
+                                <label className={`block text-sm font-medium mb-2 ${isIronManTheme ? 'text-[#E5E7EB]' : 'text-gray-700'}`}>
                                     Motivo de la reasignación (opcional)
                                 </label>
                                 <textarea
                                     value={reassignReason}
                                     onChange={(e) => setReassignReason(e.target.value)}
-                                    className="w-full border border-gray-300 rounded-md px-3 py-2 focus:outline-none focus:ring-2 focus:ring-orange-500 focus:border-orange-500"
+                                    className={`w-full border rounded-md px-3 py-2 focus:outline-none focus:ring-2 ${isIronManTheme ? 'border-cyan-500/30 bg-[#0B0F14] text-[#E5E7EB] focus:ring-cyan-500/50' : 'border-gray-300 focus:ring-orange-500 focus:border-orange-500'}`}
                                     rows="3"
                                     placeholder="Ej: Cambio de turno, técnico no disponible, especialización requerida..."
                                 />
@@ -971,7 +976,7 @@ const PendingIncidents = () => {
                             <div className="flex justify-end space-x-3">
                                 <button
                                     onClick={() => setShowReassignModal(false)}
-                                    className="px-4 py-2 border border-gray-300 rounded-md text-sm font-medium text-gray-700 hover:bg-gray-50"
+                                    className={`px-4 py-2 border rounded-md text-sm font-medium ${isIronManTheme ? 'border-cyan-500/30 text-[#94A3B8] hover:bg-[#0B0F14]' : 'border-gray-300 text-gray-700 hover:bg-gray-50'}`}
                                     disabled={assignLoading}
                                 >
                                     Cancelar
@@ -979,7 +984,7 @@ const PendingIncidents = () => {
                                 <button
                                     onClick={confirmReassign}
                                     disabled={assignLoading}
-                                    className="px-4 py-2 border border-transparent rounded-md text-sm font-medium text-white bg-orange-600 hover:bg-orange-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-orange-500 disabled:opacity-50"
+                                    className={`px-4 py-2 border border-transparent rounded-md text-sm font-medium focus:outline-none focus:ring-2 focus:ring-offset-2 disabled:opacity-50 ${isIronManTheme ? 'bg-[#FF6A00] text-[#0B0F14] hover:bg-[#E10600] focus:ring-orange-500' : 'text-white bg-orange-600 hover:bg-orange-700 focus:ring-orange-500'}`}
                                 >
                                     {assignLoading ? 'Reasignando...' : 'Reasignar'}
                                 </button>

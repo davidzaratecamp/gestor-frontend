@@ -27,6 +27,7 @@ import TechniciansRankingPanel from './TechniciansRankingPanel';
 
 const Dashboard = () => {
     const { user, isAdmin, isSupervisor, isTechnician, isAdministrativo, isJefeOperaciones } = useAuth();
+    const isIronManTheme = user?.username === 'davidlopez10';
     const navigate = useNavigate();
     const [stats, setStats] = useState({
         pending: 0,
@@ -311,60 +312,75 @@ const Dashboard = () => {
         if ((!isAdmin && !isTechnician) || !isVisible) return null;
 
         return (
-            <div className="absolute top-full left-0 right-0 mt-2 bg-white border border-gray-200 rounded-lg shadow-lg z-10 max-h-96 overflow-y-auto">
+            <div className={`absolute top-full left-0 right-0 mt-2 border rounded-lg shadow-lg z-10 max-h-96 overflow-y-auto ${
+                isIronManTheme ? 'bg-[#0F172A] border-cyan-500/30 shadow-cyan-500/20' : 'bg-white border-gray-200'
+            }`}>
                 <div className="p-2">
-                    <div className="text-xs font-medium text-gray-500 uppercase tracking-wide px-3 py-2">
+                    <div className={`text-xs font-medium uppercase tracking-wide px-3 py-2 ${isIronManTheme ? 'text-[#00E5FF]' : 'text-gray-500'}`}>
                         {title}
                     </div>
-                    
+
                     {Object.entries(data).length === 0 ? (
-                        <div className="px-3 py-2 text-sm text-gray-500">
-                            No hay incidencias {type === 'pending' ? 'pendientes' : 
+                        <div className={`px-3 py-2 text-sm ${textSecondaryClass}`}>
+                            No hay incidencias {type === 'pending' ? 'pendientes' :
                                                  type === 'inProcess' ? 'en proceso' :
                                                  type === 'inSupervision' ? 'en supervisión' : 'aprobadas'}
                         </div>
                     ) : (
                         Object.entries(data).map(([ciudadKey, ciudadData]) => (
-                            <div key={ciudadKey} className="border-b border-gray-100 last:border-b-0">
-                                <div 
-                                    className="flex items-center justify-between px-3 py-2 hover:bg-gray-50 cursor-pointer rounded transition-colors"
+                            <div key={ciudadKey} className={`border-b last:border-b-0 ${isIronManTheme ? 'border-cyan-500/10' : 'border-gray-100'}`}>
+                                <div
+                                    className={`flex items-center justify-between px-3 py-2 cursor-pointer rounded transition-colors ${
+                                        isIronManTheme ? 'hover:bg-[#0B0F14]' : 'hover:bg-gray-50'
+                                    }`}
                                     onClick={(e) => {
                                         e.stopPropagation();
                                         handleCiudadClick(ciudadKey, type);
                                     }}
                                 >
                                     <div className="flex items-center">
-                                        <MapPin className="h-4 w-4 text-blue-500 mr-2" />
-                                        <span className="text-sm font-medium text-gray-900">
+                                        <MapPin className={`h-4 w-4 mr-2 ${isIronManTheme ? 'text-[#00E5FF]' : 'text-blue-500'}`} />
+                                        <span className={`text-sm font-medium ${textPrimaryClass}`}>
                                             {ciudadData.label}
                                         </span>
                                     </div>
                                     <span className={`text-sm font-semibold px-2 py-1 rounded-full ${
-                                        type === 'pending' ? 'text-yellow-600 bg-yellow-50' :
-                                        type === 'inProcess' ? 'text-blue-600 bg-blue-50' :
-                                        type === 'inSupervision' ? 'text-purple-600 bg-purple-50' :
-                                        'text-green-600 bg-green-50'
+                                        isIronManTheme ? (
+                                            type === 'pending' ? 'text-[#FF6A00] bg-orange-500/20' :
+                                            type === 'inProcess' ? 'text-[#00E5FF] bg-cyan-500/20' :
+                                            type === 'inSupervision' ? 'text-[#E10600] bg-red-500/20' :
+                                            'text-[#00B4D8] bg-cyan-500/20'
+                                        ) : (
+                                            type === 'pending' ? 'text-yellow-600 bg-yellow-50' :
+                                            type === 'inProcess' ? 'text-blue-600 bg-blue-50' :
+                                            type === 'inSupervision' ? 'text-purple-600 bg-purple-50' :
+                                            'text-green-600 bg-green-50'
+                                        )
                                     }`}>
                                         {ciudadData.count}
                                     </span>
                                 </div>
-                                
+
                                 {/* Departamentos - Mostrar siempre si hay departamentos */}
                                 {Object.entries(ciudadData.departamentos).length > 0 && (
-                                    <div className="ml-6 border-l border-gray-200">
+                                    <div className={`ml-6 border-l ${isIronManTheme ? 'border-cyan-500/20' : 'border-gray-200'}`}>
                                         {Object.entries(ciudadData.departamentos).map(([deptKey, deptData]) => (
-                                            <div 
+                                            <div
                                                 key={deptKey}
-                                                className="flex items-center justify-between px-3 py-1 hover:bg-gray-50 cursor-pointer rounded transition-colors text-sm"
+                                                className={`flex items-center justify-between px-3 py-1 cursor-pointer rounded transition-colors text-sm ${
+                                                    isIronManTheme ? 'hover:bg-[#0B0F14]' : 'hover:bg-gray-50'
+                                                }`}
                                                 onClick={(e) => {
                                                     e.stopPropagation();
                                                     handleDepartamentoClick(ciudadKey, deptKey, type);
                                                 }}
                                             >
-                                                <span className="text-gray-600 pl-4">
+                                                <span className={`pl-4 ${isIronManTheme ? 'text-[#94A3B8]' : 'text-gray-600'}`}>
                                                     📂 {deptData.label}
                                                 </span>
-                                                <span className="text-xs text-gray-500 bg-gray-100 px-2 py-1 rounded-full">
+                                                <span className={`text-xs px-2 py-1 rounded-full ${
+                                                    isIronManTheme ? 'text-[#94A3B8] bg-[#0B0F14]' : 'text-gray-500 bg-gray-100'
+                                                }`}>
                                                     {deptData.count}
                                                 </span>
                                             </div>
@@ -374,13 +390,14 @@ const Dashboard = () => {
                             </div>
                         ))
                     )}
-                    
+
                     {/* Opción para ver todas */}
                     {Object.entries(data).length > 0 && (
-                        <div 
-                            className="px-3 py-2 hover:bg-blue-50 cursor-pointer rounded transition-colors border-t border-gray-200 mt-2"
+                        <div
+                            className={`px-3 py-2 cursor-pointer rounded transition-colors border-t mt-2 ${
+                                isIronManTheme ? 'hover:bg-[#0B0F14] border-cyan-500/20' : 'hover:bg-blue-50 border-gray-200'
+                            }`}
                             onClick={() => {
-                                // Para incidencias en proceso, agregar parámetro de status
                                 const finalPath = type === 'inProcess' ? `${routePath}?status=en_proceso` : routePath;
                                 navigate(finalPath);
                                 setShowPendingDropdown(false);
@@ -390,7 +407,7 @@ const Dashboard = () => {
                             }}
                         >
                             <div className="flex items-center justify-center">
-                                <span className="text-sm font-medium text-blue-600">
+                                <span className={`text-sm font-medium ${isIronManTheme ? 'text-[#00E5FF]' : 'text-blue-600'}`}>
                                     Ver todas las incidencias {
                                         type === 'pending' ? 'pendientes' :
                                         type === 'inProcess' ? 'en proceso' :
@@ -551,23 +568,31 @@ const Dashboard = () => {
         }
     };
 
+    // Clases condicionales para Iron Man theme
+    const cardClass = isIronManTheme
+        ? 'bg-[#0F172A] overflow-hidden shadow-lg shadow-cyan-500/10 rounded-lg border border-cyan-500/20'
+        : 'bg-white overflow-hidden shadow rounded-lg';
+    const textPrimaryClass = isIronManTheme ? 'text-[#E5E7EB]' : 'text-gray-900';
+    const textSecondaryClass = isIronManTheme ? 'text-[#94A3B8]' : 'text-gray-500';
+    const textMutedClass = isIronManTheme ? 'text-[#94A3B8]' : 'text-gray-600';
+
     if (loading) {
         return (
-            <div className="flex items-center justify-center h-64">
-                <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600"></div>
+            <div className={`flex items-center justify-center h-64 ${isIronManTheme ? 'bg-[#0B0F14] rounded-xl' : ''}`}>
+                <div className={`animate-spin rounded-full h-12 w-12 border-b-2 ${isIronManTheme ? 'border-[#00E5FF]' : 'border-blue-600'}`}></div>
             </div>
         );
     }
 
     return (
-        <div className="space-y-6">
+        <div className={`space-y-6 ${isIronManTheme ? 'bg-[#0B0F14] p-6 rounded-xl' : ''}`}>
             {/* Header */}
             <div>
-                <h1 className="text-xl sm:text-2xl font-bold text-gray-900">
-                    Bienvenido, {user?.fullName}
+                <h1 className={`text-xl sm:text-2xl font-bold ${textPrimaryClass} ${isIronManTheme ? 'ironman-glow' : ''}`}>
+                    {isIronManTheme ? `Bienvenido, Sr. Stark` : `Bienvenido, ${user?.fullName}`}
                 </h1>
-                <p className="text-sm sm:text-base text-gray-600 mt-1">
-                    Resumen del sistema de soporte técnico
+                <p className={`text-sm sm:text-base ${textMutedClass} mt-1`}>
+                    {isIronManTheme ? 'J.A.R.V.I.S. - Sistema de soporte técnico activo' : 'Resumen del sistema de soporte técnico'}
                 </p>
             </div>
 
@@ -575,29 +600,29 @@ const Dashboard = () => {
             <div className="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-4">
                 {/* Pendientes - Interactivo para Admin y Técnicos */}
                 <div className="relative">
-                    <div 
-                        className={`bg-white overflow-hidden shadow rounded-lg ${(isAdmin || isTechnician) ? 'cursor-pointer hover:shadow-md transition-shadow' : ''}`}
+                    <div
+                        className={`${cardClass} ${(isAdmin || isTechnician) ? 'cursor-pointer hover:shadow-md transition-shadow' : ''}`}
                         onClick={() => handleCardClick('pending')}
                     >
                         <div className="p-5">
                             <div className="flex items-center">
                                 <div className="flex-shrink-0">
-                                    <Clock className="h-6 w-6 text-yellow-400" />
+                                    <Clock className={`h-6 w-6 ${isIronManTheme ? 'text-[#FF6A00]' : 'text-yellow-400'}`} />
                                 </div>
                                 <div className="ml-5 w-0 flex-1">
                                     <dl>
-                                        <dt className="text-sm font-medium text-gray-500 truncate flex items-center">
+                                        <dt className={`text-sm font-medium ${textSecondaryClass} truncate flex items-center`}>
                                             Pendientes
                                             {(isAdmin || isTechnician) && (
                                                 <span className="ml-2">
-                                                    {showPendingDropdown ? 
-                                                        <ChevronUp className="h-4 w-4 text-gray-400" /> : 
-                                                        <ChevronDown className="h-4 w-4 text-gray-400" />
+                                                    {showPendingDropdown ?
+                                                        <ChevronUp className={`h-4 w-4 ${isIronManTheme ? 'text-[#94A3B8]' : 'text-gray-400'}`} /> :
+                                                        <ChevronDown className={`h-4 w-4 ${isIronManTheme ? 'text-[#94A3B8]' : 'text-gray-400'}`} />
                                                     }
                                                 </span>
                                             )}
                                         </dt>
-                                        <dd className="text-lg font-medium text-gray-900">
+                                        <dd className={`text-lg font-medium ${textPrimaryClass}`}>
                                             {stats.pending}
                                         </dd>
                                     </dl>
@@ -612,29 +637,29 @@ const Dashboard = () => {
                 {/* En Proceso - Interactivo para Admin y Técnicos (No visible para jefe de operaciones) */}
                 {!isJefeOperaciones && (
                     <div className="relative">
-                        <div 
-                            className={`bg-white overflow-hidden shadow rounded-lg ${(isAdmin || isTechnician) ? 'cursor-pointer hover:shadow-md transition-shadow' : ''}`}
+                        <div
+                            className={`${cardClass} ${(isAdmin || isTechnician) ? 'cursor-pointer hover:shadow-md transition-shadow' : ''}`}
                             onClick={() => handleCardClick('inProcess')}
                         >
                             <div className="p-5">
                                 <div className="flex items-center">
                                     <div className="flex-shrink-0">
-                                        <Settings className="h-6 w-6 text-blue-400" />
+                                        <Settings className={`h-6 w-6 ${isIronManTheme ? 'text-[#00E5FF]' : 'text-blue-400'}`} />
                                     </div>
                                     <div className="ml-5 w-0 flex-1">
                                         <dl>
-                                            <dt className="text-sm font-medium text-gray-500 truncate flex items-center">
+                                            <dt className={`text-sm font-medium ${textSecondaryClass} truncate flex items-center`}>
                                                 En Proceso
                                                 {(isAdmin || isTechnician) && (
                                                     <span className="ml-2">
-                                                        {showInProcessDropdown ? 
-                                                            <ChevronUp className="h-4 w-4 text-gray-400" /> : 
-                                                            <ChevronDown className="h-4 w-4 text-gray-400" />
+                                                        {showInProcessDropdown ?
+                                                            <ChevronUp className={`h-4 w-4 ${isIronManTheme ? 'text-[#94A3B8]' : 'text-gray-400'}`} /> :
+                                                            <ChevronDown className={`h-4 w-4 ${isIronManTheme ? 'text-[#94A3B8]' : 'text-gray-400'}`} />
                                                         }
                                                     </span>
                                                 )}
                                             </dt>
-                                            <dd className="text-lg font-medium text-gray-900">
+                                            <dd className={`text-lg font-medium ${textPrimaryClass}`}>
                                                 {stats.inProcess}
                                             </dd>
                                         </dl>
@@ -650,27 +675,27 @@ const Dashboard = () => {
                 {/* En Supervisión o Mis Incidencias */}
                 {isTechnician ? (
                     <div className="relative">
-                        <div 
-                            className="bg-white overflow-hidden shadow rounded-lg cursor-pointer hover:shadow-md transition-shadow"
+                        <div
+                            className={`${cardClass} cursor-pointer hover:shadow-md transition-shadow`}
                             onClick={() => handleCardClick('inSupervision')}
                         >
                             <div className="p-5">
                                 <div className="flex items-center">
                                     <div className="flex-shrink-0">
-                                        <AlertTriangle className="h-6 w-6 text-purple-400" />
+                                        <AlertTriangle className={`h-6 w-6 ${isIronManTheme ? 'text-[#E10600]' : 'text-purple-400'}`} />
                                     </div>
                                     <div className="ml-5 w-0 flex-1">
                                         <dl>
-                                            <dt className="text-sm font-medium text-gray-500 truncate flex items-center">
+                                            <dt className={`text-sm font-medium ${textSecondaryClass} truncate flex items-center`}>
                                                 En Supervisión
                                                 <span className="ml-2">
-                                                    {showInSupervisionDropdown ? 
-                                                        <ChevronUp className="h-4 w-4 text-gray-400" /> : 
-                                                        <ChevronDown className="h-4 w-4 text-gray-400" />
+                                                    {showInSupervisionDropdown ?
+                                                        <ChevronUp className={`h-4 w-4 ${isIronManTheme ? 'text-[#94A3B8]' : 'text-gray-400'}`} /> :
+                                                        <ChevronDown className={`h-4 w-4 ${isIronManTheme ? 'text-[#94A3B8]' : 'text-gray-400'}`} />
                                                     }
                                                 </span>
                                             </dt>
-                                            <dd className="text-lg font-medium text-gray-900">
+                                            <dd className={`text-lg font-medium ${textPrimaryClass}`}>
                                                 {stats.inSupervision}
                                             </dd>
                                         </dl>
@@ -683,29 +708,29 @@ const Dashboard = () => {
                     </div>
                 ) : (
                     <div className="relative">
-                        <div 
-                            className={`bg-white overflow-hidden shadow rounded-lg ${isAdmin ? 'cursor-pointer hover:shadow-md transition-shadow' : ''}`}
+                        <div
+                            className={`${cardClass} ${isAdmin ? 'cursor-pointer hover:shadow-md transition-shadow' : ''}`}
                             onClick={() => handleCardClick('inSupervision')}
                         >
                             <div className="p-5">
                                 <div className="flex items-center">
                                     <div className="flex-shrink-0">
-                                        <AlertTriangle className="h-6 w-6 text-purple-400" />
+                                        <AlertTriangle className={`h-6 w-6 ${isIronManTheme ? 'text-[#E10600]' : 'text-purple-400'}`} />
                                     </div>
                                     <div className="ml-5 w-0 flex-1">
                                         <dl>
-                                            <dt className="text-sm font-medium text-gray-500 truncate flex items-center">
+                                            <dt className={`text-sm font-medium ${textSecondaryClass} truncate flex items-center`}>
                                                 En Supervisión
                                                 {isAdmin && (
                                                     <span className="ml-2">
-                                                        {showInSupervisionDropdown ? 
-                                                            <ChevronUp className="h-4 w-4 text-gray-400" /> : 
-                                                            <ChevronDown className="h-4 w-4 text-gray-400" />
+                                                        {showInSupervisionDropdown ?
+                                                            <ChevronUp className={`h-4 w-4 ${isIronManTheme ? 'text-[#94A3B8]' : 'text-gray-400'}`} /> :
+                                                            <ChevronDown className={`h-4 w-4 ${isIronManTheme ? 'text-[#94A3B8]' : 'text-gray-400'}`} />
                                                         }
                                                     </span>
                                                 )}
                                             </dt>
-                                            <dd className="text-lg font-medium text-gray-900">
+                                            <dd className={`text-lg font-medium ${textPrimaryClass}`}>
                                                 {stats.inSupervision}
                                             </dd>
                                         </dl>
@@ -720,29 +745,29 @@ const Dashboard = () => {
 
                 {/* Aprobadas - Interactivo para Admin y Técnicos */}
                 <div className="relative">
-                    <div 
-                        className={`bg-white overflow-hidden shadow rounded-lg ${(isAdmin || isTechnician) ? 'cursor-pointer hover:shadow-md transition-shadow' : ''}`}
+                    <div
+                        className={`${cardClass} ${(isAdmin || isTechnician) ? 'cursor-pointer hover:shadow-md transition-shadow' : ''}`}
                         onClick={() => handleCardClick('approved')}
                     >
                         <div className="p-5">
                             <div className="flex items-center">
                                 <div className="flex-shrink-0">
-                                    <CheckCircle className="h-6 w-6 text-green-400" />
+                                    <CheckCircle className={`h-6 w-6 ${isIronManTheme ? 'text-[#00B4D8]' : 'text-green-400'}`} />
                                 </div>
                                 <div className="ml-5 w-0 flex-1">
                                     <dl>
-                                        <dt className="text-sm font-medium text-gray-500 truncate flex items-center">
+                                        <dt className={`text-sm font-medium ${textSecondaryClass} truncate flex items-center`}>
                                             Aprobadas
                                             {(isAdmin || isTechnician) && (
                                                 <span className="ml-2">
-                                                    {showApprovedDropdown ? 
-                                                        <ChevronUp className="h-4 w-4 text-gray-400" /> : 
-                                                        <ChevronDown className="h-4 w-4 text-gray-400" />
+                                                    {showApprovedDropdown ?
+                                                        <ChevronUp className={`h-4 w-4 ${isIronManTheme ? 'text-[#94A3B8]' : 'text-gray-400'}`} /> :
+                                                        <ChevronDown className={`h-4 w-4 ${isIronManTheme ? 'text-[#94A3B8]' : 'text-gray-400'}`} />
                                                     }
                                                 </span>
                                             )}
                                         </dt>
-                                        <dd className="text-lg font-medium text-gray-900">
+                                        <dd className={`text-lg font-medium ${textPrimaryClass}`}>
                                             {stats.approved}
                                         </dd>
                                     </dl>
@@ -757,19 +782,19 @@ const Dashboard = () => {
 
             {/* Incidencias Recientes - Oculto solo para admin */}
             {!isAdmin && (
-                <div className="bg-white shadow overflow-hidden sm:rounded-md">
-                <div className="px-4 py-5 sm:px-6">
-                    <h3 className="text-lg leading-6 font-medium text-gray-900">
+                <div className={`shadow overflow-hidden sm:rounded-md ${isIronManTheme ? 'bg-[#0F172A] border border-cyan-500/20' : 'bg-white'}`}>
+                <div className={`px-4 py-5 sm:px-6`}>
+                    <h3 className={`text-lg leading-6 font-medium ${textPrimaryClass}`}>
                         Incidencias Recientes
                     </h3>
-                    <p className="mt-1 max-w-2xl text-sm text-gray-500">
+                    <p className={`mt-1 max-w-2xl text-sm ${textSecondaryClass}`}>
                         Últimas incidencias reportadas en el sistema
                     </p>
                 </div>
-                <ul className="divide-y divide-gray-200">
+                <ul className={`divide-y ${isIronManTheme ? 'divide-cyan-500/10' : 'divide-gray-200'}`}>
                     {recentIncidents.length === 0 ? (
                         <li className="px-6 py-4">
-                            <p className="text-sm text-gray-500 text-center py-2">
+                            <p className={`text-sm ${textSecondaryClass} text-center py-2`}>
                                 No hay incidencias recientes
                             </p>
                         </li>
@@ -779,20 +804,20 @@ const Dashboard = () => {
                                 <div className="flex flex-col sm:flex-row sm:items-center justify-between space-y-2 sm:space-y-0">
                                     <div className="flex items-center flex-1 min-w-0">
                                         <div className="flex-shrink-0">
-                                            <Monitor className="h-4 w-4 sm:h-5 sm:w-5 text-gray-400" />
+                                            <Monitor className={`h-4 w-4 sm:h-5 sm:w-5 ${isIronManTheme ? 'text-[#00E5FF]' : 'text-gray-400'}`} />
                                         </div>
                                         <div className="ml-3 sm:ml-4 min-w-0 flex-1">
-                                            <p className="text-sm font-medium text-gray-900 truncate">
+                                            <p className={`text-sm font-medium ${textPrimaryClass} truncate`}>
                                                 {incident.station_code} - {incident.failure_type}
                                             </p>
-                                            <p className="text-xs sm:text-sm text-gray-500 truncate">
+                                            <p className={`text-xs sm:text-sm ${textSecondaryClass} truncate`}>
                                                 {incident.description}
                                             </p>
                                         </div>
                                     </div>
                                     <div className="flex items-center justify-between sm:justify-end space-x-2 sm:space-x-4 flex-shrink-0">
                                         {getStatusBadge(incident.status)}
-                                        <span className="text-xs sm:text-sm text-gray-500">
+                                        <span className={`text-xs sm:text-sm ${textSecondaryClass}`}>
                                             {new Date(incident.created_at).toLocaleDateString()}
                                         </span>
                                     </div>
@@ -808,68 +833,68 @@ const Dashboard = () => {
             {isAdmin && (
                 <div className="space-y-6">
                     {/* Estadísticas por Sede */}
-                    <div className="bg-white shadow overflow-hidden sm:rounded-md">
-                        <div className="px-4 py-5 sm:px-6 bg-gray-50">
+                    <div className={`shadow overflow-hidden sm:rounded-md ${isIronManTheme ? 'bg-[#0F172A] border border-cyan-500/20' : 'bg-white'}`}>
+                        <div className={`px-4 py-5 sm:px-6 ${isIronManTheme ? 'bg-[#0B0F14]' : 'bg-gray-50'}`}>
                             <div className="flex items-center">
-                                <BarChart3 className="h-5 w-5 text-blue-600 mr-2" />
-                                <h3 className="text-lg leading-6 font-medium text-gray-900">
+                                <BarChart3 className={`h-5 w-5 mr-2 ${isIronManTheme ? 'text-[#00E5FF]' : 'text-blue-600'}`} />
+                                <h3 className={`text-lg leading-6 font-medium ${textPrimaryClass}`}>
                                     Incidencias por Sede
                                 </h3>
                             </div>
-                            <p className="mt-1 max-w-2xl text-sm text-gray-500">
+                            <p className={`mt-1 max-w-2xl text-sm ${textSecondaryClass}`}>
                                 Estado de incidencias en cada ubicación
                             </p>
                         </div>
                         <div className="grid grid-cols-1 md:grid-cols-3 gap-4 p-6">
                             {statsBySede.map((sedeStats) => (
-                                <div key={sedeStats.sede} className="bg-gray-50 rounded-lg p-4">
+                                <div key={sedeStats.sede} className={`rounded-lg p-4 ${isIronManTheme ? 'bg-[#0B0F14] border border-cyan-500/10' : 'bg-gray-50'}`}>
                                     <div className="flex items-center justify-between mb-3">
                                         <div className="flex items-center">
-                                            <Building className="h-5 w-5 text-gray-400 mr-2" />
-                                            <h4 className="text-base font-medium text-gray-900 capitalize">
+                                            <Building className={`h-5 w-5 mr-2 ${isIronManTheme ? 'text-[#00E5FF]' : 'text-gray-400'}`} />
+                                            <h4 className={`text-base font-medium ${textPrimaryClass} capitalize`}>
                                                 {sedeStats.sede === 'bogota' ? 'Bogotá' :
                                                  sedeStats.sede === 'barranquilla' ? 'Barranquilla' :
                                                  sedeStats.sede === 'villavicencio' ? 'Villavicencio' : sedeStats.sede}
                                             </h4>
                                         </div>
-                                        <span className="text-sm text-gray-500">
+                                        <span className={`text-sm ${textSecondaryClass}`}>
                                             Total: {sedeStats.total}
                                         </span>
                                     </div>
                                     <div className="grid grid-cols-2 gap-2">
                                         <button
                                             onClick={() => handleSedeStatsClick(sedeStats.sede, 'pendientes')}
-                                            className="text-left p-2 rounded hover:bg-yellow-50 transition-colors"
+                                            className={`text-left p-2 rounded transition-colors ${isIronManTheme ? 'hover:bg-orange-500/10' : 'hover:bg-yellow-50'}`}
                                         >
-                                            <div className="text-xs text-gray-500">Pendientes</div>
-                                            <div className="text-lg font-semibold text-yellow-600">
+                                            <div className={`text-xs ${textSecondaryClass}`}>Pendientes</div>
+                                            <div className={`text-lg font-semibold ${isIronManTheme ? 'text-[#FF6A00]' : 'text-yellow-600'}`}>
                                                 {sedeStats.pendientes}
                                             </div>
                                         </button>
                                         <button
                                             onClick={() => handleSedeStatsClick(sedeStats.sede, 'en_proceso')}
-                                            className="text-left p-2 rounded hover:bg-blue-50 transition-colors"
+                                            className={`text-left p-2 rounded transition-colors ${isIronManTheme ? 'hover:bg-cyan-500/10' : 'hover:bg-blue-50'}`}
                                         >
-                                            <div className="text-xs text-gray-500">En Proceso</div>
-                                            <div className="text-lg font-semibold text-blue-600">
+                                            <div className={`text-xs ${textSecondaryClass}`}>En Proceso</div>
+                                            <div className={`text-lg font-semibold ${isIronManTheme ? 'text-[#00E5FF]' : 'text-blue-600'}`}>
                                                 {sedeStats.en_proceso}
                                             </div>
                                         </button>
                                         <button
                                             onClick={() => handleSedeStatsClick(sedeStats.sede, 'en_supervision')}
-                                            className="text-left p-2 rounded hover:bg-purple-50 transition-colors"
+                                            className={`text-left p-2 rounded transition-colors ${isIronManTheme ? 'hover:bg-red-500/10' : 'hover:bg-purple-50'}`}
                                         >
-                                            <div className="text-xs text-gray-500">En Supervisión</div>
-                                            <div className="text-lg font-semibold text-purple-600">
+                                            <div className={`text-xs ${textSecondaryClass}`}>En Supervisión</div>
+                                            <div className={`text-lg font-semibold ${isIronManTheme ? 'text-[#E10600]' : 'text-purple-600'}`}>
                                                 {sedeStats.en_supervision}
                                             </div>
                                         </button>
                                         <button
                                             onClick={() => handleSedeStatsClick(sedeStats.sede, 'aprobadas')}
-                                            className="text-left p-2 rounded hover:bg-green-50 transition-colors"
+                                            className={`text-left p-2 rounded transition-colors ${isIronManTheme ? 'hover:bg-cyan-500/10' : 'hover:bg-green-50'}`}
                                         >
-                                            <div className="text-xs text-gray-500">Aprobadas</div>
-                                            <div className="text-lg font-semibold text-green-600">
+                                            <div className={`text-xs ${textSecondaryClass}`}>Aprobadas</div>
+                                            <div className={`text-lg font-semibold ${isIronManTheme ? 'text-[#00B4D8]' : 'text-green-600'}`}>
                                                 {sedeStats.aprobadas}
                                             </div>
                                         </button>
@@ -883,23 +908,27 @@ const Dashboard = () => {
                     <TechniciansRankingPanel />
 
                     {/* Botón de exportación Excel */}
-                    <div className="bg-white rounded-lg shadow p-6">
+                    <div className={`rounded-lg shadow p-6 ${isIronManTheme ? 'bg-[#0F172A] border border-cyan-500/20 shadow-cyan-500/10' : 'bg-white'}`}>
                         <div className="flex items-center justify-between mb-4">
                             <div className="flex items-center">
-                                <Activity className="h-6 w-6 text-green-600 mr-2" />
-                                <h3 className="text-lg font-semibold text-gray-900">
+                                <Activity className={`h-6 w-6 mr-2 ${isIronManTheme ? 'text-[#00E5FF]' : 'text-green-600'}`} />
+                                <h3 className={`text-lg font-semibold ${textPrimaryClass}`}>
                                     Exportación de Datos
                                 </h3>
                             </div>
                         </div>
                         <button
                             onClick={handleExportOldIncidents}
-                            className="w-full inline-flex items-center justify-center px-4 py-3 border border-transparent shadow-sm text-sm font-medium rounded-md text-white bg-green-600 hover:bg-green-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-green-500"
+                            className={`w-full inline-flex items-center justify-center px-4 py-3 border border-transparent shadow-sm text-sm font-medium rounded-md text-white focus:outline-none focus:ring-2 focus:ring-offset-2 ${
+                                isIronManTheme
+                                    ? 'bg-gradient-to-r from-[#E10600] to-[#FF6A00] hover:from-[#FF6A00] hover:to-[#E10600] focus:ring-[#FF6A00]'
+                                    : 'bg-green-600 hover:bg-green-700 focus:ring-green-500'
+                            }`}
                         >
                             <Activity className="h-5 w-5 mr-2" />
                             Exportar Incidencias Más Viejas (Excel)
                         </button>
-                        <p className="text-xs text-gray-500 mt-2 text-center">
+                        <p className={`text-xs mt-2 text-center ${textSecondaryClass}`}>
                             Exporta las 10 incidencias más viejas sin resolver en formato Excel
                         </p>
                     </div>
@@ -938,39 +967,45 @@ const Dashboard = () => {
 
             {/* Modal para asignar técnico */}
             {showAssignModal && (
-                <div className="fixed inset-0 bg-gray-600 bg-opacity-50 overflow-y-auto h-full w-full z-50">
-                    <div className="relative top-20 mx-auto p-5 border w-96 shadow-lg rounded-md bg-white">
+                <div className={`fixed inset-0 overflow-y-auto h-full w-full z-50 ${isIronManTheme ? 'bg-black bg-opacity-70' : 'bg-gray-600 bg-opacity-50'}`}>
+                    <div className={`relative top-20 mx-auto p-5 border w-96 shadow-lg rounded-md ${
+                        isIronManTheme ? 'bg-[#0F172A] border-cyan-500/30 shadow-cyan-500/20' : 'bg-white'
+                    }`}>
                         <div className="mt-3">
                             <div className="flex items-center mb-4">
-                                <UserPlus className="h-6 w-6 text-blue-600 mr-2" />
-                                <h3 className="text-lg font-medium text-gray-900">
+                                <UserPlus className={`h-6 w-6 mr-2 ${isIronManTheme ? 'text-[#00E5FF]' : 'text-blue-600'}`} />
+                                <h3 className={`text-lg font-medium ${textPrimaryClass}`}>
                                     Asignar Técnico
                                 </h3>
                             </div>
-                            
-                            <div className="mb-4 p-3 bg-gray-50 rounded">
-                                <p className="text-sm text-gray-600">
-                                    <strong>Estación:</strong> {selectedIncidentForAssign?.station_code}
+
+                            <div className={`mb-4 p-3 rounded ${isIronManTheme ? 'bg-[#0B0F14] border border-cyan-500/10' : 'bg-gray-50'}`}>
+                                <p className={`text-sm ${textMutedClass}`}>
+                                    <strong className={textPrimaryClass}>Estación:</strong> {selectedIncidentForAssign?.station_code}
                                 </p>
-                                <p className="text-sm text-gray-600">
-                                    <strong>Sede:</strong> {selectedIncidentForAssign?.sede?.toUpperCase()} - {selectedIncidentForAssign?.departamento?.toUpperCase()}
+                                <p className={`text-sm ${textMutedClass}`}>
+                                    <strong className={textPrimaryClass}>Sede:</strong> {selectedIncidentForAssign?.sede?.toUpperCase()} - {selectedIncidentForAssign?.departamento?.toUpperCase()}
                                 </p>
-                                <p className="text-sm text-gray-600">
-                                    <strong>Tipo:</strong> {getFailureTypeLabel(selectedIncidentForAssign?.failure_type)}
+                                <p className={`text-sm ${textMutedClass}`}>
+                                    <strong className={textPrimaryClass}>Tipo:</strong> {getFailureTypeLabel(selectedIncidentForAssign?.failure_type)}
                                 </p>
-                                <p className="text-sm text-gray-600">
-                                    <strong>Descripción:</strong> {selectedIncidentForAssign?.description}
+                                <p className={`text-sm ${textMutedClass}`}>
+                                    <strong className={textPrimaryClass}>Descripción:</strong> {selectedIncidentForAssign?.description}
                                 </p>
                             </div>
 
                             <div className="mb-4">
-                                <label className="block text-sm font-medium text-gray-700 mb-2">
+                                <label className={`block text-sm font-medium mb-2 ${isIronManTheme ? 'text-[#E5E7EB]' : 'text-gray-700'}`}>
                                     Seleccionar Técnico *
                                 </label>
                                 <select
                                     value={selectedTechnician}
                                     onChange={(e) => setSelectedTechnician(e.target.value)}
-                                    className="w-full border border-gray-300 rounded-md px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                                    className={`w-full border rounded-md px-3 py-2 focus:outline-none focus:ring-2 ${
+                                        isIronManTheme
+                                            ? 'border-cyan-500/30 bg-[#0B0F14] text-[#E5E7EB] focus:ring-cyan-500/50 focus:border-cyan-500'
+                                            : 'border-gray-300 focus:ring-blue-500 focus:border-blue-500'
+                                    }`}
                                 >
                                     <option value="">Seleccionar técnico...</option>
                                     {technicians.map((tech) => (
@@ -984,7 +1019,11 @@ const Dashboard = () => {
                             <div className="flex justify-end space-x-3">
                                 <button
                                     onClick={() => setShowAssignModal(false)}
-                                    className="px-4 py-2 border border-gray-300 rounded-md text-sm font-medium text-gray-700 hover:bg-gray-50"
+                                    className={`px-4 py-2 border rounded-md text-sm font-medium ${
+                                        isIronManTheme
+                                            ? 'border-cyan-500/30 text-[#94A3B8] hover:bg-[#0B0F14]'
+                                            : 'border-gray-300 text-gray-700 hover:bg-gray-50'
+                                    }`}
                                     disabled={assignLoading}
                                 >
                                     Cancelar
@@ -992,7 +1031,11 @@ const Dashboard = () => {
                                 <button
                                     onClick={confirmAssignFromDashboard}
                                     disabled={assignLoading}
-                                    className="px-4 py-2 border border-transparent rounded-md text-sm font-medium text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 disabled:opacity-50"
+                                    className={`px-4 py-2 border border-transparent rounded-md text-sm font-medium text-white focus:outline-none focus:ring-2 focus:ring-offset-2 disabled:opacity-50 ${
+                                        isIronManTheme
+                                            ? 'bg-[#00E5FF] text-[#0B0F14] hover:bg-[#00B4D8] focus:ring-[#00E5FF]'
+                                            : 'bg-blue-600 hover:bg-blue-700 focus:ring-blue-500'
+                                    }`}
                                 >
                                     {assignLoading ? 'Asignando...' : 'Asignar'}
                                 </button>

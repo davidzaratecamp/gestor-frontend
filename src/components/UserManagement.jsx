@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { userService } from '../services/api';
+import { useAuth } from '../context/AuthContext';
 import { 
     Plus, 
     Search, 
@@ -17,6 +18,8 @@ import {
 } from 'lucide-react';
 
 const UserManagement = () => {
+    const { user } = useAuth();
+    const isIronManTheme = user?.username === 'davidlopez10';
     const [users, setUsers] = useState([]);
     const [filteredUsers, setFilteredUsers] = useState([]);
     const [loading, setLoading] = useState(true);
@@ -269,8 +272,8 @@ const UserManagement = () => {
         <div className="space-y-6">
             <div className="flex flex-col sm:flex-row sm:items-center justify-between space-y-4 sm:space-y-0">
                 <div className="flex-1">
-                    <h1 className="text-xl sm:text-2xl font-bold text-gray-900">Gestión de Usuarios</h1>
-                    <p className="text-sm sm:text-base text-gray-600 mt-1">
+                    <h1 className={`text-xl sm:text-2xl font-bold ${isIronManTheme ? 'text-[#E5E7EB] ironman-glow' : 'text-gray-900'}`}>Gestión de Usuarios</h1>
+                    <p className={`text-sm sm:text-base mt-1 ${isIronManTheme ? 'text-[#94A3B8]' : 'text-gray-600'}`}>
                         Administrar coordinadores y técnicos del sistema
                     </p>
                 </div>

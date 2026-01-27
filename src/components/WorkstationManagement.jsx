@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { workstationService, incidentService } from '../services/api';
+import { useAuth } from '../context/AuthContext';
 import { 
     Monitor, 
     Search, 
@@ -14,6 +15,8 @@ import {
 } from 'lucide-react';
 
 const WorkstationManagement = () => {
+    const { user } = useAuth();
+    const isIronManTheme = user?.username === 'davidlopez10';
     const [workstations, setWorkstations] = useState([]);
     const [filteredWorkstations, setFilteredWorkstations] = useState([]);
     const [incidentStats, setIncidentStats] = useState({});
@@ -319,8 +322,8 @@ const WorkstationManagement = () => {
         <div className="space-y-6">
             <div className="flex flex-col sm:flex-row sm:items-center justify-between space-y-4 sm:space-y-0">
                 <div className="flex-1">
-                    <h1 className="text-xl sm:text-2xl font-bold text-gray-900">Gestión de Estaciones</h1>
-                    <p className="text-sm sm:text-base text-gray-600 mt-1">
+                    <h1 className={`text-xl sm:text-2xl font-bold ${isIronManTheme ? 'text-[#E5E7EB] ironman-glow' : 'text-gray-900'}`}>Gestión de Estaciones</h1>
+                    <p className={`text-sm sm:text-base mt-1 ${isIronManTheme ? 'text-[#94A3B8]' : 'text-gray-600'}`}>
                         Monitoreo de estaciones de trabajo y análisis de fallas
                     </p>
                 </div>

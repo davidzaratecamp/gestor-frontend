@@ -22,6 +22,7 @@ import {
 
 const ReturnedIncidents = () => {
     const { user, isAdmin } = useAuth();
+    const isIronManTheme = user?.username === 'davidlopez10';
     const navigate = useNavigate();
     const [incidents, setIncidents] = useState([]);
     const [filteredIncidents, setFilteredIncidents] = useState([]);
@@ -205,29 +206,29 @@ const ReturnedIncidents = () => {
     if (loading) {
         return (
             <div className="flex justify-center items-center min-h-screen">
-                <div className="animate-spin rounded-full h-32 w-32 border-b-2 border-indigo-500"></div>
+                <div className={`animate-spin rounded-full h-32 w-32 border-b-2 ${isIronManTheme ? 'border-[#00E5FF]' : 'border-indigo-500'}`}></div>
             </div>
         );
     }
 
     return (
-        <div className="p-6 bg-white min-h-screen">
+        <div className={`p-6 min-h-screen ${isIronManTheme ? 'bg-[#0B0F14]' : 'bg-white'}`}>
             {/* Header */}
             <div className="flex items-center justify-between mb-6">
                 <div className="flex items-center space-x-3">
-                    <RotateCcw className="w-8 h-8 text-orange-600" />
+                    <RotateCcw className={`w-8 h-8 ${isIronManTheme ? 'text-[#FF6A00]' : 'text-orange-600'}`} />
                     <div>
-                        <h1 className="text-2xl font-bold text-gray-900">
+                        <h1 className={`text-2xl font-bold ${isIronManTheme ? 'text-[#E5E7EB] ironman-glow' : 'text-gray-900'}`}>
                             Incidencias Devueltas
                         </h1>
-                        <p className="text-gray-600">
+                        <p className={isIronManTheme ? 'text-[#94A3B8]' : 'text-gray-600'}>
                             Casos devueltos por los técnicos que requieren correcciones
                         </p>
                     </div>
                 </div>
                 <button
                     onClick={fetchReturnedIncidents}
-                    className="flex items-center space-x-2 bg-orange-600 text-white px-4 py-2 rounded-lg hover:bg-orange-700 transition duration-200"
+                    className={`flex items-center space-x-2 text-white px-4 py-2 rounded-lg transition duration-200 ${isIronManTheme ? 'bg-gradient-to-r from-[#E10600] to-[#FF6A00] hover:from-[#FF6A00] hover:to-[#E10600]' : 'bg-orange-600 hover:bg-orange-700'}`}
                 >
                     <RefreshCw className="w-4 h-4" />
                     <span>Actualizar</span>
@@ -235,7 +236,7 @@ const ReturnedIncidents = () => {
             </div>
 
             {/* Filtros */}
-            <div className="bg-gray-50 p-4 rounded-lg mb-6">
+            <div className={`p-4 rounded-lg mb-6 ${isIronManTheme ? 'bg-[#0F172A] border border-cyan-500/20' : 'bg-gray-50'}`}>
                 <div className="flex flex-col md:flex-row gap-4">
                     {/* Búsqueda */}
                     <div className="flex-1">
@@ -246,7 +247,7 @@ const ReturnedIncidents = () => {
                                 placeholder="Buscar por código, descripción o motivo de devolución..."
                                 value={searchTerm}
                                 onChange={(e) => setSearchTerm(e.target.value)}
-                                className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-transparent"
+                                className={`w-full pl-10 pr-4 py-2 border rounded-lg focus:ring-2 focus:border-transparent ${isIronManTheme ? 'border-cyan-500/30 bg-[#0B0F14] text-[#E5E7EB] focus:ring-cyan-500/50' : 'border-gray-300 focus:ring-orange-500'}`}
                             />
                         </div>
                     </div>
@@ -255,7 +256,7 @@ const ReturnedIncidents = () => {
                     <select
                         value={typeFilter}
                         onChange={(e) => setTypeFilter(e.target.value)}
-                        className="px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-orange-500"
+                        className={`px-4 py-2 border rounded-lg focus:ring-2 ${isIronManTheme ? 'border-cyan-500/30 bg-[#0B0F14] text-[#E5E7EB] focus:ring-cyan-500/50' : 'border-gray-300 focus:ring-orange-500'}`}
                     >
                         <option value="all">Todos los tipos</option>
                         <option value="pantalla">Pantalla</option>
@@ -269,35 +270,35 @@ const ReturnedIncidents = () => {
 
             {/* Estadísticas */}
             <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
-                <div className="bg-orange-50 p-4 rounded-lg border border-orange-200">
+                <div className={`p-4 rounded-lg border ${isIronManTheme ? 'bg-orange-500/10 border-orange-500/30' : 'bg-orange-50 border-orange-200'}`}>
                     <div className="flex items-center justify-between">
                         <div>
-                            <p className="text-orange-600 font-medium">Total Devueltas</p>
-                            <p className="text-2xl font-bold text-orange-800">{incidents.length}</p>
+                            <p className={`font-medium ${isIronManTheme ? 'text-[#FF6A00]' : 'text-orange-600'}`}>Total Devueltas</p>
+                            <p className={`text-2xl font-bold ${isIronManTheme ? 'text-[#FF6A00]' : 'text-orange-800'}`}>{incidents.length}</p>
                         </div>
-                        <RotateCcw className="w-8 h-8 text-orange-600" />
+                        <RotateCcw className={`w-8 h-8 ${isIronManTheme ? 'text-[#FF6A00]' : 'text-orange-600'}`} />
                     </div>
                 </div>
 
-                <div className="bg-yellow-50 p-4 rounded-lg border border-yellow-200">
+                <div className={`p-4 rounded-lg border ${isIronManTheme ? 'bg-red-500/10 border-red-500/30' : 'bg-yellow-50 border-yellow-200'}`}>
                     <div className="flex items-center justify-between">
                         <div>
-                            <p className="text-yellow-600 font-medium">Reincidencias</p>
-                            <p className="text-2xl font-bold text-yellow-800">
+                            <p className={`font-medium ${isIronManTheme ? 'text-[#E10600]' : 'text-yellow-600'}`}>Reincidencias</p>
+                            <p className={`text-2xl font-bold ${isIronManTheme ? 'text-[#E10600]' : 'text-yellow-800'}`}>
                                 {incidents.filter(i => i.return_count > 1).length}
                             </p>
                         </div>
-                        <AlertCircle className="w-8 h-8 text-yellow-600" />
+                        <AlertCircle className={`w-8 h-8 ${isIronManTheme ? 'text-[#E10600]' : 'text-yellow-600'}`} />
                     </div>
                 </div>
 
-                <div className="bg-blue-50 p-4 rounded-lg border border-blue-200">
+                <div className={`p-4 rounded-lg border ${isIronManTheme ? 'bg-cyan-500/10 border-cyan-500/30' : 'bg-blue-50 border-blue-200'}`}>
                     <div className="flex items-center justify-between">
                         <div>
-                            <p className="text-blue-600 font-medium">Filtradas</p>
-                            <p className="text-2xl font-bold text-blue-800">{filteredIncidents.length}</p>
+                            <p className={`font-medium ${isIronManTheme ? 'text-[#00E5FF]' : 'text-blue-600'}`}>Filtradas</p>
+                            <p className={`text-2xl font-bold ${isIronManTheme ? 'text-[#00E5FF]' : 'text-blue-800'}`}>{filteredIncidents.length}</p>
                         </div>
-                        <Search className="w-8 h-8 text-blue-600" />
+                        <Search className={`w-8 h-8 ${isIronManTheme ? 'text-[#00E5FF]' : 'text-blue-600'}`} />
                     </div>
                 </div>
             </div>
@@ -305,11 +306,11 @@ const ReturnedIncidents = () => {
             {/* Lista de incidencias */}
             {filteredIncidents.length === 0 ? (
                 <div className="text-center py-12">
-                    <RotateCcw className="w-16 h-16 text-gray-300 mx-auto mb-4" />
-                    <h3 className="text-lg font-medium text-gray-900 mb-2">
+                    <RotateCcw className={`w-16 h-16 mx-auto mb-4 ${isIronManTheme ? 'text-[#94A3B8]' : 'text-gray-300'}`} />
+                    <h3 className={`text-lg font-medium mb-2 ${isIronManTheme ? 'text-[#E5E7EB]' : 'text-gray-900'}`}>
                         No hay incidencias devueltas
                     </h3>
-                    <p className="text-gray-500">
+                    <p className={isIronManTheme ? 'text-[#94A3B8]' : 'text-gray-500'}>
                         {incidents.length === 0 
                             ? "No tienes incidencias devueltas en este momento."
                             : "No se encontraron incidencias que coincidan con los filtros."
@@ -321,14 +322,14 @@ const ReturnedIncidents = () => {
                     {filteredIncidents.map((incident) => (
                         <div
                             key={incident.id}
-                            className="bg-white border border-orange-200 rounded-lg p-4 shadow-sm hover:shadow-md transition duration-200 cursor-pointer"
+                            className={`rounded-lg p-4 shadow-sm hover:shadow-md transition duration-200 cursor-pointer ${isIronManTheme ? 'bg-[#0F172A] border border-cyan-500/20' : 'bg-white border border-orange-200'}`}
                             onClick={() => handleViewDetails(incident)}
                         >
                             <div className="flex items-center justify-between">
                                 <div className="flex items-center space-x-4">
                                     {/* Badges */}
                                     <div className="flex items-center space-x-2">
-                                        <span className="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-orange-100 text-orange-800">
+                                        <span className={`inline-flex items-center px-2 py-1 rounded-full text-xs font-medium ${isIronManTheme ? 'bg-orange-500/20 text-[#FF6A00]' : 'bg-orange-100 text-orange-800'}`}>
                                             <RotateCcw className="w-3 h-3 mr-1" />
                                             Devuelto
                                         </span>
@@ -346,12 +347,12 @@ const ReturnedIncidents = () => {
 
                                     {/* Información básica */}
                                     <div className="flex items-center space-x-4">
-                                        <div className="flex items-center text-sm text-gray-600">
+                                        <div className={`flex items-center text-sm ${isIronManTheme ? 'text-[#E5E7EB]' : 'text-gray-600'}`}>
                                             <Monitor className="w-4 h-4 mr-1" />
                                             <span className="font-mono font-medium">{incident.station_code}</span>
                                         </div>
-                                        
-                                        <div className="flex items-center text-sm text-gray-500">
+
+                                        <div className={`flex items-center text-sm ${isIronManTheme ? 'text-[#94A3B8]' : 'text-gray-500'}`}>
                                             <Clock className="w-4 h-4 mr-1" />
                                             <span>{formatDateTime(incident.returned_at)}</span>
                                         </div>
@@ -365,7 +366,7 @@ const ReturnedIncidents = () => {
                                             e.stopPropagation();
                                             handleViewDetails(incident);
                                         }}
-                                        className="flex items-center space-x-1 text-blue-600 hover:text-blue-700 px-2 py-1 rounded transition duration-200"
+                                        className={`flex items-center space-x-1 px-2 py-1 rounded transition duration-200 ${isIronManTheme ? 'text-[#00E5FF] hover:text-[#00B4D8]' : 'text-blue-600 hover:text-blue-700'}`}
                                     >
                                         <Eye className="w-4 h-4" />
                                         <span className="text-sm">Ver</span>
@@ -377,7 +378,7 @@ const ReturnedIncidents = () => {
                                                 e.stopPropagation();
                                                 handleCorrectIncident(incident);
                                             }}
-                                            className="flex items-center space-x-1 bg-orange-600 text-white px-3 py-1 rounded hover:bg-orange-700 transition duration-200"
+                                            className={`flex items-center space-x-1 text-white px-3 py-1 rounded transition duration-200 ${isIronManTheme ? 'bg-gradient-to-r from-[#E10600] to-[#FF6A00] hover:from-[#FF6A00] hover:to-[#E10600]' : 'bg-orange-600 hover:bg-orange-700'}`}
                                         >
                                             <Edit className="w-4 h-4" />
                                             <span className="text-sm">Corregir</span>
@@ -388,7 +389,7 @@ const ReturnedIncidents = () => {
 
                             {/* Descripción truncada */}
                             <div className="mt-2">
-                                <p className="text-sm text-gray-600 line-clamp-1">
+                                <p className={`text-sm line-clamp-1 ${isIronManTheme ? 'text-[#94A3B8]' : 'text-gray-600'}`}>
                                     {incident.description}
                                 </p>
                             </div>
@@ -399,16 +400,16 @@ const ReturnedIncidents = () => {
 
             {/* Modal de detalles */}
             {showModal && selectedIncident && (
-                <div className="fixed inset-0 bg-gray-600 bg-opacity-50 overflow-y-auto h-full w-full z-50 flex items-center justify-center p-4">
-                    <div className="bg-white rounded-lg max-w-2xl w-full max-h-[90vh] overflow-y-auto shadow-xl">
-                        <div className="flex items-center justify-between p-6 border-b border-gray-200">
-                            <h3 className="text-lg font-semibold text-gray-900 flex items-center">
-                                <RotateCcw className="w-5 h-5 mr-2 text-orange-600" />
+                <div className={`fixed inset-0 overflow-y-auto h-full w-full z-50 flex items-center justify-center p-4 ${isIronManTheme ? 'bg-black bg-opacity-70' : 'bg-gray-600 bg-opacity-50'}`}>
+                    <div className={`rounded-lg max-w-2xl w-full max-h-[90vh] overflow-y-auto shadow-xl ${isIronManTheme ? 'bg-[#0F172A] border border-cyan-500/30' : 'bg-white'}`}>
+                        <div className={`flex items-center justify-between p-6 border-b ${isIronManTheme ? 'border-cyan-500/20' : 'border-gray-200'}`}>
+                            <h3 className={`text-lg font-semibold flex items-center ${isIronManTheme ? 'text-[#E5E7EB]' : 'text-gray-900'}`}>
+                                <RotateCcw className={`w-5 h-5 mr-2 ${isIronManTheme ? 'text-[#FF6A00]' : 'text-orange-600'}`} />
                                 Detalles de Incidencia Devuelta
                             </h3>
                             <button
                                 onClick={closeModal}
-                                className="text-gray-400 hover:text-gray-600 transition duration-200"
+                                className={`transition duration-200 ${isIronManTheme ? 'text-[#94A3B8] hover:text-[#E5E7EB]' : 'text-gray-400 hover:text-gray-600'}`}
                             >
                                 <X className="w-6 h-6" />
                             </button>
@@ -437,28 +438,28 @@ const ReturnedIncidents = () => {
                             <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6">
                                 <div className="space-y-3">
                                     <div className="flex items-center text-sm">
-                                        <Monitor className="w-4 h-4 mr-2 text-gray-400" />
-                                        <span className="font-medium text-gray-700">Estación:</span>
+                                        <Monitor className={`w-4 h-4 mr-2 ${isIronManTheme ? 'text-[#00E5FF]' : 'text-gray-400'}`} />
+                                        <span className={`font-medium ${isIronManTheme ? 'text-[#E5E7EB]' : 'text-gray-700'}`}>Estación:</span>
                                         <span className="ml-2 font-mono">{selectedIncident.station_code}</span>
                                     </div>
-                                    
+
                                     <div className="flex items-center text-sm">
-                                        <User className="w-4 h-4 mr-2 text-gray-400" />
-                                        <span className="font-medium text-gray-700">Devuelto por:</span>
+                                        <User className={`w-4 h-4 mr-2 ${isIronManTheme ? 'text-[#00E5FF]' : 'text-gray-400'}`} />
+                                        <span className={`font-medium ${isIronManTheme ? 'text-[#E5E7EB]' : 'text-gray-700'}`}>Devuelto por:</span>
                                         <span className="ml-2">{selectedIncident.returned_by_name}</span>
                                     </div>
                                 </div>
 
                                 <div className="space-y-3">
                                     <div className="flex items-center text-sm">
-                                        <Calendar className="w-4 h-4 mr-2 text-gray-400" />
-                                        <span className="font-medium text-gray-700">Creado:</span>
+                                        <Calendar className={`w-4 h-4 mr-2 ${isIronManTheme ? 'text-[#00E5FF]' : 'text-gray-400'}`} />
+                                        <span className={`font-medium ${isIronManTheme ? 'text-[#E5E7EB]' : 'text-gray-700'}`}>Creado:</span>
                                         <span className="ml-2">{formatDateTime(selectedIncident.created_at)}</span>
                                     </div>
-                                    
+
                                     <div className="flex items-center text-sm">
-                                        <Clock className="w-4 h-4 mr-2 text-gray-400" />
-                                        <span className="font-medium text-gray-700">Devuelto:</span>
+                                        <Clock className={`w-4 h-4 mr-2 ${isIronManTheme ? 'text-[#00E5FF]' : 'text-gray-400'}`} />
+                                        <span className={`font-medium ${isIronManTheme ? 'text-[#E5E7EB]' : 'text-gray-700'}`}>Devuelto:</span>
                                         <span className="ml-2">{formatDateTime(selectedIncident.returned_at)}</span>
                                     </div>
                                 </div>
@@ -467,24 +468,24 @@ const ReturnedIncidents = () => {
                             {/* Descripción */}
                             <div className="mb-6">
                                 <div className="flex items-start">
-                                    <FileText className="w-4 h-4 mr-2 mt-0.5 text-gray-400" />
+                                    <FileText className={`w-4 h-4 mr-2 mt-0.5 ${isIronManTheme ? 'text-[#00E5FF]' : 'text-gray-400'}`} />
                                     <div className="flex-1">
-                                        <span className="text-sm font-medium text-gray-700">Descripción del problema:</span>
-                                        <p className="text-sm text-gray-600 mt-1 bg-gray-50 p-3 rounded-md">{selectedIncident.description}</p>
+                                        <span className={`text-sm font-medium ${isIronManTheme ? 'text-[#E5E7EB]' : 'text-gray-700'}`}>Descripción del problema:</span>
+                                        <p className={`text-sm mt-1 p-3 rounded-md ${isIronManTheme ? 'text-[#94A3B8] bg-[#0B0F14]' : 'text-gray-600 bg-gray-50'}`}>{selectedIncident.description}</p>
                                     </div>
                                 </div>
                             </div>
 
                             {/* Motivo de devolución */}
                             <div className="mb-6">
-                                <div className="bg-orange-50 p-4 rounded-lg border border-orange-200">
+                                <div className={`p-4 rounded-lg border ${isIronManTheme ? 'bg-orange-500/10 border-orange-500/30' : 'bg-orange-50 border-orange-200'}`}>
                                     <div className="flex items-start">
-                                        <MessageCircle className="w-5 h-5 mr-2 mt-0.5 text-orange-600" />
+                                        <MessageCircle className={`w-5 h-5 mr-2 mt-0.5 ${isIronManTheme ? 'text-[#FF6A00]' : 'text-orange-600'}`} />
                                         <div className="flex-1">
-                                            <span className="text-sm font-medium text-orange-800">
+                                            <span className={`text-sm font-medium ${isIronManTheme ? 'text-[#FF6A00]' : 'text-orange-800'}`}>
                                                 Motivo de devolución:
                                             </span>
-                                            <p className="text-sm text-orange-700 mt-2">{selectedIncident.return_reason}</p>
+                                            <p className={`text-sm mt-2 ${isIronManTheme ? 'text-[#FF6A00]' : 'text-orange-700'}`}>{selectedIncident.return_reason}</p>
                                         </div>
                                     </div>
                                 </div>
@@ -493,8 +494,8 @@ const ReturnedIncidents = () => {
                             {/* Información adicional para Barranquilla */}
                             {selectedIncident.sede === 'barranquilla' && (selectedIncident.anydesk_address || selectedIncident.advisor_cedula) && (
                                 <div className="mb-6">
-                                    <h4 className="text-sm font-medium text-gray-700 mb-3">Información de trabajo remoto:</h4>
-                                    <div className="bg-blue-50 p-3 rounded-lg border border-blue-200">
+                                    <h4 className={`text-sm font-medium mb-3 ${isIronManTheme ? 'text-[#E5E7EB]' : 'text-gray-700'}`}>Información de trabajo remoto:</h4>
+                                    <div className={`p-3 rounded-lg border ${isIronManTheme ? 'bg-cyan-500/10 border-cyan-500/30' : 'bg-blue-50 border-blue-200'}`}>
                                         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                                             {selectedIncident.anydesk_address && (
                                                 <div className="text-sm">
@@ -514,10 +515,10 @@ const ReturnedIncidents = () => {
                             )}
 
                             {/* Acciones del modal */}
-                            <div className="flex justify-end space-x-3 pt-4 border-t border-gray-200">
+                            <div className={`flex justify-end space-x-3 pt-4 border-t ${isIronManTheme ? 'border-cyan-500/20' : 'border-gray-200'}`}>
                                 <button
                                     onClick={closeModal}
-                                    className="px-4 py-2 text-sm font-medium text-gray-700 bg-gray-100 border border-gray-300 rounded-md hover:bg-gray-200 transition duration-200"
+                                    className={`px-4 py-2 text-sm font-medium rounded-md hover:bg-gray-200 transition duration-200 ${isIronManTheme ? 'text-[#94A3B8] bg-[#0B0F14] border border-cyan-500/30' : 'text-gray-700 bg-gray-100 border border-gray-300'}`}
                                 >
                                     Cerrar
                                 </button>
@@ -527,7 +528,7 @@ const ReturnedIncidents = () => {
                                             closeModal();
                                             handleCorrectIncident(selectedIncident);
                                         }}
-                                        className="flex items-center space-x-2 px-4 py-2 text-sm font-medium text-white bg-orange-600 border border-transparent rounded-md hover:bg-orange-700 transition duration-200"
+                                        className={`flex items-center space-x-2 px-4 py-2 text-sm font-medium text-white border border-transparent rounded-md transition duration-200 ${isIronManTheme ? 'bg-gradient-to-r from-[#E10600] to-[#FF6A00] hover:from-[#FF6A00] hover:to-[#E10600]' : 'bg-orange-600 hover:bg-orange-700'}`}
                                     >
                                         <Edit className="w-4 h-4" />
                                         <span>Corregir Incidencia</span>
@@ -541,16 +542,16 @@ const ReturnedIncidents = () => {
 
             {/* Modal de corrección */}
             {showCorrectionModal && selectedIncident && (
-                <div className="fixed inset-0 bg-gray-600 bg-opacity-50 overflow-y-auto h-full w-full z-50 flex items-center justify-center p-4">
-                    <div className="bg-white rounded-lg max-w-2xl w-full max-h-[90vh] overflow-y-auto shadow-xl">
-                        <div className="flex items-center justify-between p-6 border-b border-gray-200">
-                            <h3 className="text-lg font-semibold text-gray-900 flex items-center">
-                                <Edit className="w-5 h-5 mr-2 text-orange-600" />
+                <div className={`fixed inset-0 overflow-y-auto h-full w-full z-50 flex items-center justify-center p-4 ${isIronManTheme ? 'bg-black bg-opacity-70' : 'bg-gray-600 bg-opacity-50'}`}>
+                    <div className={`rounded-lg max-w-2xl w-full max-h-[90vh] overflow-y-auto shadow-xl ${isIronManTheme ? 'bg-[#0F172A] border border-cyan-500/30' : 'bg-white'}`}>
+                        <div className={`flex items-center justify-between p-6 border-b ${isIronManTheme ? 'border-cyan-500/20' : 'border-gray-200'}`}>
+                            <h3 className={`text-lg font-semibold flex items-center ${isIronManTheme ? 'text-[#E5E7EB]' : 'text-gray-900'}`}>
+                                <Edit className={`w-5 h-5 mr-2 ${isIronManTheme ? 'text-[#FF6A00]' : 'text-orange-600'}`} />
                                 Corregir Incidencia Devuelta
                             </h3>
                             <button
                                 onClick={closeCorrectionModal}
-                                className="text-gray-400 hover:text-gray-600 transition duration-200"
+                                className={`transition duration-200 ${isIronManTheme ? 'text-[#94A3B8] hover:text-[#E5E7EB]' : 'text-gray-400 hover:text-gray-600'}`}
                                 disabled={correctionLoading}
                             >
                                 <X className="w-6 h-6" />
@@ -559,12 +560,12 @@ const ReturnedIncidents = () => {
 
                         <div className="p-6">
                             {/* Información de la incidencia */}
-                            <div className="mb-6 p-4 bg-orange-50 border border-orange-200 rounded-lg">
+                            <div className={`mb-6 p-4 rounded-lg border ${isIronManTheme ? 'bg-orange-500/10 border-orange-500/30' : 'bg-orange-50 border-orange-200'}`}>
                                 <div className="flex items-start">
-                                    <AlertCircle className="w-5 h-5 mr-2 mt-0.5 text-orange-600" />
+                                    <AlertCircle className={`w-5 h-5 mr-2 mt-0.5 ${isIronManTheme ? 'text-[#FF6A00]' : 'text-orange-600'}`} />
                                     <div>
-                                        <h4 className="text-sm font-medium text-orange-800">Motivo de devolución:</h4>
-                                        <p className="text-sm text-orange-700 mt-1">{selectedIncident.return_reason}</p>
+                                        <h4 className={`text-sm font-medium ${isIronManTheme ? 'text-[#FF6A00]' : 'text-orange-800'}`}>Motivo de devolución:</h4>
+                                        <p className={`text-sm mt-1 ${isIronManTheme ? 'text-[#FF6A00]' : 'text-orange-700'}`}>{selectedIncident.return_reason}</p>
                                     </div>
                                 </div>
                             </div>
@@ -573,14 +574,14 @@ const ReturnedIncidents = () => {
                             <div className="space-y-4">
                                 {/* Descripción */}
                                 <div>
-                                    <label className="block text-sm font-medium text-gray-700 mb-1">
+                                    <label className={`block text-sm font-medium mb-1 ${isIronManTheme ? 'text-[#E5E7EB]' : 'text-gray-700'}`}>
                                         Descripción del problema
                                     </label>
                                     <textarea
                                         value={description}
                                         onChange={(e) => setDescription(e.target.value)}
                                         placeholder="Describe detalladamente el problema..."
-                                        className="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-orange-500 focus:border-transparent"
+                                        className={`w-full px-3 py-2 border rounded-md focus:ring-2 focus:border-transparent ${isIronManTheme ? 'border-cyan-500/30 bg-[#0B0F14] text-[#E5E7EB] focus:ring-cyan-500/50' : 'border-gray-300 focus:ring-orange-500'}`}
                                         rows="3"
                                         disabled={correctionLoading}
                                     />
@@ -588,13 +589,13 @@ const ReturnedIncidents = () => {
 
                                 {/* Tipo de falla */}
                                 <div>
-                                    <label className="block text-sm font-medium text-gray-700 mb-1">
+                                    <label className={`block text-sm font-medium mb-1 ${isIronManTheme ? 'text-[#E5E7EB]' : 'text-gray-700'}`}>
                                         Tipo de falla
                                     </label>
                                     <select
                                         value={failureType}
                                         onChange={(e) => setFailureType(e.target.value)}
-                                        className="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-orange-500"
+                                        className={`w-full px-3 py-2 border rounded-md focus:ring-2 ${isIronManTheme ? 'border-cyan-500/30 bg-[#0B0F14] text-[#E5E7EB] focus:ring-cyan-500/50' : 'border-gray-300 focus:ring-orange-500'}`}
                                         disabled={correctionLoading}
                                     >
                                         <option value="">Seleccionar tipo</option>
@@ -608,7 +609,7 @@ const ReturnedIncidents = () => {
 
                                 {/* Número de puesto */}
                                 <div>
-                                    <label className="block text-sm font-medium text-gray-700 mb-1">
+                                    <label className={`block text-sm font-medium mb-1 ${isIronManTheme ? 'text-[#E5E7EB]' : 'text-gray-700'}`}>
                                         Número de puesto
                                     </label>
                                     <input
@@ -618,7 +619,7 @@ const ReturnedIncidents = () => {
                                         placeholder="Ej: 45"
                                         min="1"
                                         max="300"
-                                        className="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-orange-500"
+                                        className={`w-full px-3 py-2 border rounded-md focus:ring-2 ${isIronManTheme ? 'border-cyan-500/30 bg-[#0B0F14] text-[#E5E7EB] focus:ring-cyan-500/50' : 'border-gray-300 focus:ring-orange-500'}`}
                                         disabled={correctionLoading}
                                     />
                                 </div>
@@ -627,7 +628,7 @@ const ReturnedIncidents = () => {
                                 {selectedIncident.sede === 'barranquilla' && (
                                     <>
                                         <div>
-                                            <label className="block text-sm font-medium text-gray-700 mb-1">
+                                            <label className={`block text-sm font-medium mb-1 ${isIronManTheme ? 'text-[#E5E7EB]' : 'text-gray-700'}`}>
                                                 Dirección AnyDesk
                                             </label>
                                             <input
@@ -635,13 +636,13 @@ const ReturnedIncidents = () => {
                                                 value={anydeskAddress}
                                                 onChange={(e) => setAnydeskAddress(e.target.value)}
                                                 placeholder="Ej: 123456789"
-                                                className="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-orange-500"
+                                                className={`w-full px-3 py-2 border rounded-md focus:ring-2 ${isIronManTheme ? 'border-cyan-500/30 bg-[#0B0F14] text-[#E5E7EB] focus:ring-cyan-500/50' : 'border-gray-300 focus:ring-orange-500'}`}
                                                 disabled={correctionLoading}
                                             />
                                         </div>
 
                                         <div>
-                                            <label className="block text-sm font-medium text-gray-700 mb-1">
+                                            <label className={`block text-sm font-medium mb-1 ${isIronManTheme ? 'text-[#E5E7EB]' : 'text-gray-700'}`}>
                                                 Cédula del asesor
                                             </label>
                                             <input
@@ -649,7 +650,7 @@ const ReturnedIncidents = () => {
                                                 value={advisorCedula}
                                                 onChange={(e) => setAdvisorCedula(e.target.value)}
                                                 placeholder="Ej: 1234567890"
-                                                className="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-orange-500"
+                                                className={`w-full px-3 py-2 border rounded-md focus:ring-2 ${isIronManTheme ? 'border-cyan-500/30 bg-[#0B0F14] text-[#E5E7EB] focus:ring-cyan-500/50' : 'border-gray-300 focus:ring-orange-500'}`}
                                                 disabled={correctionLoading}
                                             />
                                         </div>
@@ -658,18 +659,18 @@ const ReturnedIncidents = () => {
                             </div>
 
                             {/* Acciones del modal */}
-                            <div className="flex justify-end space-x-3 pt-6 border-t border-gray-200 mt-6">
+                            <div className={`flex justify-end space-x-3 pt-6 border-t mt-6 ${isIronManTheme ? 'border-cyan-500/20' : 'border-gray-200'}`}>
                                 <button
                                     onClick={closeCorrectionModal}
                                     disabled={correctionLoading}
-                                    className="px-4 py-2 text-sm font-medium text-gray-700 bg-gray-100 border border-gray-300 rounded-md hover:bg-gray-200 transition duration-200 disabled:opacity-50"
+                                    className={`px-4 py-2 text-sm font-medium rounded-md hover:bg-gray-200 transition duration-200 disabled:opacity-50 ${isIronManTheme ? 'text-[#94A3B8] bg-[#0B0F14] border border-cyan-500/30' : 'text-gray-700 bg-gray-100 border border-gray-300'}`}
                                 >
                                     Cancelar
                                 </button>
                                 <button
                                     onClick={handleSubmitCorrection}
                                     disabled={correctionLoading}
-                                    className="flex items-center space-x-2 px-4 py-2 text-sm font-medium text-white bg-orange-600 border border-transparent rounded-md hover:bg-orange-700 transition duration-200 disabled:opacity-50"
+                                    className={`flex items-center space-x-2 px-4 py-2 text-sm font-medium text-white border border-transparent rounded-md transition duration-200 disabled:opacity-50 ${isIronManTheme ? 'bg-gradient-to-r from-[#E10600] to-[#FF6A00] hover:from-[#FF6A00] hover:to-[#E10600]' : 'bg-orange-600 hover:bg-orange-700'}`}
                                 >
                                     {correctionLoading ? (
                                         <>

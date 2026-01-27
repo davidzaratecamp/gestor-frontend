@@ -23,7 +23,8 @@ import {
 import StarRating from '../StarRating';
 
 const ApprovedIncidents = () => {
-    const { isAdmin } = useAuth();
+    const { user, isAdmin } = useAuth();
+    const isIronManTheme = user?.username === 'davidlopez10';
     const location = useLocation();
     const navigate = useNavigate();
     const [incidents, setIncidents] = useState([]);
@@ -491,10 +492,10 @@ const ApprovedIncidents = () => {
                             </button>
                         )}
                         <div>
-                            <h1 className="text-xl sm:text-2xl font-bold text-gray-900">
+                            <h1 className={`text-xl sm:text-2xl font-bold ${isIronManTheme ? 'text-[#E5E7EB] ironman-glow' : 'text-gray-900'}`}>
                                 Historial de Incidencias Aprobadas{getFilterDisplayText()}
                             </h1>
-                            <p className="text-sm sm:text-base text-gray-600 mt-1">
+                            <p className={`text-sm sm:text-base mt-1 ${isIronManTheme ? 'text-[#94A3B8]' : 'text-gray-600'}`}>
                                 Registro completo de todas las incidencias resueltas y aprobadas
                             </p>
                         </div>

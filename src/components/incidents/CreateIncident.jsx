@@ -7,6 +7,7 @@ import { AlertTriangle, Save, ArrowLeft, Monitor, Upload, X, FileImage, FileText
 const CreateIncident = () => {
     const navigate = useNavigate();
     const { user, isAdministrativo, isJefeOperaciones } = useAuth();
+    const isIronManTheme = user?.username === 'davidlopez10';
     const [formData, setFormData] = useState({
         sede: user?.sede || 'bogota',
         // Solo pre-seleccionar departamento para no-admins y no-administrativos, jefes de operaciones usan su departamento
@@ -334,35 +335,35 @@ const CreateIncident = () => {
     };
 
     return (
-        <div className="max-w-2xl mx-auto px-4 sm:px-0">
+        <div className={`max-w-2xl mx-auto px-4 sm:px-0 ${isIronManTheme ? 'bg-[#0B0F14] p-6 rounded-xl' : ''}`}>
             <div className="mb-4 sm:mb-6">
                 <button
                     onClick={() => navigate(-1)}
-                    className="flex items-center text-gray-600 hover:text-gray-900 mb-4"
+                    className={`flex items-center mb-4 ${isIronManTheme ? 'text-[#94A3B8] hover:text-[#00E5FF]' : 'text-gray-600 hover:text-gray-900'}`}
                 >
                     <ArrowLeft className="h-5 w-5 mr-1" />
                     Volver
                 </button>
                 
                 <div className="flex items-start sm:items-center">
-                    <AlertTriangle className="h-6 w-6 sm:h-8 sm:w-8 text-orange-500 mr-3 mt-1 sm:mt-0 flex-shrink-0" />
+                    <AlertTriangle className={`h-6 w-6 sm:h-8 sm:w-8 mr-3 mt-1 sm:mt-0 flex-shrink-0 ${isIronManTheme ? 'text-[#FF6A00]' : 'text-orange-500'}`} />
                     <div>
-                        <h1 className="text-xl sm:text-2xl font-bold text-gray-900">Reportar Nueva Incidencia</h1>
-                        <p className="text-sm sm:text-base text-gray-600 mt-1">Registra una nueva falla técnica en el sistema</p>
+                        <h1 className={`text-xl sm:text-2xl font-bold ${isIronManTheme ? 'text-[#E5E7EB] ironman-glow' : 'text-gray-900'}`}>{isIronManTheme ? 'Nuevo Reporte de Incidencia' : 'Reportar Nueva Incidencia'}</h1>
+                        <p className={`text-sm sm:text-base mt-1 ${isIronManTheme ? 'text-[#94A3B8]' : 'text-gray-600'}`}>Registra una nueva falla técnica en el sistema</p>
                     </div>
                 </div>
             </div>
 
-            <div className="bg-white shadow-lg rounded-lg p-4 sm:p-6">
+            <div className={`shadow-lg rounded-lg p-4 sm:p-6 ${isIronManTheme ? 'bg-[#0F172A] border border-cyan-500/20 shadow-cyan-500/10' : 'bg-white'}`}>
                 {error && (
-                    <div className="mb-4 bg-red-50 border border-red-200 rounded-md p-3">
-                        <p className="text-sm text-red-700">{error}</p>
+                    <div className={`mb-4 rounded-md p-3 ${isIronManTheme ? 'bg-red-500/10 border border-red-500/30' : 'bg-red-50 border border-red-200'}`}>
+                        <p className={`text-sm ${isIronManTheme ? 'text-[#E10600]' : 'text-red-700'}`}>{error}</p>
                     </div>
                 )}
 
                 {success && (
-                    <div className="mb-4 bg-green-50 border border-green-200 rounded-md p-3">
-                        <p className="text-sm text-green-700">{success}</p>
+                    <div className={`mb-4 rounded-md p-3 ${isIronManTheme ? 'bg-cyan-500/10 border border-cyan-500/30' : 'bg-green-50 border border-green-200'}`}>
+                        <p className={`text-sm ${isIronManTheme ? 'text-[#00E5FF]' : 'text-green-700'}`}>{success}</p>
                     </div>
                 )}
 
@@ -370,7 +371,7 @@ const CreateIncident = () => {
                     {/* Sede (solo visible para admin) */}
                     {user?.role === 'admin' && (
                         <div>
-                            <label htmlFor="sede" className="block text-sm font-medium text-gray-700 mb-2">
+                            <label htmlFor="sede" className={`block text-sm font-medium mb-2 ${isIronManTheme ? 'text-[#E5E7EB]' : 'text-gray-700'}`}>
                                 Sede *
                             </label>
                             <select
@@ -379,7 +380,7 @@ const CreateIncident = () => {
                                 required
                                 value={formData.sede}
                                 onChange={handleChange}
-                                className="w-full border border-gray-300 rounded-md px-3 py-3 sm:py-2 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-base sm:text-sm"
+                                className={`w-full border rounded-md px-3 py-3 sm:py-2 focus:outline-none focus:ring-2 text-base sm:text-sm ${isIronManTheme ? 'border-cyan-500/30 bg-[#0B0F14] text-[#E5E7EB] focus:ring-cyan-500/50 focus:border-cyan-500' : 'border-gray-300 focus:ring-blue-500 focus:border-blue-500'}`}
                             >
                                 {sedes.map((sede) => (
                                     <option key={sede.value} value={sede.value}>
@@ -393,10 +394,10 @@ const CreateIncident = () => {
                     {/* Mostrar sede actual para coordinadores y jefes de operaciones */}
                     {(user?.role === 'coordinador' || user?.role === 'jefe_operaciones') && (
                         <div>
-                            <label className="block text-sm font-medium text-gray-700 mb-2">
+                            <label className={`block text-sm font-medium mb-2 ${isIronManTheme ? 'text-[#E5E7EB]' : 'text-gray-700'}`}>
                                 Sede
                             </label>
-                            <div className="w-full border border-gray-200 rounded-md px-3 py-3 sm:py-2 bg-gray-50 text-gray-700">
+                            <div className={`w-full border rounded-md px-3 py-3 sm:py-2 ${isIronManTheme ? 'bg-[#0B0F14] text-[#E5E7EB] border-cyan-500/20' : 'bg-gray-50 text-gray-700 border-gray-200'}`}>
                                 {sedes.find(s => s.value === formData.sede)?.label || formData.sede}
                             </div>
                         </div>
@@ -404,7 +405,7 @@ const CreateIncident = () => {
 
                     {/* Departamento */}
                     <div>
-                        <label htmlFor="departamento" className="block text-sm font-medium text-gray-700 mb-2">
+                        <label htmlFor="departamento" className={`block text-sm font-medium mb-2 ${isIronManTheme ? 'text-[#E5E7EB]' : 'text-gray-700'}`}>
                             Departamento *
                         </label>
                         {canChooseDepartment() ? (
@@ -414,7 +415,7 @@ const CreateIncident = () => {
                                 required
                                 value={formData.departamento}
                                 onChange={handleChange}
-                                className="w-full border border-gray-300 rounded-md px-3 py-3 sm:py-2 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-base sm:text-sm"
+                                className={`w-full border rounded-md px-3 py-3 sm:py-2 focus:outline-none focus:ring-2 text-base sm:text-sm ${isIronManTheme ? 'border-cyan-500/30 bg-[#0B0F14] text-[#E5E7EB] focus:ring-cyan-500/50 focus:border-cyan-500' : 'border-gray-300 focus:ring-blue-500 focus:border-blue-500'}`}
                             >
                                 <option value="">Seleccionar departamento...</option>
                                 {getAvailableDepartments(formData.sede).map((dept) => (
@@ -424,7 +425,7 @@ const CreateIncident = () => {
                                 ))}
                             </select>
                         ) : (
-                            <div className="w-full border border-gray-200 rounded-md px-3 py-3 sm:py-2 bg-gray-50 text-gray-900 text-base sm:text-sm">
+                            <div className={`w-full border rounded-md px-3 py-3 sm:py-2 text-base sm:text-sm ${isIronManTheme ? 'bg-[#0B0F14] text-[#E5E7EB] border-cyan-500/20' : 'bg-gray-50 text-gray-900 border-gray-200'}`}>
                                 {getAvailableDepartments(formData.sede).find(dept => dept.value === formData.departamento)?.label || 
                                  departamentos.find(dept => dept.value === formData.departamento)?.label ||
                                  departamentosAdministrativo.find(dept => dept.value === formData.departamento)?.label ||
@@ -436,7 +437,7 @@ const CreateIncident = () => {
                     {/* Número de puesto (oculto para Barranquilla y administrativos) */}
                     {formData.sede !== 'barranquilla' && !isAdministrativo && (
                         <div>
-                            <label htmlFor="puesto_numero" className="block text-sm font-medium text-gray-700 mb-2">
+                            <label htmlFor="puesto_numero" className={`block text-sm font-medium mb-2 ${isIronManTheme ? 'text-[#E5E7EB]' : 'text-gray-700'}`}>
                                 Número de Puesto *
                             </label>
                             <input
@@ -449,9 +450,9 @@ const CreateIncident = () => {
                                 value={formData.puesto_numero}
                                 onChange={handleChange}
                                 placeholder="Ingrese número del 1 al 300"
-                                className="w-full border border-gray-300 rounded-md px-3 py-3 sm:py-2 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-base sm:text-sm"
+                                className={`w-full border rounded-md px-3 py-3 sm:py-2 focus:outline-none focus:ring-2 text-base sm:text-sm ${isIronManTheme ? 'border-cyan-500/30 bg-[#0B0F14] text-[#E5E7EB] focus:ring-cyan-500/50 focus:border-cyan-500' : 'border-gray-300 focus:ring-blue-500 focus:border-blue-500'}`}
                             />
-                            <p className="mt-1 text-sm text-gray-500">
+                            <p className={`mt-1 text-sm ${isIronManTheme ? 'text-[#94A3B8]' : 'text-gray-500'}`}>
                                 {formData.departamento === 'obama' && `${sedes.find(s => s.value === formData.sede)?.label}: Obama - Puestos 1-300`}
                                 {formData.departamento === 'majority' && `${sedes.find(s => s.value === formData.sede)?.label}: Majority - Puestos 1-300`}
                                 {formData.departamento === 'claro' && `${sedes.find(s => s.value === formData.sede)?.label}: Claro - Puestos 1-300`}
@@ -462,7 +463,7 @@ const CreateIncident = () => {
 
                     {/* Tipo de falla */}
                     <div>
-                        <label htmlFor="failure_type" className="block text-sm font-medium text-gray-700 mb-2">
+                        <label htmlFor="failure_type" className={`block text-sm font-medium mb-2 ${isIronManTheme ? 'text-[#E5E7EB]' : 'text-gray-700'}`}>
                             Tipo de Falla *
                         </label>
                         <select
@@ -471,7 +472,7 @@ const CreateIncident = () => {
                             required
                             value={formData.failure_type}
                             onChange={handleChange}
-                            className="w-full border border-gray-300 rounded-md px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                            className={`w-full border rounded-md px-3 py-2 focus:outline-none focus:ring-2 ${isIronManTheme ? 'border-cyan-500/30 bg-[#0B0F14] text-[#E5E7EB] focus:ring-cyan-500/50 focus:border-cyan-500' : 'border-gray-300 focus:ring-blue-500 focus:border-blue-500'}`}
                         >
                             <option value="">Seleccionar tipo de falla...</option>
                             {failureTypes.map((type) => (
@@ -485,7 +486,7 @@ const CreateIncident = () => {
                     {/* Submenú de Periféricos (solo si se selecciona "perifericos") */}
                     {formData.failure_type === 'perifericos' && (
                         <div>
-                            <label htmlFor="peripheral_type" className="block text-sm font-medium text-gray-700 mb-2">
+                            <label htmlFor="peripheral_type" className={`block text-sm font-medium mb-2 ${isIronManTheme ? 'text-[#E5E7EB]' : 'text-gray-700'}`}>
                                 Tipo de Periférico *
                             </label>
                             <select
@@ -494,7 +495,7 @@ const CreateIncident = () => {
                                 required
                                 value={formData.peripheral_type}
                                 onChange={handleChange}
-                                className="w-full border border-gray-300 rounded-md px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                                className={`w-full border rounded-md px-3 py-2 focus:outline-none focus:ring-2 ${isIronManTheme ? 'border-cyan-500/30 bg-[#0B0F14] text-[#E5E7EB] focus:ring-cyan-500/50 focus:border-cyan-500' : 'border-gray-300 focus:ring-blue-500 focus:border-blue-500'}`}
                             >
                                 <option value="">Seleccionar periférico...</option>
                                 {peripheralTypes.map((peripheral) => (
@@ -508,8 +509,8 @@ const CreateIncident = () => {
 
                     {/* Campos de trabajo remoto para Barranquilla */}
                     {formData.sede === 'barranquilla' && (
-                        <div className="bg-blue-50 border border-blue-200 rounded-lg p-4 space-y-4">
-                            <h4 className="text-sm font-semibold text-blue-900 flex items-center">
+                        <div className={`rounded-lg p-4 space-y-4 ${isIronManTheme ? 'bg-cyan-500/10 border border-cyan-500/30' : 'bg-blue-50 border border-blue-200'}`}>
+                            <h4 className={`text-sm font-semibold flex items-center ${isIronManTheme ? 'text-[#00E5FF]' : 'text-blue-900'}`}>
                                 <Monitor className="h-4 w-4 mr-2" />
                                 Información de Trabajo Remoto
                             </h4>
@@ -517,7 +518,7 @@ const CreateIncident = () => {
                             
                             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                                 <div>
-                                    <label htmlFor="anydesk_address" className="block text-sm font-medium text-gray-700 mb-2">
+                                    <label htmlFor="anydesk_address" className={`block text-sm font-medium mb-2 ${isIronManTheme ? 'text-[#E5E7EB]' : 'text-gray-700'}`}>
                                         Dirección AnyDesk *
                                     </label>
                                     <input
@@ -528,12 +529,12 @@ const CreateIncident = () => {
                                         value={formData.anydesk_address}
                                         onChange={handleChange}
                                         placeholder="ej: 900123456"
-                                        className="w-full border border-gray-300 rounded-md px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                                        className={`w-full border rounded-md px-3 py-2 focus:outline-none focus:ring-2 ${isIronManTheme ? 'border-cyan-500/30 bg-[#0B0F14] text-[#E5E7EB] focus:ring-cyan-500/50 focus:border-cyan-500' : 'border-gray-300 focus:ring-blue-500 focus:border-blue-500'}`}
                                     />
                                 </div>
-                                
+
                                 <div>
-                                    <label htmlFor="advisor_cedula" className="block text-sm font-medium text-gray-700 mb-2">
+                                    <label htmlFor="advisor_cedula" className={`block text-sm font-medium mb-2 ${isIronManTheme ? 'text-[#E5E7EB]' : 'text-gray-700'}`}>
                                         Cédula del Asesor *
                                     </label>
                                     <input
@@ -544,12 +545,12 @@ const CreateIncident = () => {
                                         value={formData.advisor_cedula}
                                         onChange={handleChange}
                                         placeholder="ej: 12345678"
-                                        className="w-full border border-gray-300 rounded-md px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                                        className={`w-full border rounded-md px-3 py-2 focus:outline-none focus:ring-2 ${isIronManTheme ? 'border-cyan-500/30 bg-[#0B0F14] text-[#E5E7EB] focus:ring-cyan-500/50 focus:border-cyan-500' : 'border-gray-300 focus:ring-blue-500 focus:border-blue-500'}`}
                                     />
                                 </div>
                             </div>
                             <div>
-                                <label htmlFor="advisor_contact" className="block text-sm font-medium text-gray-700 mb-2">
+                                <label htmlFor="advisor_contact" className={`block text-sm font-medium mb-2 ${isIronManTheme ? 'text-[#E5E7EB]' : 'text-gray-700'}`}>
                                     Número de Contacto del Asesor *
                                 </label>
                                 <input
@@ -560,7 +561,7 @@ const CreateIncident = () => {
                                     value={formData.advisor_contact}
                                     onChange={handleChange}
                                     placeholder="ej: 3001234567"
-                                    className="w-full border border-gray-300 rounded-md px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                                    className={`w-full border rounded-md px-3 py-2 focus:outline-none focus:ring-2 ${isIronManTheme ? 'border-cyan-500/30 bg-[#0B0F14] text-[#E5E7EB] focus:ring-cyan-500/50 focus:border-cyan-500' : 'border-gray-300 focus:ring-blue-500 focus:border-blue-500'}`}
                                 />
                             </div>
                         </div>
@@ -569,8 +570,8 @@ const CreateIncident = () => {
                     {/* Archivos adjuntos - Para coordinadores y administrativos */}
                     {(user?.role === 'coordinador' || user?.role === 'administrativo') && (
                         <div>
-                            <label htmlFor="attachments" className="block text-sm font-medium text-gray-700 mb-2">
-                                Archivos Adjuntos <span className="text-sm text-gray-500">(Opcional)</span>
+                            <label htmlFor="attachments" className={`block text-sm font-medium mb-2 ${isIronManTheme ? 'text-[#E5E7EB]' : 'text-gray-700'}`}>
+                                Archivos Adjuntos <span className={`text-sm ${isIronManTheme ? 'text-[#94A3B8]' : 'text-gray-500'}`}>(Opcional)</span>
                             </label>
                             
                             {/* Mensaje de mantenimiento */}
@@ -653,7 +654,7 @@ const CreateIncident = () => {
 
                     {/* Descripción */}
                     <div>
-                        <label htmlFor="description" className="block text-sm font-medium text-gray-700 mb-2">
+                        <label htmlFor="description" className={`block text-sm font-medium mb-2 ${isIronManTheme ? 'text-[#E5E7EB]' : 'text-gray-700'}`}>
                             Descripción de la Falla *
                         </label>
                         <textarea
@@ -664,9 +665,9 @@ const CreateIncident = () => {
                             value={formData.description}
                             onChange={handleChange}
                             placeholder="Describe detalladamente la falla técnica que se está reportando..."
-                            className="w-full border border-gray-300 rounded-md px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 resize-vertical"
+                            className={`w-full border rounded-md px-3 py-2 focus:outline-none focus:ring-2 resize-vertical ${isIronManTheme ? 'border-cyan-500/30 bg-[#0B0F14] text-[#E5E7EB] focus:ring-cyan-500/50 focus:border-cyan-500' : 'border-gray-300 focus:ring-blue-500 focus:border-blue-500'}`}
                         />
-                        <p className="mt-1 text-sm text-gray-500">
+                        <p className={`mt-1 text-sm ${isIronManTheme ? 'text-[#94A3B8]' : 'text-gray-500'}`}>
                             Proporciona todos los detalles necesarios para que el técnico pueda entender y solucionar el problema
                         </p>
                     </div>
@@ -676,14 +677,14 @@ const CreateIncident = () => {
                         <button
                             type="button"
                             onClick={() => navigate(-1)}
-                            className="px-4 py-2 border border-gray-300 rounded-md text-sm font-medium text-gray-700 hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500"
+                            className={`px-4 py-2 border rounded-md text-sm font-medium focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 ${isIronManTheme ? 'border-cyan-500/30 text-[#94A3B8] hover:bg-[#0B0F14]' : 'border-gray-300 text-gray-700 hover:bg-gray-50'}`}
                         >
                             Cancelar
                         </button>
                         <button
                             type="submit"
                             disabled={loading}
-                            className="flex items-center px-4 py-2 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 disabled:opacity-50 disabled:cursor-not-allowed"
+                            className={`flex items-center px-4 py-2 border border-transparent rounded-md shadow-sm text-sm font-medium focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 disabled:opacity-50 disabled:cursor-not-allowed ${isIronManTheme ? 'bg-[#00E5FF] text-[#0B0F14] hover:bg-[#00B4D8]' : 'text-white bg-blue-600 hover:bg-blue-700'}`}
                         >
                             <Save className="h-4 w-4 mr-2" />
                             {loading ? 'Guardando...' : 'Crear Incidencia'}
