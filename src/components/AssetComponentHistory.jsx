@@ -18,7 +18,10 @@ import {
     AlertCircle,
     History,
     ClipboardList,
-    User
+    User,
+    XCircle,
+    ChevronDown,
+    AlertTriangle
 } from 'lucide-react';
 
 const FIELD_COLORS = {
@@ -26,7 +29,8 @@ const FIELD_COLORS = {
     memoria_ram: 'bg-purple-100 text-purple-800',
     almacenamiento: 'bg-orange-100 text-orange-800',
     sistema_operativo: 'bg-green-100 text-green-800',
-    clasificacion: 'bg-teal-100 text-teal-800'
+    clasificacion: 'bg-teal-100 text-teal-800',
+    estado: 'bg-red-100 text-red-800'
 };
 
 const FIELD_OPTIONS = [
@@ -69,6 +73,12 @@ const AssetComponentHistory = () => {
     const [modalHistorial, setModalHistorial] = useState([]);
     const [modalObservaciones, setModalObservaciones] = useState([]);
     const [loadingModal, setLoadingModal] = useState(false);
+    const [noProductivos, setNoProductivos] = useState([]);
+    const [loadingNoProductivos, setLoadingNoProductivos] = useState(false);
+    const [showNoProductivos, setShowNoProductivos] = useState(true);
+    const [bajaModalOpen, setBajaModalOpen] = useState(false);
+    const [bajaAsset, setBajaAsset] = useState(null);
+    const [processingBaja, setProcessingBaja] = useState(false);
 
     const fetchStats = useCallback(async () => {
         try {
@@ -77,6 +87,18 @@ const AssetComponentHistory = () => {
         } catch (err) {
             console.error('Error al cargar stats:', err);
             setError('Error al cargar las estadísticas');
+        }
+    }, []);
+
+    const fetchNoProductivos = useCallback(async () => {
+        try {
+            setLoadingNoProductivos(true);
+            const res = await assetHistoryService.getNoProductivos();
+            setNoProductivos(res.data.data || []);
+        } catch (err) {
+            console.error('Error al cargar no productivos:', err);
+        } finally {
+            setLoadingNoProductivos(false);
         }
     }, []);
 
@@ -104,7 +126,7 @@ const AssetComponentHistory = () => {
     useEffect(() => {
         const loadData = async () => {
             setLoading(true);
-            await Promise.all([fetchStats(), fetchHistorial(0)]);
+            await Promise.all([fetchStats(), fetchHistorial(0), fetchNoProductivos()]);
             setLoading(false);
         };
         loadData();
@@ -117,8 +139,24 @@ const AssetComponentHistory = () => {
     const handleRefresh = async () => {
         setLoading(true);
         setError(null);
-        await Promise.all([fetchStats(), fetchHistorial(0)]);
+        await Promise.all([fetchStats(), fetchHistorial(0), fetchNoProductivos()]);
         setLoading(false);
+    };
+
+    const handleDarDeBaja = async () => {
+        if (!bajaAsset) return;
+        try {
+            setProcessingBaja(true);
+            await assetHistoryService.darDeBaja(bajaAsset.id);
+            setBajaModalOpen(false);
+            setBajaAsset(null);
+            await fetchNoProductivos();
+        } catch (err) {
+            console.error('Error al dar de baja:', err);
+            alert(err.response?.data?.msg || 'Error al dar de baja el activo');
+        } finally {
+            setProcessingBaja(false);
+        }
     };
 
     const handleClearFilters = () => {
@@ -341,6 +379,105 @@ const AssetComponentHistory = () => {
                 </div>
             )}
 
+            {/* Activos No Productivos */}
+            <div className="bg-white rounded-xl shadow-sm border border-gray-200">
+                <button
+                    onClick={() => setShowNoProductivos(!showNoProductivos)}
+                    className="w-full flex items-center justify-between px-5 py-4 text-sm font-medium text-gray-700 hover:bg-gray-50 rounded-xl"
+                >
+                    <div className="flex items-center gap-2">
+                        <XCircle className="h-5 w-5 text-red-500" />
+                        <span className="text-base font-semibold">Activos No Productivos</span>
+                        {noProductivos.length > 0 && (
+                            <span className="bg-red-100 text-red-700 text-xs font-semibold px-2 py-0.5 rounded-full">
+                                {noProductivos.length}
+                            </span>
+                        )}
+                    </div>
+                    <ChevronDown className={`h-4 w-4 transition-transform ${showNoProductivos ? 'rotate-180' : ''}`} />
+                </button>
+                {showNoProductivos && (
+                    <div className="border-t border-gray-100">
+                        {loadingNoProductivos ? (
+                            <div className="flex items-center justify-center py-8">
+                                <RefreshCw className="h-5 w-5 text-gray-400 animate-spin" />
+                                <span className="ml-2 text-gray-500 text-sm">Cargando...</span>
+                            </div>
+                        ) : noProductivos.length === 0 ? (
+                            <div className="text-center py-8">
+                                <Package className="h-10 w-10 mx-auto text-gray-300 mb-2" />
+                                <p className="text-gray-500 text-sm">No hay activos clasificados como no productivos</p>
+                            </div>
+                        ) : (
+                            <div className="overflow-x-auto">
+                                <table className="min-w-full divide-y divide-gray-200">
+                                    <thead className="bg-gray-50">
+                                        <tr>
+                                            <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Placa</th>
+                                            <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Tipo</th>
+                                            <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Ubicacion</th>
+                                            <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Marca / Modelo</th>
+                                            <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Estado</th>
+                                            <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Clasificado por</th>
+                                            <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Fecha</th>
+                                            <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Acciones</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody className="bg-white divide-y divide-gray-200">
+                                        {noProductivos.map((activo) => (
+                                            <tr key={activo.id} className="hover:bg-gray-50 transition-colors">
+                                                <td className="px-4 py-3 whitespace-nowrap text-sm font-medium text-gray-900">
+                                                    {activo.numeroPlaca}
+                                                </td>
+                                                <td className="px-4 py-3 whitespace-nowrap text-sm text-gray-600">
+                                                    {activo.tipoActivo}
+                                                </td>
+                                                <td className="px-4 py-3 whitespace-nowrap text-sm text-gray-600">
+                                                    {activo.ubicacion || '—'}
+                                                </td>
+                                                <td className="px-4 py-3 text-sm text-gray-600 max-w-[200px] truncate" title={activo.marcaModelo}>
+                                                    {activo.marcaModelo || '—'}
+                                                </td>
+                                                <td className="px-4 py-3 whitespace-nowrap">
+                                                    {activo.estado === 'dado_de_baja' ? (
+                                                        <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-red-100 text-red-800">
+                                                            Dado de baja
+                                                        </span>
+                                                    ) : (
+                                                        <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-yellow-100 text-yellow-800">
+                                                            {activo.estado || 'funcional'}
+                                                        </span>
+                                                    )}
+                                                </td>
+                                                <td className="px-4 py-3 whitespace-nowrap text-sm text-gray-600">
+                                                    {activo.clasificadoPor || '—'}
+                                                </td>
+                                                <td className="px-4 py-3 whitespace-nowrap text-sm text-gray-600">
+                                                    {activo.fechaClasificacion ? formatDate(activo.fechaClasificacion) : '—'}
+                                                </td>
+                                                <td className="px-4 py-3 whitespace-nowrap">
+                                                    {activo.estado === 'dado_de_baja' ? (
+                                                        <span className="text-xs text-gray-400 italic">Sin acciones</span>
+                                                    ) : (
+                                                        <button
+                                                            onClick={() => { setBajaAsset(activo); setBajaModalOpen(true); }}
+                                                            className="inline-flex items-center px-3 py-1.5 border border-red-300 rounded-lg text-xs font-medium text-red-700 bg-white hover:bg-red-50 transition-colors"
+                                                        >
+                                                            <XCircle className="h-3.5 w-3.5 mr-1" />
+                                                            Dar de Baja
+                                                        </button>
+                                                    )}
+                                                </td>
+                                            </tr>
+                                        ))}
+                                    </tbody>
+                                </table>
+                            </div>
+                        )}
+                    </div>
+                )}
+            </div>
+
             {/* Filter Bar */}
             <div className="bg-white rounded-xl shadow-sm border border-gray-200">
                 <button
@@ -527,6 +664,58 @@ const AssetComponentHistory = () => {
                     </>
                 )}
             </div>
+
+            {/* Modal de confirmación Dar de Baja */}
+            {bajaModalOpen && bajaAsset && (
+                <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
+                    <div className="fixed inset-0 bg-black/50" onClick={() => { if (!processingBaja) { setBajaModalOpen(false); setBajaAsset(null); } }} />
+                    <div className="relative bg-white rounded-2xl shadow-xl w-full max-w-md">
+                        <div className="px-6 py-5">
+                            <div className="flex items-center gap-3 mb-4">
+                                <div className="flex-shrink-0 bg-red-100 rounded-full p-2">
+                                    <AlertTriangle className="h-6 w-6 text-red-600" />
+                                </div>
+                                <h2 className="text-lg font-bold text-gray-900">Confirmar Dar de Baja</h2>
+                            </div>
+                            <div className="bg-gray-50 rounded-lg p-4 mb-4 space-y-1">
+                                <p className="text-sm"><span className="font-medium text-gray-700">Placa:</span> <span className="text-gray-900">{bajaAsset.numeroPlaca}</span></p>
+                                <p className="text-sm"><span className="font-medium text-gray-700">Tipo:</span> <span className="text-gray-900">{bajaAsset.tipoActivo}</span></p>
+                                {bajaAsset.marcaModelo && <p className="text-sm"><span className="font-medium text-gray-700">Marca/Modelo:</span> <span className="text-gray-900">{bajaAsset.marcaModelo}</span></p>}
+                                {bajaAsset.ubicacion && <p className="text-sm"><span className="font-medium text-gray-700">Ubicacion:</span> <span className="text-gray-900">{bajaAsset.ubicacion}</span></p>}
+                            </div>
+                            <p className="text-sm text-gray-600">
+                                ¿Esta seguro de dar de baja este equipo? Esta accion es irreversible.
+                            </p>
+                        </div>
+                        <div className="px-6 py-4 border-t border-gray-200 flex justify-end gap-3">
+                            <button
+                                onClick={() => { setBajaModalOpen(false); setBajaAsset(null); }}
+                                disabled={processingBaja}
+                                className="px-4 py-2 text-sm font-medium text-gray-700 bg-gray-100 rounded-lg hover:bg-gray-200 disabled:opacity-50"
+                            >
+                                Cancelar
+                            </button>
+                            <button
+                                onClick={handleDarDeBaja}
+                                disabled={processingBaja}
+                                className="inline-flex items-center px-4 py-2 text-sm font-medium text-white bg-red-600 rounded-lg hover:bg-red-700 disabled:opacity-50"
+                            >
+                                {processingBaja ? (
+                                    <>
+                                        <RefreshCw className="h-4 w-4 mr-1 animate-spin" />
+                                        Procesando...
+                                    </>
+                                ) : (
+                                    <>
+                                        <XCircle className="h-4 w-4 mr-1" />
+                                        Dar de Baja
+                                    </>
+                                )}
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            )}
 
             {/* Modal de historial por activo */}
             {modalOpen && (

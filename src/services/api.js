@@ -123,7 +123,9 @@ export const assetHistoryService = {
     getFiltered: (params) => api.get('/activos-tecnico/historial/filtered', { params }),
     getByAsset: (id) => api.get(`/activos-tecnico/${id}/historial`),
     crearObservacion: (id, observaciones) => api.post(`/activos-tecnico/${id}/inventario`, { observaciones }),
-    getObservaciones: (id) => api.get(`/activos-tecnico/${id}/inventario`)
+    getObservaciones: (id) => api.get(`/activos-tecnico/${id}/inventario`),
+    getNoProductivos: () => api.get('/activos-tecnico/no-productivos'),
+    darDeBaja: (id) => api.put(`/activos-tecnico/${id}/dar-de-baja`)
 };
 
 export default api;
