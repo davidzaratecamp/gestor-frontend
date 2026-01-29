@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import {
     X,
     Package,
@@ -18,15 +18,54 @@ import {
     HardDrive,
     Monitor,
     Globe,
-    DollarSign
+    DollarSign,
+    ClipboardList,
+    ChevronDown,
+    ChevronUp
 } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
+import { assetHistoryService } from '../services/api';
 import AssetHistoryPanel from './AssetHistoryPanel';
 
 const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || 'http://localhost:5001/api';
 
 const AssetDetailModal = ({ isOpen, onClose, activo }) => {
     const { canViewAssetHistory } = useAuth();
+    const [observaciones, setObservaciones] = useState([]);
+    const [showObservaciones, setShowObservaciones] = useState(false);
+    const [loadingObservaciones, setLoadingObservaciones] = useState(false);
+
+    useEffect(() => {
+        if (isOpen && activo?.id) {
+            fetchObservaciones(activo.id);
+        }
+        if (!isOpen) {
+            setObservaciones([]);
+            setShowObservaciones(false);
+        }
+    }, [isOpen, activo?.id]);
+
+    const fetchObservaciones = async (activoId) => {
+        try {
+            setLoadingObservaciones(true);
+            const response = await assetHistoryService.getObservaciones(activoId);
+            setObservaciones(response.data.data || []);
+        } catch (error) {
+            console.error('Error al cargar observaciones:', error);
+        } finally {
+            setLoadingObservaciones(false);
+        }
+    };
+
+    const formatFechaObservacion = (fecha) => {
+        return new Date(fecha).toLocaleString('es-CR', {
+            day: '2-digit',
+            month: '2-digit',
+            year: 'numeric',
+            hour: '2-digit',
+            minute: '2-digit'
+        });
+    };
 
     if (!isOpen || !activo) return null;
 
@@ -469,6 +508,51 @@ const AssetDetailModal = ({ isOpen, onClose, activo }) => {
                             )}
                         </div>
                     </div>
+
+                    {/* Observaciones de Mantenimiento */}
+                    {observaciones.length > 0 && (
+                        <div className="border-t border-gray-200 pt-6 mt-6">
+                            <button
+                                onClick={() => setShowObservaciones(!showObservaciones)}
+                                className="w-full flex items-center justify-between mb-3"
+                            >
+                                <h3 className="text-lg font-medium text-gray-900 flex items-center">
+                                    <ClipboardList className="h-5 w-5 mr-2 text-emerald-600" />
+                                    Observaciones de Mantenimiento ({observaciones.length})
+                                </h3>
+                                {showObservaciones ? (
+                                    <ChevronUp className="h-5 w-5 text-gray-500" />
+                                ) : (
+                                    <ChevronDown className="h-5 w-5 text-gray-500" />
+                                )}
+                            </button>
+                            {showObservaciones && (
+                                <div className="space-y-3 max-h-64 overflow-y-auto">
+                                    {loadingObservaciones ? (
+                                        <div className="text-center py-4">
+                                            <div className="animate-spin rounded-full h-6 w-6 border-b-2 border-emerald-600 mx-auto"></div>
+                                        </div>
+                                    ) : (
+                                        observaciones.map((obs) => (
+                                            <div key={obs.id} className="bg-gray-50 rounded-lg p-4">
+                                                <div className="flex items-center text-xs text-gray-500 mb-2 space-x-3">
+                                                    <span className="flex items-center">
+                                                        <User className="h-3 w-3 mr-1" />
+                                                        {obs.realizadoPor}
+                                                    </span>
+                                                    <span className="flex items-center">
+                                                        <Calendar className="h-3 w-3 mr-1" />
+                                                        {formatFechaObservacion(obs.fecha)}
+                                                    </span>
+                                                </div>
+                                                <p className="text-sm text-gray-700 whitespace-pre-wrap">{obs.observaciones}</p>
+                                            </div>
+                                        ))
+                                    )}
+                                </div>
+                            )}
+                        </div>
+                    )}
 
                     {/* Panel de Historial de Cambios (solo para admin/gestorActivos) */}
                     <AssetHistoryPanel
