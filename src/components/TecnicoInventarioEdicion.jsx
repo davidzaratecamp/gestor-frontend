@@ -401,7 +401,7 @@ const TecnicoInventarioEdicion = () => {
                                 className="w-full mb-4 flex items-center justify-center px-4 py-3 bg-emerald-600 text-white rounded-lg hover:bg-emerald-700 transition-colors font-medium"
                             >
                                 <ClipboardList className="h-5 w-5 mr-2" />
-                                Iniciar Inventario
+                                Iniciar Mantenimiento
                             </button>
 
                             {/* Historial de observaciones */}
@@ -412,7 +412,7 @@ const TecnicoInventarioEdicion = () => {
                                         className="w-full flex items-center justify-between px-4 py-3 bg-gray-50 hover:bg-gray-100 transition-colors"
                                     >
                                         <span className="text-sm font-medium text-gray-700">
-                                            Observaciones de inventario ({observaciones.length})
+                                            Observaciones de mantenimiento ({observaciones.length})
                                         </span>
                                         {showObservaciones ? (
                                             <ChevronUp className="h-4 w-4 text-gray-500" />
@@ -526,7 +526,7 @@ const TecnicoInventarioEdicion = () => {
                     <div className="bg-white rounded-lg shadow-xl max-w-lg w-full p-6">
                         <div className="flex items-center justify-between mb-4">
                             <h3 className="text-lg font-semibold text-gray-900">
-                                Inventario - {selectedActivo.numero_placa}
+                                Mantenimiento - {selectedActivo.numero_placa}
                             </h3>
                             <button
                                 onClick={() => setShowInventarioModal(false)}
@@ -537,7 +537,7 @@ const TecnicoInventarioEdicion = () => {
                         </div>
 
                         <p className="text-sm text-gray-600 mb-3">
-                            Describa las observaciones del inventario realizado a este equipo.
+                            Describa las observaciones del mantenimiento realizado a este equipo.
                         </p>
 
                         <textarea
