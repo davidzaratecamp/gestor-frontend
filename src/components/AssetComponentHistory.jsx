@@ -62,6 +62,10 @@ const AssetComponentHistory = () => {
         fechaFin: '',
         numeroPlaca: ''
     });
+    const [modalOpen, setModalOpen] = useState(false);
+    const [modalAsset, setModalAsset] = useState(null);
+    const [modalHistorial, setModalHistorial] = useState([]);
+    const [loadingModal, setLoadingModal] = useState(false);
 
     const fetchStats = useCallback(async () => {
         try {
@@ -150,6 +154,21 @@ const AssetComponentHistory = () => {
         link.download = `historial_componentes_${new Date().toISOString().slice(0, 10)}.csv`;
         link.click();
         URL.revokeObjectURL(url);
+    };
+
+    const handleOpenAssetModal = async (activoId, numeroPlaca, tipoActivo) => {
+        setModalAsset({ id: activoId, numeroPlaca, tipoActivo });
+        setModalOpen(true);
+        setLoadingModal(true);
+        try {
+            const res = await assetHistoryService.getByAsset(activoId);
+            setModalHistorial(res.data.historial || []);
+        } catch (err) {
+            console.error('Error al cargar historial del activo:', err);
+            setModalHistorial([]);
+        } finally {
+            setLoadingModal(false);
+        }
     };
 
     const currentPage = Math.floor(pagination.offset / pagination.limit) + 1;
@@ -442,8 +461,13 @@ const AssetComponentHistory = () => {
                                                 </div>
                                             </td>
                                             <td className="px-4 py-3 whitespace-nowrap">
-                                                <div className="text-sm font-medium text-gray-900">{h.numeroPlaca || '—'}</div>
-                                                <div className="text-xs text-gray-500">{h.tipoActivo || ''}</div>
+                                                <button
+                                                    onClick={() => handleOpenAssetModal(h.activoId, h.numeroPlaca, h.tipoActivo)}
+                                                    className="text-left hover:underline"
+                                                >
+                                                    <div className="text-sm font-medium text-blue-600 hover:text-blue-800">{h.numeroPlaca || '—'}</div>
+                                                    <div className="text-xs text-gray-500">{h.tipoActivo || ''}</div>
+                                                </button>
                                             </td>
                                             <td className="px-4 py-3 whitespace-nowrap">
                                                 <span className={`px-2 py-1 rounded-full text-xs font-medium ${FIELD_COLORS[h.campo] || 'bg-gray-100 text-gray-800'}`}>
@@ -495,6 +519,92 @@ const AssetComponentHistory = () => {
                     </>
                 )}
             </div>
+
+            {/* Modal de historial por activo */}
+            {modalOpen && (
+                <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
+                    <div className="fixed inset-0 bg-black/50" onClick={() => setModalOpen(false)} />
+                    <div className="relative bg-white rounded-2xl shadow-xl w-full max-w-2xl max-h-[85vh] flex flex-col">
+                        {/* Modal Header */}
+                        <div className="flex items-center justify-between px-6 py-4 border-b border-gray-200">
+                            <div>
+                                <h2 className="text-lg font-bold text-gray-900">
+                                    Historial de {modalAsset?.numeroPlaca || 'Activo'}
+                                </h2>
+                                <p className="text-sm text-gray-500">{modalAsset?.tipoActivo}</p>
+                            </div>
+                            <button
+                                onClick={() => setModalOpen(false)}
+                                className="p-1.5 rounded-lg text-gray-400 hover:text-gray-600 hover:bg-gray-100"
+                            >
+                                <X className="h-5 w-5" />
+                            </button>
+                        </div>
+
+                        {/* Modal Body */}
+                        <div className="flex-1 overflow-y-auto px-6 py-4">
+                            {loadingModal ? (
+                                <div className="flex items-center justify-center py-12">
+                                    <RefreshCw className="h-6 w-6 text-blue-500 animate-spin" />
+                                    <span className="ml-2 text-gray-500">Cargando historial...</span>
+                                </div>
+                            ) : modalHistorial.length === 0 ? (
+                                <div className="text-center py-12">
+                                    <History className="h-10 w-10 mx-auto text-gray-300 mb-2" />
+                                    <p className="text-gray-500">No hay cambios registrados para este activo</p>
+                                </div>
+                            ) : (
+                                <div className="space-y-4">
+                                    <p className="text-sm text-gray-500">
+                                        {modalHistorial.length} cambio{modalHistorial.length !== 1 ? 's' : ''} registrado{modalHistorial.length !== 1 ? 's' : ''}
+                                    </p>
+                                    {modalHistorial.map((cambio) => (
+                                        <div
+                                            key={cambio.id}
+                                            className="bg-gray-50 rounded-lg p-4 border border-gray-100"
+                                        >
+                                            <div className="flex items-start justify-between mb-2">
+                                                <span className={`px-2 py-1 rounded-full text-xs font-medium ${FIELD_COLORS[cambio.campo] || 'bg-gray-100 text-gray-800'}`}>
+                                                    {cambio.campoLabel}
+                                                </span>
+                                                <div className="flex items-center text-xs text-gray-500">
+                                                    <Calendar className="h-3 w-3 mr-1" />
+                                                    {formatDate(cambio.fecha)}
+                                                </div>
+                                            </div>
+
+                                            <div className="flex items-center text-sm mt-2">
+                                                <span className="text-gray-500 line-through">
+                                                    {cambio.valorAnterior || 'Sin valor'}
+                                                </span>
+                                                <ArrowRight className="h-4 w-4 mx-2 text-gray-400 flex-shrink-0" />
+                                                <span className="text-gray-900 font-medium">
+                                                    {cambio.valorNuevo}
+                                                </span>
+                                            </div>
+
+                                            <div className="flex items-center text-xs text-gray-500 mt-2">
+                                                <Users className="h-3 w-3 mr-1" />
+                                                Modificado por: {cambio.modificadoPor}
+                                            </div>
+                                        </div>
+                                    ))}
+                                </div>
+                            )}
+                        </div>
+
+                        {/* Modal Footer */}
+                        <div className="px-6 py-3 border-t border-gray-200 flex justify-end">
+                            <button
+                                onClick={() => setModalOpen(false)}
+                                className="px-4 py-2 text-sm font-medium text-gray-700 bg-gray-100 rounded-lg hover:bg-gray-200"
+                            >
+                                Cerrar
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            )}
         </div>
     );
 };
