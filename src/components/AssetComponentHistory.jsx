@@ -16,7 +16,9 @@ import {
     Search,
     ArrowRight,
     AlertCircle,
-    History
+    History,
+    ClipboardList,
+    User
 } from 'lucide-react';
 
 const FIELD_COLORS = {
@@ -65,6 +67,7 @@ const AssetComponentHistory = () => {
     const [modalOpen, setModalOpen] = useState(false);
     const [modalAsset, setModalAsset] = useState(null);
     const [modalHistorial, setModalHistorial] = useState([]);
+    const [modalObservaciones, setModalObservaciones] = useState([]);
     const [loadingModal, setLoadingModal] = useState(false);
 
     const fetchStats = useCallback(async () => {
@@ -161,11 +164,16 @@ const AssetComponentHistory = () => {
         setModalOpen(true);
         setLoadingModal(true);
         try {
-            const res = await assetHistoryService.getByAsset(activoId);
-            setModalHistorial(res.data.historial || []);
+            const [histRes, obsRes] = await Promise.all([
+                assetHistoryService.getByAsset(activoId),
+                assetHistoryService.getObservaciones(activoId)
+            ]);
+            setModalHistorial(histRes.data.historial || []);
+            setModalObservaciones(obsRes.data.data || []);
         } catch (err) {
             console.error('Error al cargar historial del activo:', err);
             setModalHistorial([]);
+            setModalObservaciones([]);
         } finally {
             setLoadingModal(false);
         }
@@ -592,6 +600,33 @@ const AssetComponentHistory = () => {
                                 </div>
                             )}
                         </div>
+
+                        {/* Observaciones de Mantenimiento en el modal */}
+                        {!loadingModal && modalObservaciones.length > 0 && (
+                            <div className="px-6 py-4 border-t border-gray-200">
+                                <h3 className="text-sm font-semibold text-gray-700 mb-3 flex items-center">
+                                    <ClipboardList className="h-4 w-4 mr-2 text-emerald-600" />
+                                    Observaciones de Mantenimiento ({modalObservaciones.length})
+                                </h3>
+                                <div className="space-y-3 max-h-48 overflow-y-auto">
+                                    {modalObservaciones.map((obs) => (
+                                        <div key={obs.id} className="bg-emerald-50 rounded-lg p-3 border border-emerald-100">
+                                            <div className="flex items-center text-xs text-gray-500 mb-1 space-x-3">
+                                                <span className="flex items-center">
+                                                    <User className="h-3 w-3 mr-1" />
+                                                    {obs.realizadoPor}
+                                                </span>
+                                                <span className="flex items-center">
+                                                    <Calendar className="h-3 w-3 mr-1" />
+                                                    {formatDate(obs.fecha)}
+                                                </span>
+                                            </div>
+                                            <p className="text-sm text-gray-700 whitespace-pre-wrap">{obs.observaciones}</p>
+                                        </div>
+                                    ))}
+                                </div>
+                            </div>
+                        )}
 
                         {/* Modal Footer */}
                         <div className="px-6 py-3 border-t border-gray-200 flex justify-end">
