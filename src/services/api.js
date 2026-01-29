@@ -121,7 +121,9 @@ export const analyticsService = {
 export const assetHistoryService = {
     getStats: () => api.get('/activos-tecnico/historial/stats'),
     getFiltered: (params) => api.get('/activos-tecnico/historial/filtered', { params }),
-    getByAsset: (id) => api.get(`/activos-tecnico/${id}/historial`)
+    getByAsset: (id) => api.get(`/activos-tecnico/${id}/historial`),
+    crearObservacion: (id, observaciones) => api.post(`/activos-tecnico/${id}/inventario`, { observaciones }),
+    getObservaciones: (id) => api.get(`/activos-tecnico/${id}/inventario`)
 };
 
 export default api;

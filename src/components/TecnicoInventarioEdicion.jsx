@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import axios from 'axios';
+import { assetHistoryService } from '../services/api';
 import {
     Search,
     Cpu,
@@ -13,7 +14,12 @@ import {
     RefreshCw,
     Edit3,
     X,
-    Tag
+    Tag,
+    ClipboardList,
+    ChevronDown,
+    ChevronUp,
+    User,
+    Calendar
 } from 'lucide-react';
 
 const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || 'http://localhost:5001/api';
@@ -30,6 +36,12 @@ const TecnicoInventarioEdicion = () => {
     const [message, setMessage] = useState({ type: '', text: '' });
     const [showConfirmModal, setShowConfirmModal] = useState(false);
     const [pendingChange, setPendingChange] = useState(null);
+    const [showInventarioModal, setShowInventarioModal] = useState(false);
+    const [observacionesText, setObservacionesText] = useState('');
+    const [savingObservacion, setSavingObservacion] = useState(false);
+    const [observaciones, setObservaciones] = useState([]);
+    const [showObservaciones, setShowObservaciones] = useState(false);
+    const [loadingObservaciones, setLoadingObservaciones] = useState(false);
 
     // Cargar activos editables
     const fetchActivos = async (search = '') => {
@@ -52,6 +64,7 @@ const TecnicoInventarioEdicion = () => {
             const response = await axios.get(`${API_BASE_URL}/activos-tecnico/${activoId}/componentes`);
             setSelectedActivo(response.data.activo);
             setComponentes(response.data.componentes);
+            fetchObservaciones(activoId);
         } catch (error) {
             console.error('Error al cargar componentes:', error);
             setMessage({ type: 'error', text: 'Error al cargar los componentes del activo' });
@@ -189,6 +202,56 @@ const TecnicoInventarioEdicion = () => {
             setShowConfirmModal(false);
             setPendingChange(null);
         }
+    };
+
+    // Cargar observaciones de inventario
+    const fetchObservaciones = async (activoId) => {
+        try {
+            setLoadingObservaciones(true);
+            const response = await assetHistoryService.getObservaciones(activoId);
+            setObservaciones(response.data.data || []);
+        } catch (error) {
+            console.error('Error al cargar observaciones:', error);
+        } finally {
+            setLoadingObservaciones(false);
+        }
+    };
+
+    // Guardar observación de inventario
+    const saveObservacion = async () => {
+        if (!observacionesText.trim()) {
+            setMessage({ type: 'error', text: 'Las observaciones no pueden estar vacías' });
+            return;
+        }
+
+        try {
+            setSavingObservacion(true);
+            const response = await assetHistoryService.crearObservacion(selectedActivo.id, observacionesText.trim());
+            setMessage({ type: 'success', text: response.data.msg });
+            setShowInventarioModal(false);
+            setObservacionesText('');
+            fetchObservaciones(selectedActivo.id);
+            setShowObservaciones(true);
+        } catch (error) {
+            console.error('Error al guardar observación:', error);
+            setMessage({
+                type: 'error',
+                text: error.response?.data?.msg || 'Error al guardar la observación'
+            });
+        } finally {
+            setSavingObservacion(false);
+        }
+    };
+
+    // Formatear fecha
+    const formatFecha = (fecha) => {
+        return new Date(fecha).toLocaleString('es-CR', {
+            day: '2-digit',
+            month: '2-digit',
+            year: 'numeric',
+            hour: '2-digit',
+            minute: '2-digit'
+        });
     };
 
     return (
@@ -329,6 +392,62 @@ const TecnicoInventarioEdicion = () => {
                                 </div>
                             </div>
 
+                            {/* Botón Iniciar Inventario */}
+                            <button
+                                onClick={() => {
+                                    setObservacionesText('');
+                                    setShowInventarioModal(true);
+                                }}
+                                className="w-full mb-4 flex items-center justify-center px-4 py-3 bg-emerald-600 text-white rounded-lg hover:bg-emerald-700 transition-colors font-medium"
+                            >
+                                <ClipboardList className="h-5 w-5 mr-2" />
+                                Iniciar Inventario
+                            </button>
+
+                            {/* Historial de observaciones */}
+                            {observaciones.length > 0 && (
+                                <div className="mb-4 border border-gray-200 rounded-lg overflow-hidden">
+                                    <button
+                                        onClick={() => setShowObservaciones(!showObservaciones)}
+                                        className="w-full flex items-center justify-between px-4 py-3 bg-gray-50 hover:bg-gray-100 transition-colors"
+                                    >
+                                        <span className="text-sm font-medium text-gray-700">
+                                            Observaciones de inventario ({observaciones.length})
+                                        </span>
+                                        {showObservaciones ? (
+                                            <ChevronUp className="h-4 w-4 text-gray-500" />
+                                        ) : (
+                                            <ChevronDown className="h-4 w-4 text-gray-500" />
+                                        )}
+                                    </button>
+                                    {showObservaciones && (
+                                        <div className="max-h-64 overflow-y-auto divide-y divide-gray-100">
+                                            {loadingObservaciones ? (
+                                                <div className="text-center py-4">
+                                                    <div className="animate-spin rounded-full h-6 w-6 border-b-2 border-emerald-600 mx-auto"></div>
+                                                </div>
+                                            ) : (
+                                                observaciones.map((obs) => (
+                                                    <div key={obs.id} className="px-4 py-3">
+                                                        <div className="flex items-center text-xs text-gray-500 mb-1 space-x-3">
+                                                            <span className="flex items-center">
+                                                                <User className="h-3 w-3 mr-1" />
+                                                                {obs.realizadoPor}
+                                                            </span>
+                                                            <span className="flex items-center">
+                                                                <Calendar className="h-3 w-3 mr-1" />
+                                                                {formatFecha(obs.fecha)}
+                                                            </span>
+                                                        </div>
+                                                        <p className="text-sm text-gray-700 whitespace-pre-wrap">{obs.observaciones}</p>
+                                                    </div>
+                                                ))
+                                            )}
+                                        </div>
+                                    )}
+                                </div>
+                            )}
+
                             {/* Lista de componentes editables */}
                             <div className="space-y-3">
                                 {componentes.map((comp) => (
@@ -400,6 +519,65 @@ const TecnicoInventarioEdicion = () => {
                     )}
                 </div>
             </div>
+
+            {/* Modal de Inventario */}
+            {showInventarioModal && selectedActivo && (
+                <div className="fixed inset-0 bg-gray-600 bg-opacity-50 flex items-center justify-center z-50 p-4">
+                    <div className="bg-white rounded-lg shadow-xl max-w-lg w-full p-6">
+                        <div className="flex items-center justify-between mb-4">
+                            <h3 className="text-lg font-semibold text-gray-900">
+                                Inventario - {selectedActivo.numero_placa}
+                            </h3>
+                            <button
+                                onClick={() => setShowInventarioModal(false)}
+                                className="text-gray-400 hover:text-gray-600"
+                            >
+                                <X className="h-5 w-5" />
+                            </button>
+                        </div>
+
+                        <p className="text-sm text-gray-600 mb-3">
+                            Describa las observaciones del inventario realizado a este equipo.
+                        </p>
+
+                        <textarea
+                            value={observacionesText}
+                            onChange={(e) => setObservacionesText(e.target.value)}
+                            rows={6}
+                            className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500 resize-vertical"
+                            placeholder="Escriba aquí todo lo que le hizo al equipo..."
+                            autoFocus
+                        />
+
+                        <div className="flex space-x-3 mt-4">
+                            <button
+                                onClick={saveObservacion}
+                                disabled={savingObservacion || !observacionesText.trim()}
+                                className="flex-1 flex items-center justify-center px-4 py-2 bg-emerald-600 text-white rounded-lg hover:bg-emerald-700 disabled:opacity-50"
+                            >
+                                {savingObservacion ? (
+                                    <>
+                                        <RefreshCw className="h-4 w-4 mr-2 animate-spin" />
+                                        Guardando...
+                                    </>
+                                ) : (
+                                    <>
+                                        <Save className="h-4 w-4 mr-2" />
+                                        Guardar Observaciones
+                                    </>
+                                )}
+                            </button>
+                            <button
+                                onClick={() => setShowInventarioModal(false)}
+                                disabled={savingObservacion}
+                                className="px-4 py-2 border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50 disabled:opacity-50"
+                            >
+                                Cancelar
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            )}
 
             {/* Modal de confirmación */}
             {showConfirmModal && pendingChange && (
