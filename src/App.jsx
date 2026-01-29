@@ -25,6 +25,7 @@ import AssetCharts from './components/AssetCharts';
 import ScriptParser from './components/ScriptParser';
 import TecnicoInventarioLayout from './components/TecnicoInventarioLayout';
 import TecnicoInventarioEdicion from './components/TecnicoInventarioEdicion';
+import AssetComponentHistory from './components/AssetComponentHistory';
 
 // Componente para determinar el layout según el rol
 const LayoutWrapper = ({ children }) => {
@@ -276,7 +277,8 @@ function App() {
               <Route path="users" element={<AdminRoute><UserManagement /></AdminRoute>} />
               <Route path="workstations" element={<AdminRoute><WorkstationManagement /></AdminRoute>} />
               <Route path="analytics" element={<AdminRoute><Analytics /></AdminRoute>} />
-              
+              <Route path="asset-history" element={<AdminRoute><AssetComponentHistory /></AdminRoute>} />
+
               {/* Rutas de gestión de activos */}
               <Route path="activos" element={<GestorActivosRoute><AssetManagement /></GestorActivosRoute>} />
               <Route path="activos/inventario" element={<GestorActivosRoute><AssetInventory /></GestorActivosRoute>} />

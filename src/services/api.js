@@ -117,4 +117,11 @@ export const analyticsService = {
     getQualityMetrics: () => api.get('/analytics/quality-metrics')
 };
 
+// === SERVICIOS DE HISTORIAL DE COMPONENTES ===
+export const assetHistoryService = {
+    getStats: () => api.get('/activos-tecnico/historial/stats'),
+    getFiltered: (params) => api.get('/activos-tecnico/historial/filtered', { params }),
+    getByAsset: (id) => api.get(`/activos-tecnico/${id}/historial`)
+};
+
 export default api;

@@ -25,7 +25,8 @@ import {
     BarChart3,
     RotateCcw,
     FileText,
-    Zap
+    Zap,
+    History
 } from 'lucide-react';
 
 const Layout = () => {
@@ -130,6 +131,7 @@ const Layout = () => {
         { name: 'Usuarios', href: '/users', icon: Users, roles: ['admin'] },
         { name: 'Estaciones', href: '/workstations', icon: Monitor, roles: ['admin'] },
         { name: 'Analíticas', href: '/analytics', icon: BarChart3, roles: ['admin'] },
+        { name: 'Historial Componentes', href: '/asset-history', icon: History, roles: ['admin'] },
     ];
 
     const filteredNavigation = navigation.filter(item => 
