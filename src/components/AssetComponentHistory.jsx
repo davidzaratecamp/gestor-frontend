@@ -456,17 +456,24 @@ const AssetComponentHistory = () => {
                                                     {activo.fechaClasificacion ? formatDate(activo.fechaClasificacion) : '—'}
                                                 </td>
                                                 <td className="px-4 py-3 whitespace-nowrap">
-                                                    {activo.estado === 'dado_de_baja' ? (
-                                                        <span className="text-xs text-gray-400 italic">Sin acciones</span>
-                                                    ) : (
+                                                    <div className="flex items-center gap-2">
                                                         <button
-                                                            onClick={() => { setBajaAsset(activo); setBajaModalOpen(true); }}
-                                                            className="inline-flex items-center px-3 py-1.5 border border-red-300 rounded-lg text-xs font-medium text-red-700 bg-white hover:bg-red-50 transition-colors"
+                                                            onClick={() => handleOpenAssetModal(activo.id, activo.numeroPlaca, activo.tipoActivo)}
+                                                            className="inline-flex items-center px-3 py-1.5 border border-blue-300 rounded-lg text-xs font-medium text-blue-700 bg-white hover:bg-blue-50 transition-colors"
                                                         >
-                                                            <XCircle className="h-3.5 w-3.5 mr-1" />
-                                                            Dar de Baja
+                                                            <History className="h-3.5 w-3.5 mr-1" />
+                                                            Ver Historial
                                                         </button>
-                                                    )}
+                                                        {activo.estado !== 'dado_de_baja' && (
+                                                            <button
+                                                                onClick={() => { setBajaAsset(activo); setBajaModalOpen(true); }}
+                                                                className="inline-flex items-center px-3 py-1.5 border border-red-300 rounded-lg text-xs font-medium text-red-700 bg-white hover:bg-red-50 transition-colors"
+                                                            >
+                                                                <XCircle className="h-3.5 w-3.5 mr-1" />
+                                                                Dar de Baja
+                                                            </button>
+                                                        )}
+                                                    </div>
                                                 </td>
                                             </tr>
                                         ))}
