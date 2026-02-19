@@ -2,12 +2,12 @@ import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { incidentService } from '../../services/api';
 import { useAuth } from '../../context/AuthContext';
-import { 
-    RotateCcw, 
-    Monitor, 
-    User, 
-    Calendar, 
-    FileText, 
+import {
+    RotateCcw,
+    Monitor,
+    User,
+    Calendar,
+    FileText,
     Search,
     AlertCircle,
     MessageCircle,
@@ -17,7 +17,10 @@ import {
     X,
     Eye,
     Edit,
-    Save
+    Save,
+    History,
+    ChevronDown,
+    ChevronUp
 } from 'lucide-react';
 
 const ReturnedIncidents = () => {
@@ -34,6 +37,11 @@ const ReturnedIncidents = () => {
     const [showCorrectionModal, setShowCorrectionModal] = useState(false);
     const [correctionLoading, setCorrectionLoading] = useState(false);
     
+    // Estados para el historial
+    const [history, setHistory] = useState([]);
+    const [loadingHistory, setLoadingHistory] = useState(false);
+    const [showHistory, setShowHistory] = useState(false);
+
     // Estados para el formulario de corrección
     const [description, setDescription] = useState('');
     const [anydeskAddress, setAnydeskAddress] = useState('');
@@ -188,9 +196,31 @@ const ReturnedIncidents = () => {
         }
     };
 
+    const loadHistory = async (incidentId) => {
+        try {
+            setLoadingHistory(true);
+            const response = await incidentService.getHistory(incidentId);
+            setHistory(response.data);
+        } catch (error) {
+            console.error('Error cargando historial:', error);
+            setHistory([]);
+        } finally {
+            setLoadingHistory(false);
+        }
+    };
+
+    const handleToggleHistory = () => {
+        if (!showHistory && history.length === 0) {
+            loadHistory(selectedIncident.id);
+        }
+        setShowHistory(prev => !prev);
+    };
+
     const closeModal = () => {
         setShowModal(false);
         setSelectedIncident(null);
+        setShowHistory(false);
+        setHistory([]);
     };
 
     const closeCorrectionModal = () => {
@@ -513,6 +543,71 @@ const ReturnedIncidents = () => {
                                     </div>
                                 </div>
                             )}
+
+                            {/* Historial */}
+                            <div className="mb-6">
+                                <button
+                                    onClick={handleToggleHistory}
+                                    className="flex items-center justify-between w-full text-left"
+                                >
+                                    <div className="flex items-center space-x-2">
+                                        <History className={`w-4 h-4 ${isIronManTheme ? 'text-[#00E5FF]' : 'text-gray-600'}`} />
+                                        <span className={`text-sm font-medium ${isIronManTheme ? 'text-[#E5E7EB]' : 'text-gray-700'}`}>
+                                            Historial de la Incidencia
+                                        </span>
+                                    </div>
+                                    {showHistory
+                                        ? <ChevronUp className={`w-4 h-4 ${isIronManTheme ? 'text-[#94A3B8]' : 'text-gray-500'}`} />
+                                        : <ChevronDown className={`w-4 h-4 ${isIronManTheme ? 'text-[#94A3B8]' : 'text-gray-500'}`} />
+                                    }
+                                </button>
+
+                                {showHistory && (
+                                    <div className="mt-3">
+                                        {loadingHistory ? (
+                                            <div className="flex items-center justify-center py-4">
+                                                <div className="animate-spin rounded-full h-6 w-6 border-b-2 border-orange-600"></div>
+                                                <span className={`ml-2 text-sm ${isIronManTheme ? 'text-[#94A3B8]' : 'text-gray-500'}`}>
+                                                    Cargando historial...
+                                                </span>
+                                            </div>
+                                        ) : history.length === 0 ? (
+                                            <div className={`text-center py-4 rounded-lg ${isIronManTheme ? 'bg-[#0B0F14]' : 'bg-gray-50'}`}>
+                                                <History className={`w-8 h-8 mx-auto mb-2 ${isIronManTheme ? 'text-[#94A3B8]' : 'text-gray-400'}`} />
+                                                <p className={`text-sm ${isIronManTheme ? 'text-[#94A3B8]' : 'text-gray-500'}`}>
+                                                    Sin historial registrado
+                                                </p>
+                                            </div>
+                                        ) : (
+                                            <div className="space-y-2 max-h-64 overflow-y-auto">
+                                                {history.map((entry) => (
+                                                    <div key={entry.id} className={`flex space-x-3 p-3 rounded-lg ${isIronManTheme ? 'bg-[#0B0F14]' : 'bg-gray-50'}`}>
+                                                        <div className="flex-shrink-0 mt-1.5">
+                                                            <div className="h-2 w-2 rounded-full bg-orange-500"></div>
+                                                        </div>
+                                                        <div className="flex-1 min-w-0">
+                                                            <div className="flex items-center justify-between">
+                                                                <span className={`text-sm font-medium ${isIronManTheme ? 'text-[#E5E7EB]' : 'text-gray-900'}`}>
+                                                                    {entry.action}
+                                                                </span>
+                                                                <span className={`text-xs ml-2 flex-shrink-0 ${isIronManTheme ? 'text-[#94A3B8]' : 'text-gray-500'}`}>
+                                                                    {new Date(entry.timestamp).toLocaleString()}
+                                                                </span>
+                                                            </div>
+                                                            <p className={`text-sm mt-0.5 ${isIronManTheme ? 'text-[#94A3B8]' : 'text-gray-600'}`}>
+                                                                {entry.details}
+                                                            </p>
+                                                            <p className={`text-xs mt-0.5 ${isIronManTheme ? 'text-[#94A3B8]' : 'text-gray-400'}`}>
+                                                                Por: {entry.user_name}
+                                                            </p>
+                                                        </div>
+                                                    </div>
+                                                ))}
+                                            </div>
+                                        )}
+                                    </div>
+                                )}
+                            </div>
 
                             {/* Acciones del modal */}
                             <div className={`flex justify-end space-x-3 pt-4 border-t ${isIronManTheme ? 'border-cyan-500/20' : 'border-gray-200'}`}>
