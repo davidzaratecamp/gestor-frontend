@@ -1,11 +1,11 @@
 import React, { useState, useEffect } from 'react';
-import { 
-    X, 
-    Monitor, 
-    User, 
-    Calendar, 
-    Clock, 
-    AlertTriangle, 
+import {
+    X,
+    Monitor,
+    User,
+    Calendar,
+    Clock,
+    AlertTriangle,
     FileText,
     UserPlus,
     Settings,
@@ -15,7 +15,10 @@ import {
     Eye,
     FileImage,
     MonitorSpeaker,
-    CreditCard
+    CreditCard,
+    History,
+    ChevronDown,
+    ChevronUp
 } from 'lucide-react';
 import { 
     getAlertLevel, 
@@ -39,13 +42,38 @@ const IncidentDetailModal = ({
 }) => {
     const [attachments, setAttachments] = useState([]);
     const [loadingAttachments, setLoadingAttachments] = useState(false);
+    const [history, setHistory] = useState([]);
+    const [loadingHistory, setLoadingHistory] = useState(false);
+    const [showHistory, setShowHistory] = useState(false);
 
     // Cargar archivos adjuntos cuando se abre el modal
     useEffect(() => {
         if (isOpen && incident?.id) {
             loadAttachments(incident.id);
+            setShowHistory(false);
+            setHistory([]);
         }
     }, [isOpen, incident?.id]);
+
+    const loadHistory = async (incidentId) => {
+        try {
+            setLoadingHistory(true);
+            const response = await incidentService.getHistory(incidentId);
+            setHistory(response.data);
+        } catch (error) {
+            console.error('Error cargando historial:', error);
+            setHistory([]);
+        } finally {
+            setLoadingHistory(false);
+        }
+    };
+
+    const handleToggleHistory = () => {
+        if (!showHistory && history.length === 0) {
+            loadHistory(incident.id);
+        }
+        setShowHistory(prev => !prev);
+    };
 
     const loadAttachments = async (incidentId) => {
         try {
@@ -336,6 +364,59 @@ const IncidentDetailModal = ({
                                     </div>
                                 </div>
                             ))}
+                        </div>
+                    )}
+                </div>
+
+                {/* Historial */}
+                <div className="mb-6">
+                    <button
+                        onClick={handleToggleHistory}
+                        className="flex items-center justify-between w-full text-left"
+                    >
+                        <div className="flex items-center space-x-2">
+                            <History className="h-5 w-5 text-gray-600" />
+                            <span className="font-semibold text-gray-900">Historial de la Incidencia</span>
+                        </div>
+                        {showHistory
+                            ? <ChevronUp className="h-4 w-4 text-gray-500" />
+                            : <ChevronDown className="h-4 w-4 text-gray-500" />
+                        }
+                    </button>
+
+                    {showHistory && (
+                        <div className="mt-3">
+                            {loadingHistory ? (
+                                <div className="flex items-center justify-center py-4">
+                                    <div className="animate-spin rounded-full h-6 w-6 border-b-2 border-blue-600"></div>
+                                    <span className="ml-2 text-sm text-gray-500">Cargando historial...</span>
+                                </div>
+                            ) : history.length === 0 ? (
+                                <div className="text-center py-4 bg-gray-50 rounded-lg">
+                                    <History className="h-8 w-8 text-gray-400 mx-auto mb-2" />
+                                    <p className="text-sm text-gray-500">Sin historial registrado</p>
+                                </div>
+                            ) : (
+                                <div className="space-y-2 max-h-64 overflow-y-auto">
+                                    {history.map((entry) => (
+                                        <div key={entry.id} className="flex space-x-3 p-3 bg-gray-50 rounded-lg">
+                                            <div className="flex-shrink-0 mt-0.5">
+                                                <div className="h-2 w-2 rounded-full bg-blue-500 mt-1.5"></div>
+                                            </div>
+                                            <div className="flex-1 min-w-0">
+                                                <div className="flex items-center justify-between">
+                                                    <span className="text-sm font-medium text-gray-900">{entry.action}</span>
+                                                    <span className="text-xs text-gray-500 ml-2 flex-shrink-0">
+                                                        {new Date(entry.timestamp).toLocaleString()}
+                                                    </span>
+                                                </div>
+                                                <p className="text-sm text-gray-600 mt-0.5">{entry.details}</p>
+                                                <p className="text-xs text-gray-400 mt-0.5">Por: {entry.user_name}</p>
+                                            </div>
+                                        </div>
+                                    ))}
+                                </div>
+                            )}
                         </div>
                     )}
                 </div>
