@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useLocation } from 'react-router-dom';
 import { incidentService } from '../../services/api';
 import { useAuth } from '../../context/AuthContext';
 import {
@@ -27,6 +27,7 @@ const ReturnedIncidents = () => {
     const { user, isAdmin } = useAuth();
     const isIronManTheme = user?.username === 'davidlopez10';
     const navigate = useNavigate();
+    const location = useLocation();
     const [incidents, setIncidents] = useState([]);
     const [filteredIncidents, setFilteredIncidents] = useState([]);
     const [loading, setLoading] = useState(true);
@@ -41,6 +42,7 @@ const ReturnedIncidents = () => {
     const [history, setHistory] = useState([]);
     const [loadingHistory, setLoadingHistory] = useState(false);
     const [showHistory, setShowHistory] = useState(false);
+    const [highlightedIncident, setHighlightedIncident] = useState(null);
 
     // Estados para el formulario de corrección
     const [description, setDescription] = useState('');
@@ -60,7 +62,14 @@ const ReturnedIncidents = () => {
         fetchReturnedIncidents();
         // Marcar como visto cuando se accede a la página
         markAsViewed();
-    }, []);
+
+        const searchParams = new URLSearchParams(location.search);
+        const highlightParam = searchParams.get('highlight');
+        if (highlightParam) {
+            setHighlightedIncident(parseInt(highlightParam));
+            setTimeout(() => setHighlightedIncident(null), 5000);
+        }
+    }, [location.search]);
 
     useEffect(() => {
         filterIncidents();
@@ -352,7 +361,7 @@ const ReturnedIncidents = () => {
                     {filteredIncidents.map((incident) => (
                         <div
                             key={incident.id}
-                            className={`rounded-lg p-4 shadow-sm hover:shadow-md transition duration-200 cursor-pointer ${isIronManTheme ? 'bg-[#0F172A] border border-cyan-500/20' : 'bg-white border border-orange-200'}`}
+                            className={`rounded-lg p-4 shadow-sm hover:shadow-md transition duration-200 cursor-pointer ${highlightedIncident === incident.id ? 'border-yellow-400 bg-yellow-50 shadow-md' : isIronManTheme ? 'bg-[#0F172A] border border-cyan-500/20' : 'bg-white border border-orange-200'}`}
                             onClick={() => handleViewDetails(incident)}
                         >
                             <div className="flex items-center justify-between">

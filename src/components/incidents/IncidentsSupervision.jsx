@@ -68,6 +68,7 @@ const IncidentsSupervision = () => {
     const [coordinatorsRanking, setCoordinatorsRanking] = useState([]);
     const [showCoordinatorsPanel, setShowCoordinatorsPanel] = useState(false);
     const [openDropdowns, setOpenDropdowns] = useState({});
+    const [highlightedIncident, setHighlightedIncident] = useState(null);
 
     useEffect(() => {
         // Procesar parámetros de URL al cargar el componente
@@ -94,6 +95,12 @@ const IncidentsSupervision = () => {
             loadTechnicians();
             loadCreators();
             loadCoordinatorsRanking();
+        }
+
+        const highlightParam = searchParams.get('highlight');
+        if (highlightParam) {
+            setHighlightedIncident(parseInt(highlightParam));
+            setTimeout(() => setHighlightedIncident(null), 5000);
         }
     }, [location.search, user]);
 
@@ -676,7 +683,7 @@ const IncidentsSupervision = () => {
                     <div className="px-4 py-5 sm:p-6">
                         <div className="space-y-4">
                             {incidents.map((incident) => (
-                                <div key={incident.id} className="border border-gray-200 rounded-lg p-6 sm:p-4 hover:bg-gray-50 transition-colors w-full overflow-x-auto">
+                                <div key={incident.id} className={`rounded-lg p-6 sm:p-4 transition-colors w-full overflow-x-auto ${highlightedIncident === incident.id ? 'border-2 border-yellow-400 bg-yellow-50 shadow-md' : 'border border-gray-200 hover:bg-gray-50'}`}>
                                     <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-4 lg:gap-0 min-w-full">
                                         <div className="flex-1 min-w-0 w-full lg:w-auto">
                                             <div className="flex items-center space-x-4 mb-2">

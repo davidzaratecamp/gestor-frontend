@@ -42,13 +42,15 @@ const ApprovedIncidents = () => {
         sede: ''
     });
     const [fromDashboard, setFromDashboard] = useState(false);
+    const [highlightedIncident, setHighlightedIncident] = useState(null);
 
     useEffect(() => {
         // Procesar parámetros de URL al cargar el componente
         const searchParams = new URLSearchParams(location.search);
         const sedeParam = searchParams.get('sede');
         const departamentoParam = searchParams.get('departamento');
-        
+        const highlightParam = searchParams.get('highlight');
+
         if (sedeParam || departamentoParam) {
             setFromDashboard(true);
             const filters = {
@@ -57,7 +59,12 @@ const ApprovedIncidents = () => {
             };
             setUrlFilters(filters);
         }
-        
+
+        if (highlightParam) {
+            setHighlightedIncident(parseInt(highlightParam));
+            setTimeout(() => setHighlightedIncident(null), 5000);
+        }
+
         loadApprovedIncidents();
     }, [location.search]);
 
@@ -600,7 +607,7 @@ const ApprovedIncidents = () => {
                     <div className="px-4 py-5 sm:p-6">
                         <div className="space-y-4">
                             {filteredIncidents.map((incident) => (
-                                <div key={incident.id} className="border border-green-200 rounded-lg p-4 bg-green-50">
+                                <div key={incident.id} className={`border rounded-lg p-4 transition-colors duration-500 ${highlightedIncident === incident.id ? 'border-yellow-400 bg-yellow-50 shadow-md' : 'border-green-200 bg-green-50'}`}>
                                     <div className="flex flex-col sm:flex-row sm:items-center justify-between space-y-3 sm:space-y-0">
                                         <div className="flex-1">
                                             <div className="flex flex-col sm:flex-row sm:items-center space-y-2 sm:space-y-0 sm:space-x-4 mb-2">

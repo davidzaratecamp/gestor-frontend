@@ -5,10 +5,10 @@ import { incidentService, userService } from '../services/api';
 import IncidentAlert from './IncidentAlert';
 import IncidentDetailModal from './IncidentDetailModal';
 import { 
-    AlertTriangle, 
-    Clock, 
-    CheckCircle, 
-    Settings, 
+    AlertTriangle,
+    Clock,
+    CheckCircle,
+    Settings,
     TrendingUp,
     Users,
     Monitor,
@@ -20,7 +20,8 @@ import {
     UserCheck,
     UserX,
     Building,
-    Activity
+    Activity,
+    Search
 } from 'lucide-react';
 import TechnicianRatings from './TechnicianRatings';
 import TechniciansRankingPanel from './TechniciansRankingPanel';
@@ -58,6 +59,9 @@ const Dashboard = () => {
     const [selectedIncidentForAssign, setSelectedIncidentForAssign] = useState(null);
     const [statsBySede, setStatsBySede] = useState([]);
     const [techniciansStatus, setTechniciansStatus] = useState([]);
+    const [searchId, setSearchId] = useState('');
+    const [searchLoading, setSearchLoading] = useState(false);
+    const [searchError, setSearchError] = useState('');
 
     useEffect(() => {
         loadDashboardData();
@@ -286,26 +290,60 @@ const Dashboard = () => {
         const searchParams = new URLSearchParams();
         searchParams.set('sede', ciudadKey);
         searchParams.set('departamento', departamentoKey);
-        
+
         // Agregar parámetro de status para incidencias en proceso
         if (type === 'inProcess') {
             searchParams.set('status', 'en_proceso');
         }
-        
+
         const routes = {
             'pending': '/incidents/pending',
             'inProcess': '/incidents/pending',
             'inSupervision': '/incidents/supervision',
             'approved': '/incidents/approved'
         };
-        
+
         navigate(`${routes[type]}?${searchParams.toString()}`);
-        
+
         // Cerrar todos los dropdowns
         setShowPendingDropdown(false);
         setShowInProcessDropdown(false);
         setShowInSupervisionDropdown(false);
         setShowApprovedDropdown(false);
+    };
+
+    const handleSearchById = async (e) => {
+        e.preventDefault();
+        const id = searchId.trim();
+        if (!id || isNaN(id)) {
+            setSearchError('Ingresa un ID válido');
+            return;
+        }
+        setSearchError('');
+        setSearchLoading(true);
+        try {
+            const response = await incidentService.getById(id);
+            const incident = response.data;
+            const statusRoutes = {
+                'pendiente': `/incidents/pending?highlight=${id}`,
+                'en_proceso': `/incidents/pending?highlight=${id}`,
+                'en_supervision': `/incidents/supervision?highlight=${id}`,
+                'aprobado': `/incidents/approved?highlight=${id}`,
+                'devuelto': `/incidents/returned?highlight=${id}`,
+                'rechazado': `/incidents/approved?highlight=${id}`
+            };
+            const route = statusRoutes[incident.status];
+            if (route) {
+                setSearchId('');
+                navigate(route);
+            } else {
+                setSearchError('Estado desconocido');
+            }
+        } catch (error) {
+            setSearchError('No se encontró la incidencia');
+        } finally {
+            setSearchLoading(false);
+        }
     };
 
     const renderDropdown = (type, data, isVisible, title, routePath) => {
@@ -587,13 +625,42 @@ const Dashboard = () => {
     return (
         <div className={`space-y-6 ${isIronManTheme ? 'bg-[#0B0F14] p-6 rounded-xl' : ''}`}>
             {/* Header */}
-            <div>
-                <h1 className={`text-xl sm:text-2xl font-bold ${textPrimaryClass} ${isIronManTheme ? 'ironman-glow' : ''}`}>
-                    {isIronManTheme ? `Bienvenido, Sr. Stark` : `Bienvenido, ${user?.fullName}`}
-                </h1>
-                <p className={`text-sm sm:text-base ${textMutedClass} mt-1`}>
-                    {isIronManTheme ? 'J.A.R.V.I.S. - Sistema de soporte técnico activo' : 'Resumen del sistema de soporte técnico'}
-                </p>
+            <div className="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-4">
+                <div>
+                    <h1 className={`text-xl sm:text-2xl font-bold ${textPrimaryClass} ${isIronManTheme ? 'ironman-glow' : ''}`}>
+                        {isIronManTheme ? `Bienvenido, Sr. Stark` : `Bienvenido, ${user?.fullName}`}
+                    </h1>
+                    <p className={`text-sm sm:text-base ${textMutedClass} mt-1`}>
+                        {isIronManTheme ? 'J.A.R.V.I.S. - Sistema de soporte técnico activo' : 'Resumen del sistema de soporte técnico'}
+                    </p>
+                </div>
+                {isAdmin && (
+                    <form onSubmit={handleSearchById} className="flex flex-col items-end gap-1">
+                        <div className="flex items-center gap-2">
+                            <div className={`flex items-center rounded-lg border px-3 py-1.5 ${isIronManTheme ? 'bg-[#0F172A] border-cyan-500/30' : 'bg-white border-gray-300'}`}>
+                                <Search className={`h-4 w-4 mr-2 ${isIronManTheme ? 'text-[#00E5FF]' : 'text-gray-400'}`} />
+                                <input
+                                    type="number"
+                                    min="1"
+                                    value={searchId}
+                                    onChange={(e) => { setSearchId(e.target.value); setSearchError(''); }}
+                                    placeholder="Ir a incidencia #"
+                                    className={`w-36 text-sm bg-transparent outline-none ${isIronManTheme ? 'text-[#E5E7EB] placeholder-[#94A3B8]' : 'text-gray-900 placeholder-gray-400'}`}
+                                />
+                            </div>
+                            <button
+                                type="submit"
+                                disabled={searchLoading}
+                                className={`px-3 py-1.5 text-sm font-medium rounded-lg ${isIronManTheme ? 'bg-cyan-500/20 text-[#00E5FF] border border-cyan-500/30 hover:bg-cyan-500/30' : 'bg-blue-600 text-white hover:bg-blue-700'} disabled:opacity-50`}
+                            >
+                                {searchLoading ? '...' : 'Ir'}
+                            </button>
+                        </div>
+                        {searchError && (
+                            <span className="text-xs text-red-500">{searchError}</span>
+                        )}
+                    </form>
+                )}
             </div>
 
             {/* Stats Cards */}
