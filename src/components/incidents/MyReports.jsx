@@ -306,6 +306,7 @@ const MyReports = () => {
                                         {/* Información */}
                                         <div className="flex items-center space-x-6 text-sm text-gray-600">
                                             <div className="flex items-center">
+                                                <span className="text-xs font-mono bg-gray-100 text-gray-500 px-1.5 py-0.5 rounded mr-2">#{report.id}</span>
                                                 <Monitor className="w-4 h-4 mr-1" />
                                                 <span className="font-mono font-medium">{report.station_code}</span>
                                             </div>

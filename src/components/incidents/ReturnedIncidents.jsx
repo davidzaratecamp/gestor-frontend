@@ -378,6 +378,7 @@ const ReturnedIncidents = () => {
                                     {/* Información básica */}
                                     <div className="flex items-center space-x-4">
                                         <div className={`flex items-center text-sm ${isIronManTheme ? 'text-[#E5E7EB]' : 'text-gray-600'}`}>
+                                            <span className={`text-xs font-mono px-1.5 py-0.5 rounded mr-2 ${isIronManTheme ? 'bg-[#0B0F14] text-[#94A3B8] border border-cyan-500/20' : 'bg-gray-100 text-gray-500'}`}>#{incident.id}</span>
                                             <Monitor className="w-4 h-4 mr-1" />
                                             <span className="font-mono font-medium">{incident.station_code}</span>
                                         </div>

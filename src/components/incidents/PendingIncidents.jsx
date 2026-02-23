@@ -689,6 +689,7 @@ const PendingIncidents = () => {
                                         {/* Primera línea: Estación y ubicación */}
                                         <div className="flex items-center justify-between">
                                             <div className="flex items-center space-x-3">
+                                                <span className={`text-xs font-mono px-1.5 py-0.5 rounded ${isIronManTheme ? 'bg-[#0B0F14] text-[#94A3B8] border border-cyan-500/20' : 'bg-gray-100 text-gray-500'}`}>#{incident.id}</span>
                                                 <Monitor className="h-5 w-5 text-blue-600" />
                                                 <span className={`font-bold text-lg ${isIronManTheme ? 'text-[#E5E7EB]' : ''}`}>{incident.station_code}</span>
                                                 <span className={`text-sm px-2 py-1 rounded ${isIronManTheme ? 'bg-[#0B0F14] text-[#94A3B8]' : 'bg-gray-100'}`}>

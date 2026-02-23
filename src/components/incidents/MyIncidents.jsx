@@ -230,6 +230,7 @@ const MyIncidents = () => {
                                                         <div className="flex-1">
                                                             <div className="flex items-center space-x-2 sm:space-x-4">
                                                                 <div className="flex items-center text-sm text-gray-600">
+                                                                    <span className="text-xs font-mono bg-gray-100 text-gray-500 px-1.5 py-0.5 rounded mr-1">#{incident.id}</span>
                                                                     <Monitor className="h-4 w-4 mr-1" />
                                                                     <span className="font-medium">{incident.station_code}</span>
                                                                     <span className="ml-2 text-xs bg-gray-100 px-2 py-1 rounded">
@@ -338,6 +339,7 @@ const MyIncidents = () => {
                                                         <div className="flex-1">
                                                             <div className="flex items-center space-x-2 sm:space-x-4">
                                                                 <div className="flex items-center text-sm text-gray-600">
+                                                                    <span className="text-xs font-mono bg-gray-100 text-gray-500 px-1.5 py-0.5 rounded mr-1">#{incident.id}</span>
                                                                     <Monitor className="h-4 w-4 mr-1" />
                                                                     <span className="font-medium">{incident.station_code}</span>
                                                                     <span className="ml-2 text-xs bg-gray-100 px-2 py-1 rounded">
