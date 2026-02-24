@@ -326,7 +326,7 @@ const Dashboard = () => {
             const incident = response.data;
             const statusRoutes = {
                 'pendiente': `/incidents/pending?highlight=${id}`,
-                'en_proceso': `/incidents/pending?highlight=${id}`,
+                'en_proceso': `/incidents/pending?highlight=${id}&status=en_proceso`,
                 'en_supervision': `/incidents/supervision?highlight=${id}`,
                 'aprobado': `/incidents/approved?highlight=${id}`,
                 'devuelto': `/incidents/returned?highlight=${id}`,

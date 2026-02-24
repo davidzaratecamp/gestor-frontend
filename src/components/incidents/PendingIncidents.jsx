@@ -142,6 +142,7 @@ const PendingIncidents = () => {
         // Configurar resaltado de incidencia específica
         if (highlightParam) {
             setHighlightedIncident(parseInt(highlightParam));
+            setShowTop3Only(false); // Desactivar filtro Top 3 para que la incidencia sea visible
             // Desactivar resaltado después de 5 segundos
             setTimeout(() => setHighlightedIncident(null), 5000);
         }
