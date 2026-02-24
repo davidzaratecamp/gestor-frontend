@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { incidentService } from '../../services/api';
 import { useAuth } from '../../context/AuthContext';
+import CopyableId from '../CopyableId';
 import {
     RotateCcw,
     Monitor,
@@ -387,7 +388,7 @@ const ReturnedIncidents = () => {
                                     {/* Información básica */}
                                     <div className="flex items-center space-x-4">
                                         <div className={`flex items-center text-sm ${isIronManTheme ? 'text-[#E5E7EB]' : 'text-gray-600'}`}>
-                                            <span className={`text-xs font-mono px-1.5 py-0.5 rounded mr-2 ${isIronManTheme ? 'bg-[#0B0F14] text-[#94A3B8] border border-cyan-500/20' : 'bg-gray-100 text-gray-500'}`}>#{incident.id}</span>
+                                            <CopyableId id={incident.id} ironMan={isIronManTheme} className="mr-2" />
                                             <Monitor className="w-4 h-4 mr-1" />
                                             <span className="font-mono font-medium">{incident.station_code}</span>
                                         </div>

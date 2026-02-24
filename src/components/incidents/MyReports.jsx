@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useAuth } from '../../context/AuthContext';
 import { incidentService } from '../../services/api';
+import CopyableId from '../CopyableId';
 import { 
     FileText, 
     Monitor, 
@@ -306,7 +307,7 @@ const MyReports = () => {
                                         {/* Información */}
                                         <div className="flex items-center space-x-6 text-sm text-gray-600">
                                             <div className="flex items-center">
-                                                <span className="text-xs font-mono bg-gray-100 text-gray-500 px-1.5 py-0.5 rounded mr-2">#{report.id}</span>
+                                                <CopyableId id={report.id} className="mr-2" />
                                                 <Monitor className="w-4 h-4 mr-1" />
                                                 <span className="font-mono font-medium">{report.station_code}</span>
                                             </div>
