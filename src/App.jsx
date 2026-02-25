@@ -18,6 +18,7 @@ import MyReports from './components/incidents/MyReports';
 import UserManagement from './components/UserManagement';
 import WorkstationManagement from './components/WorkstationManagement';
 import Analytics from './components/Analytics';
+import Tecnicos from './components/Tecnicos';
 import AssetManagement from './components/AssetManagement';
 import AssetLayout from './components/AssetLayout';
 import AssetInventory from './components/AssetInventory';
@@ -277,6 +278,7 @@ function App() {
               <Route path="users" element={<AdminRoute><UserManagement /></AdminRoute>} />
               <Route path="workstations" element={<AdminRoute><WorkstationManagement /></AdminRoute>} />
               <Route path="analytics" element={<AdminRoute><Analytics /></AdminRoute>} />
+              <Route path="tecnicos" element={<AdminRoute><Tecnicos /></AdminRoute>} />
               <Route path="asset-history" element={<AdminRoute><AssetComponentHistory /></AdminRoute>} />
 
               {/* Rutas de gestión de activos */}

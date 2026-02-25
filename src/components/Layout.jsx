@@ -26,7 +26,8 @@ import {
     RotateCcw,
     FileText,
     Zap,
-    History
+    History,
+    Trophy
 } from 'lucide-react';
 
 const Layout = () => {
@@ -130,6 +131,7 @@ const Layout = () => {
         // Gestión (solo admin)
         { name: 'Usuarios', href: '/users', icon: Users, roles: ['admin'] },
         { name: 'Estaciones', href: '/workstations', icon: Monitor, roles: ['admin'] },
+        { name: 'Técnicos', href: '/tecnicos', icon: Trophy, roles: ['admin'] },
         { name: 'Analíticas', href: '/analytics', icon: BarChart3, roles: ['admin'] },
         { name: 'Historial Componentes', href: '/asset-history', icon: History, roles: ['admin'] },
     ];

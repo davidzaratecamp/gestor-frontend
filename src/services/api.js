@@ -114,7 +114,9 @@ export const analyticsService = {
     getHourlyDistribution: () => api.get('/analytics/hourly-distribution'),
     getWeekdayDistribution: () => api.get('/analytics/weekday-distribution'),
     getResolutionTimeAnalysis: () => api.get('/analytics/resolution-time-analysis'),
-    getQualityMetrics: () => api.get('/analytics/quality-metrics')
+    getQualityMetrics: () => api.get('/analytics/quality-metrics'),
+    getTechnicianDailyStats: (id, startDate, endDate) =>
+        api.get(`/analytics/technician/${id}/daily-stats?start_date=${startDate}&end_date=${endDate}`)
 };
 
 // === SERVICIOS DE HISTORIAL DE COMPONENTES ===
