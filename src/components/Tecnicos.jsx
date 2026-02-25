@@ -77,8 +77,7 @@ const Tecnicos = () => {
     const [error, setError] = useState('');
     const [technicianPerformance, setTechnicianPerformance] = useState([]);
     const [perfPeriod, setPerfPeriod] = useState('all'); // 'all' | 'week' | 'custom'
-    const [customStart, setCustomStart] = useState('');
-    const [customEnd, setCustomEnd] = useState('');
+    const [customDate, setCustomDate] = useState('');
 
     // ── Individual tab state ──────────────────────────────────────────────────
     const [selectedTechId, setSelectedTechId] = useState('');
@@ -150,8 +149,8 @@ const Tecnicos = () => {
             if (perfPeriod === 'week') {
                 const dates = getPeriodDates('week');
                 start = dates.start; end = dates.end;
-            } else if (perfPeriod === 'custom' && customStart && customEnd) {
-                start = customStart; end = customEnd;
+            } else if (perfPeriod === 'custom' && customDate) {
+                start = customDate; end = customDate;
             }
             const res = await analyticsService.getTechnicianPerformance(start, end);
             setTechnicianPerformance(res.data);
@@ -166,10 +165,10 @@ const Tecnicos = () => {
     };
 
     useEffect(() => {
-        if (perfPeriod === 'custom' && (!customStart || !customEnd)) return;
+        if (perfPeriod === 'custom' && !customDate) return;
         loadData();
         // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, [perfPeriod, customStart, customEnd]);
+    }, [perfPeriod, customDate]);
 
     // ── Load daily stats when tech / month changes ────────────────────────────
     const loadDailyStats = useCallback(async () => {
@@ -409,7 +408,7 @@ const Tecnicos = () => {
                     <div className="flex items-center gap-2 flex-wrap">
                         {/* Todo */}
                         <button
-                            onClick={() => { setPerfPeriod('all'); setCustomStart(''); setCustomEnd(''); }}
+                            onClick={() => { setPerfPeriod('all'); setCustomDate(''); }}
                             className={`px-3 py-1 rounded-full text-xs font-medium transition-colors ${
                                 perfPeriod === 'all'
                                     ? isIronManTheme
@@ -425,7 +424,7 @@ const Tecnicos = () => {
 
                         {/* Esta semana */}
                         <button
-                            onClick={() => { setPerfPeriod('week'); setCustomStart(''); setCustomEnd(''); }}
+                            onClick={() => { setPerfPeriod('week'); setCustomDate(''); }}
                             className={`px-3 py-1 rounded-full text-xs font-medium transition-colors ${
                                 perfPeriod === 'week'
                                     ? isIronManTheme
@@ -439,34 +438,22 @@ const Tecnicos = () => {
                             Esta semana
                         </button>
 
-                        {/* Custom date range */}
-                        <div className={`flex items-center gap-1 px-2 py-0.5 rounded-lg border transition-colors ${
-                            perfPeriod === 'custom'
-                                ? isIronManTheme
-                                    ? 'border-cyan-500/40 bg-cyan-500/10'
-                                    : 'border-blue-400 bg-blue-50'
-                                : isIronManTheme
-                                ? 'border-cyan-500/10'
-                                : 'border-gray-200'
-                        }`}>
-                            <input
-                                type="date"
-                                value={customStart}
-                                onChange={(e) => { setCustomStart(e.target.value); setPerfPeriod('custom'); }}
-                                className={`text-xs bg-transparent outline-none ${
-                                    isIronManTheme ? 'text-cyan-300' : 'text-gray-700'
-                                }`}
-                            />
-                            <span className={`text-xs ${isIronManTheme ? 'text-gray-500' : 'text-gray-400'}`}>–</span>
-                            <input
-                                type="date"
-                                value={customEnd}
-                                onChange={(e) => { setCustomEnd(e.target.value); setPerfPeriod('custom'); }}
-                                className={`text-xs bg-transparent outline-none ${
-                                    isIronManTheme ? 'text-cyan-300' : 'text-gray-700'
-                                }`}
-                            />
-                        </div>
+                        {/* Single day picker */}
+                        <input
+                            type="date"
+                            value={customDate}
+                            max={new Date().toISOString().split('T')[0]}
+                            onChange={(e) => { setCustomDate(e.target.value); setPerfPeriod('custom'); }}
+                            className={`text-xs px-2 py-1 rounded-lg border outline-none transition-colors ${
+                                perfPeriod === 'custom'
+                                    ? isIronManTheme
+                                        ? 'border-cyan-500/40 bg-cyan-500/10 text-cyan-300'
+                                        : 'border-blue-400 bg-blue-50 text-gray-700'
+                                    : isIronManTheme
+                                    ? 'border-cyan-500/10 bg-transparent text-gray-400'
+                                    : 'border-gray-200 bg-white text-gray-500'
+                            }`}
+                        />
                     </div>
 
                     {/* KPI Cards */}
