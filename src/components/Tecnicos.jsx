@@ -48,6 +48,24 @@ const MONTH_NAMES = [
 
 const DAY_NAMES = ['Lun', 'Mar', 'Mié', 'Jue', 'Vie', 'Sáb', 'Dom'];
 
+const getPeriodDates = (period) => {
+    const today = new Date();
+    const fmt = (d) => `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}`;
+    switch (period) {
+        case 'today': return { start: fmt(today), end: fmt(today) };
+        case 'week': {
+            const mon = new Date(today);
+            mon.setDate(today.getDate() - ((today.getDay() + 6) % 7));
+            return { start: fmt(mon), end: fmt(today) };
+        }
+        case 'month': {
+            const first = new Date(today.getFullYear(), today.getMonth(), 1);
+            return { start: fmt(first), end: fmt(today) };
+        }
+        default: return { start: null, end: null };
+    }
+};
+
 // ─── Main component ───────────────────────────────────────────────────────────
 
 const Tecnicos = () => {
@@ -58,6 +76,7 @@ const Tecnicos = () => {
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState('');
     const [technicianPerformance, setTechnicianPerformance] = useState([]);
+    const [perfPeriod, setPerfPeriod] = useState('all');
 
     // ── Individual tab state ──────────────────────────────────────────────────
     const [selectedTechId, setSelectedTechId] = useState('');
@@ -125,7 +144,8 @@ const Tecnicos = () => {
         try {
             setLoading(true);
             setError('');
-            const res = await analyticsService.getTechnicianPerformance();
+            const { start, end } = getPeriodDates(perfPeriod);
+            const res = await analyticsService.getTechnicianPerformance(start, end);
             setTechnicianPerformance(res.data);
             if (res.data.length > 0 && !selectedTechId) {
                 setSelectedTechId(String(res.data[0].id));
@@ -140,7 +160,7 @@ const Tecnicos = () => {
     useEffect(() => {
         loadData();
         // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, []);
+    }, [perfPeriod]);
 
     // ── Load daily stats when tech / month changes ────────────────────────────
     const loadDailyStats = useCallback(async () => {
@@ -376,6 +396,30 @@ const Tecnicos = () => {
             {/* ── TAB GENERAL ─────────────────────────────────────────────── */}
             {activeTab === 'general' && (
                 <div className="space-y-6">
+                    {/* Period filter */}
+                    <div className="flex items-center gap-2 flex-wrap">
+                        {[
+                            { key: 'all',   label: 'Todo' },
+                            { key: 'today', label: 'Hoy' },
+                            { key: 'week',  label: 'Esta semana' },
+                            { key: 'month', label: 'Este mes' }
+                        ].map(({ key, label }) => (
+                            <button key={key} onClick={() => setPerfPeriod(key)}
+                                className={`px-3 py-1 rounded-full text-xs font-medium transition-colors ${
+                                    perfPeriod === key
+                                        ? isIronManTheme
+                                            ? 'bg-cyan-500/20 text-cyan-400 border border-cyan-500/40'
+                                            : 'bg-blue-600 text-white'
+                                        : isIronManTheme
+                                        ? 'text-gray-400 hover:text-cyan-400 border border-cyan-500/10'
+                                        : 'text-gray-500 hover:text-gray-700 border border-gray-200'
+                                }`}
+                            >
+                                {label}
+                            </button>
+                        ))}
+                    </div>
+
                     {/* KPI Cards */}
                     <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
                         {[
@@ -394,7 +438,7 @@ const Tecnicos = () => {
                             {
                                 icon: Clock,
                                 label: 'Tiempo Prom. (h)',
-                                value: avgResolutionTime,
+                                value: perfPeriod === 'all' ? avgResolutionTime : '—',
                                 color: isIronManTheme ? 'text-yellow-400' : 'text-yellow-600'
                             },
                             {

@@ -109,7 +109,12 @@ export const analyticsService = {
     getIncidentsByFailureType: () => api.get('/analytics/by-failure-type'),
     getTemporalTrend: (period = 30) => api.get(`/analytics/temporal-trend?period=${period}`),
     getTopFailingStations: (limit = 10) => api.get(`/analytics/top-failing-stations?limit=${limit}`),
-    getTechnicianPerformance: () => api.get('/analytics/technician-performance'),
+    getTechnicianPerformance: (startDate, endDate) => {
+        const params = startDate && endDate
+            ? `?start_date=${startDate}&end_date=${endDate}`
+            : '';
+        return api.get(`/analytics/technician-performance${params}`);
+    },
     getReportsByUser: () => api.get('/analytics/reports-by-user'),
     getHourlyDistribution: () => api.get('/analytics/hourly-distribution'),
     getWeekdayDistribution: () => api.get('/analytics/weekday-distribution'),
