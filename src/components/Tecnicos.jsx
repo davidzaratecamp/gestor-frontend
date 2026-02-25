@@ -76,7 +76,9 @@ const Tecnicos = () => {
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState('');
     const [technicianPerformance, setTechnicianPerformance] = useState([]);
-    const [perfPeriod, setPerfPeriod] = useState('all');
+    const [perfPeriod, setPerfPeriod] = useState('all'); // 'all' | 'week' | 'custom'
+    const [customStart, setCustomStart] = useState('');
+    const [customEnd, setCustomEnd] = useState('');
 
     // ── Individual tab state ──────────────────────────────────────────────────
     const [selectedTechId, setSelectedTechId] = useState('');
@@ -144,7 +146,13 @@ const Tecnicos = () => {
         try {
             setLoading(true);
             setError('');
-            const { start, end } = getPeriodDates(perfPeriod);
+            let start = null, end = null;
+            if (perfPeriod === 'week') {
+                const dates = getPeriodDates('week');
+                start = dates.start; end = dates.end;
+            } else if (perfPeriod === 'custom' && customStart && customEnd) {
+                start = customStart; end = customEnd;
+            }
             const res = await analyticsService.getTechnicianPerformance(start, end);
             setTechnicianPerformance(res.data);
             if (res.data.length > 0 && !selectedTechId) {
@@ -158,9 +166,10 @@ const Tecnicos = () => {
     };
 
     useEffect(() => {
+        if (perfPeriod === 'custom' && (!customStart || !customEnd)) return;
         loadData();
         // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, [perfPeriod]);
+    }, [perfPeriod, customStart, customEnd]);
 
     // ── Load daily stats when tech / month changes ────────────────────────────
     const loadDailyStats = useCallback(async () => {
@@ -398,26 +407,66 @@ const Tecnicos = () => {
                 <div className="space-y-6">
                     {/* Period filter */}
                     <div className="flex items-center gap-2 flex-wrap">
-                        {[
-                            { key: 'all',   label: 'Todo' },
-                            { key: 'today', label: 'Hoy' },
-                            { key: 'week',  label: 'Esta semana' },
-                            { key: 'month', label: 'Este mes' }
-                        ].map(({ key, label }) => (
-                            <button key={key} onClick={() => setPerfPeriod(key)}
-                                className={`px-3 py-1 rounded-full text-xs font-medium transition-colors ${
-                                    perfPeriod === key
-                                        ? isIronManTheme
-                                            ? 'bg-cyan-500/20 text-cyan-400 border border-cyan-500/40'
-                                            : 'bg-blue-600 text-white'
-                                        : isIronManTheme
-                                        ? 'text-gray-400 hover:text-cyan-400 border border-cyan-500/10'
-                                        : 'text-gray-500 hover:text-gray-700 border border-gray-200'
+                        {/* Todo */}
+                        <button
+                            onClick={() => { setPerfPeriod('all'); setCustomStart(''); setCustomEnd(''); }}
+                            className={`px-3 py-1 rounded-full text-xs font-medium transition-colors ${
+                                perfPeriod === 'all'
+                                    ? isIronManTheme
+                                        ? 'bg-cyan-500/20 text-cyan-400 border border-cyan-500/40'
+                                        : 'bg-blue-600 text-white'
+                                    : isIronManTheme
+                                    ? 'text-gray-400 hover:text-cyan-400 border border-cyan-500/10'
+                                    : 'text-gray-500 hover:text-gray-700 border border-gray-200'
+                            }`}
+                        >
+                            Todo
+                        </button>
+
+                        {/* Esta semana */}
+                        <button
+                            onClick={() => { setPerfPeriod('week'); setCustomStart(''); setCustomEnd(''); }}
+                            className={`px-3 py-1 rounded-full text-xs font-medium transition-colors ${
+                                perfPeriod === 'week'
+                                    ? isIronManTheme
+                                        ? 'bg-cyan-500/20 text-cyan-400 border border-cyan-500/40'
+                                        : 'bg-blue-600 text-white'
+                                    : isIronManTheme
+                                    ? 'text-gray-400 hover:text-cyan-400 border border-cyan-500/10'
+                                    : 'text-gray-500 hover:text-gray-700 border border-gray-200'
+                            }`}
+                        >
+                            Esta semana
+                        </button>
+
+                        {/* Custom date range */}
+                        <div className={`flex items-center gap-1 px-2 py-0.5 rounded-lg border transition-colors ${
+                            perfPeriod === 'custom'
+                                ? isIronManTheme
+                                    ? 'border-cyan-500/40 bg-cyan-500/10'
+                                    : 'border-blue-400 bg-blue-50'
+                                : isIronManTheme
+                                ? 'border-cyan-500/10'
+                                : 'border-gray-200'
+                        }`}>
+                            <input
+                                type="date"
+                                value={customStart}
+                                onChange={(e) => { setCustomStart(e.target.value); setPerfPeriod('custom'); }}
+                                className={`text-xs bg-transparent outline-none ${
+                                    isIronManTheme ? 'text-cyan-300' : 'text-gray-700'
                                 }`}
-                            >
-                                {label}
-                            </button>
-                        ))}
+                            />
+                            <span className={`text-xs ${isIronManTheme ? 'text-gray-500' : 'text-gray-400'}`}>–</span>
+                            <input
+                                type="date"
+                                value={customEnd}
+                                onChange={(e) => { setCustomEnd(e.target.value); setPerfPeriod('custom'); }}
+                                className={`text-xs bg-transparent outline-none ${
+                                    isIronManTheme ? 'text-cyan-300' : 'text-gray-700'
+                                }`}
+                            />
+                        </div>
                     </div>
 
                     {/* KPI Cards */}
@@ -438,7 +487,7 @@ const Tecnicos = () => {
                             {
                                 icon: Clock,
                                 label: 'Tiempo Prom. (h)',
-                                value: perfPeriod === 'all' ? avgResolutionTime : '—',
+                                value: perfPeriod !== 'all' ? '—' : avgResolutionTime,
                                 color: isIronManTheme ? 'text-yellow-400' : 'text-yellow-600'
                             },
                             {
