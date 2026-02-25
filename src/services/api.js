@@ -116,7 +116,9 @@ export const analyticsService = {
     getResolutionTimeAnalysis: () => api.get('/analytics/resolution-time-analysis'),
     getQualityMetrics: () => api.get('/analytics/quality-metrics'),
     getTechnicianDailyStats: (id, startDate, endDate) =>
-        api.get(`/analytics/technician/${id}/daily-stats?start_date=${startDate}&end_date=${endDate}`)
+        api.get(`/analytics/technician/${id}/daily-stats?start_date=${startDate}&end_date=${endDate}`),
+    getTechnicianDailyIncidents: (id, date) =>
+        api.get(`/analytics/technician/${id}/daily-incidents?date=${date}`)
 };
 
 // === SERVICIOS DE HISTORIAL DE COMPONENTES ===

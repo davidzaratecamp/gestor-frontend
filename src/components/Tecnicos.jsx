@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useCallback } from 'react';
-import { analyticsService } from '../services/api';
+import { analyticsService, incidentService } from '../services/api';
 import { useAuth } from '../context/AuthContext';
 import {
     Chart as ChartJS,
@@ -66,6 +66,10 @@ const Tecnicos = () => {
     const [dailyStats, setDailyStats] = useState([]);
     const [dailyLoading, setDailyLoading] = useState(false);
     const [selectedDay, setSelectedDay] = useState(null); // { date, assigned, resolved, returned }
+    const [dayIncidents, setDayIncidents] = useState([]);
+    const [dayIncidentsLoading, setDayIncidentsLoading] = useState(false);
+    const [expandedIncidentId, setExpandedIncidentId] = useState(null);
+    const [expandedIncidentDetails, setExpandedIncidentDetails] = useState({});
 
     // ── Theme helpers ─────────────────────────────────────────────────────────
     const cardClass = isIronManTheme
@@ -166,6 +170,48 @@ const Tecnicos = () => {
     useEffect(() => {
         if (activeTab === 'individual') loadDailyStats();
     }, [activeTab, loadDailyStats]);
+
+    // ── Load incidents when a day is selected ─────────────────────────────────
+    useEffect(() => {
+        if (!selectedDay) {
+            setDayIncidents([]);
+            setExpandedIncidentId(null);
+            return;
+        }
+        const fetchIncidents = async () => {
+            try {
+                setDayIncidentsLoading(true);
+                setExpandedIncidentId(null);
+                const res = await analyticsService.getTechnicianDailyIncidents(
+                    selectedTechId,
+                    selectedDay.date
+                );
+                setDayIncidents(res.data);
+            } catch {
+                setDayIncidents([]);
+            } finally {
+                setDayIncidentsLoading(false);
+            }
+        };
+        fetchIncidents();
+    }, [selectedDay, selectedTechId]);
+
+    // ── Toggle incident expanded detail ───────────────────────────────────────
+    const toggleIncident = async (incidentId) => {
+        if (expandedIncidentId === incidentId) {
+            setExpandedIncidentId(null);
+            return;
+        }
+        setExpandedIncidentId(incidentId);
+        if (!expandedIncidentDetails[incidentId]) {
+            try {
+                const res = await incidentService.getById(incidentId);
+                setExpandedIncidentDetails((prev) => ({ ...prev, [incidentId]: res.data }));
+            } catch {
+                // ignore fetch errors for expansion
+            }
+        }
+    };
 
     // ── Derived data ──────────────────────────────────────────────────────────
     const totalActive = technicianPerformance.length;
@@ -603,7 +649,7 @@ const Tecnicos = () => {
                                                 key={day}
                                                 onClick={() =>
                                                     setSelectedDay(
-                                                        isSelected ? null : { date: dateKey, ...stats }
+                                                        isSelected ? null : { ...stats, date: dateKey }
                                                     )
                                                 }
                                                 className={`rounded-lg p-1.5 min-h-[60px] text-left transition-all ${
@@ -690,7 +736,9 @@ const Tecnicos = () => {
                                     Cerrar
                                 </button>
                             </div>
-                            <div className="grid grid-cols-3 gap-3">
+
+                            {/* Count cards */}
+                            <div className="grid grid-cols-3 gap-3 mb-4">
                                 {[
                                     {
                                         label: 'Asignaciones',
@@ -716,6 +764,143 @@ const Tecnicos = () => {
                                         <p className={`text-2xl font-bold ${color}`}>{value}</p>
                                     </div>
                                 ))}
+                            </div>
+
+                            {/* Incidents list */}
+                            <div>
+                                <h4 className={`text-sm font-semibold mb-2 ${textPrimaryClass}`}>
+                                    Incidencias ({dayIncidents.length})
+                                </h4>
+                                {dayIncidentsLoading ? (
+                                    <div className="flex justify-center py-4">
+                                        <div className="animate-spin rounded-full h-6 w-6 border-b-2 border-blue-600" />
+                                    </div>
+                                ) : dayIncidents.length === 0 ? (
+                                    <p className={`text-xs ${textSecondaryClass}`}>
+                                        No hay incidencias registradas para este día.
+                                    </p>
+                                ) : (
+                                    <div className="space-y-2">
+                                        {dayIncidents.map((inc, idx) => {
+                                            const ACTION_STYLES = {
+                                                'Asignación de técnico': { bg: 'bg-blue-500', label: 'Asig.' },
+                                                'Marcado como resuelto': { bg: 'bg-green-500', label: 'Resuelto' },
+                                                'Devuelto por técnico': { bg: 'bg-red-500', label: 'Devuelto' }
+                                            };
+                                            const actionStyle = ACTION_STYLES[inc.action] || {
+                                                bg: 'bg-gray-500',
+                                                label: inc.action
+                                            };
+                                            const isExpanded = expandedIncidentId === inc.incident_id;
+                                            const details = expandedIncidentDetails[inc.incident_id];
+
+                                            return (
+                                                <div
+                                                    key={`${inc.incident_id}-${idx}`}
+                                                    className={`rounded-lg border p-3 ${
+                                                        isIronManTheme
+                                                            ? 'border-cyan-500/20 bg-gray-800/40'
+                                                            : 'border-gray-200 bg-gray-50'
+                                                    }`}
+                                                >
+                                                    <div className="flex items-center justify-between gap-2">
+                                                        <div className="flex items-center gap-2 flex-1 min-w-0">
+                                                            <span
+                                                                className={`text-[10px] font-bold text-white rounded px-1.5 py-0.5 shrink-0 ${actionStyle.bg}`}
+                                                            >
+                                                                {actionStyle.label}
+                                                            </span>
+                                                            <span className={`text-xs font-semibold shrink-0 ${textPrimaryClass}`}>
+                                                                #{inc.incident_id}
+                                                            </span>
+                                                            <span className={`text-xs truncate ${textSecondaryClass}`}>
+                                                                {inc.failure_type}
+                                                            </span>
+                                                            <span className={`text-xs shrink-0 ${textSecondaryClass}`}>
+                                                                {inc.status}
+                                                            </span>
+                                                        </div>
+                                                        <button
+                                                            onClick={() => toggleIncident(inc.incident_id)}
+                                                            className={`text-xs px-2 py-1 rounded shrink-0 transition-colors ${
+                                                                isIronManTheme
+                                                                    ? 'text-cyan-400 hover:bg-cyan-900/20'
+                                                                    : 'text-blue-600 hover:bg-blue-50'
+                                                            }`}
+                                                        >
+                                                            Ver caso {isExpanded ? '▲' : '▼'}
+                                                        </button>
+                                                    </div>
+
+                                                    {isExpanded && (
+                                                        <div
+                                                            className={`mt-2 pt-2 border-t text-xs space-y-1 ${
+                                                                isIronManTheme
+                                                                    ? 'border-cyan-500/20'
+                                                                    : 'border-gray-200'
+                                                            }`}
+                                                        >
+                                                            {details ? (
+                                                                <>
+                                                                    <p>
+                                                                        <span className={`font-semibold ${textSecondaryClass}`}>
+                                                                            Descripción:{' '}
+                                                                        </span>
+                                                                        <span className={textPrimaryClass}>
+                                                                            {details.description || '—'}
+                                                                        </span>
+                                                                    </p>
+                                                                    <p>
+                                                                        <span className={`font-semibold ${textSecondaryClass}`}>
+                                                                            Sede:{' '}
+                                                                        </span>
+                                                                        <span className={`${textPrimaryClass} capitalize`}>
+                                                                            {details.workstation?.sede ||
+                                                                                details.sede ||
+                                                                                '—'}
+                                                                        </span>
+                                                                    </p>
+                                                                    <p>
+                                                                        <span className={`font-semibold ${textSecondaryClass}`}>
+                                                                            Estación:{' '}
+                                                                        </span>
+                                                                        <span className={textPrimaryClass}>
+                                                                            {details.workstation?.station_code ||
+                                                                                details.station_code ||
+                                                                                '—'}
+                                                                        </span>
+                                                                    </p>
+                                                                    <p>
+                                                                        <span className={`font-semibold ${textSecondaryClass}`}>
+                                                                            Reportado por:{' '}
+                                                                        </span>
+                                                                        <span className={textPrimaryClass}>
+                                                                            {details.reported_by?.full_name ||
+                                                                                details.reporter_name ||
+                                                                                '—'}
+                                                                        </span>
+                                                                    </p>
+                                                                    <p>
+                                                                        <span className={`font-semibold ${textSecondaryClass}`}>
+                                                                            Notas de la acción:{' '}
+                                                                        </span>
+                                                                        <span className={textPrimaryClass}>
+                                                                            {inc.details || '—'}
+                                                                        </span>
+                                                                    </p>
+                                                                </>
+                                                            ) : (
+                                                                <div className="flex justify-center py-2">
+                                                                    <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-blue-600" />
+                                                                </div>
+                                                            )}
+                                                        </div>
+                                                    )}
+                                                </div>
+                                            );
+                                        })}
+                                    </div>
+                                )}
                             </div>
                         </div>
                     )}
