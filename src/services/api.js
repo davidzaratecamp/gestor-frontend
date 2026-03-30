@@ -134,7 +134,9 @@ export const assetHistoryService = {
     crearObservacion: (id, observaciones) => api.post(`/activos-tecnico/${id}/inventario`, { observaciones }),
     getObservaciones: (id) => api.get(`/activos-tecnico/${id}/inventario`),
     getNoProductivos: () => api.get('/activos-tecnico/no-productivos'),
-    darDeBaja: (id) => api.put(`/activos-tecnico/${id}/dar-de-baja`)
+    getEnBodega: () => api.get('/activos-tecnico/en-bodega'),
+    darDeBaja: (id) => api.put(`/activos-tecnico/${id}/dar-de-baja`),
+    actualizarEstadoMantenimiento: (id, nuevoEstado) => api.put(`/activos-tecnico/${id}/estado-mantenimiento`, { nuevoEstado })
 };
 
 export default api;

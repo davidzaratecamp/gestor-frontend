@@ -21,7 +21,8 @@ import {
     User,
     XCircle,
     ChevronDown,
-    AlertTriangle
+    AlertTriangle,
+    Archive
 } from 'lucide-react';
 
 const FIELD_COLORS = {
@@ -79,6 +80,9 @@ const AssetComponentHistory = () => {
     const [bajaModalOpen, setBajaModalOpen] = useState(false);
     const [bajaAsset, setBajaAsset] = useState(null);
     const [processingBaja, setProcessingBaja] = useState(false);
+    const [enBodega, setEnBodega] = useState([]);
+    const [loadingEnBodega, setLoadingEnBodega] = useState(false);
+    const [showEnBodega, setShowEnBodega] = useState(true);
 
     const fetchStats = useCallback(async () => {
         try {
@@ -99,6 +103,18 @@ const AssetComponentHistory = () => {
             console.error('Error al cargar no productivos:', err);
         } finally {
             setLoadingNoProductivos(false);
+        }
+    }, []);
+
+    const fetchEnBodega = useCallback(async () => {
+        try {
+            setLoadingEnBodega(true);
+            const res = await assetHistoryService.getEnBodega();
+            setEnBodega(res.data.data || []);
+        } catch (err) {
+            console.error('Error al cargar activos en bodega:', err);
+        } finally {
+            setLoadingEnBodega(false);
         }
     }, []);
 
@@ -126,7 +142,7 @@ const AssetComponentHistory = () => {
     useEffect(() => {
         const loadData = async () => {
             setLoading(true);
-            await Promise.all([fetchStats(), fetchHistorial(0), fetchNoProductivos()]);
+            await Promise.all([fetchStats(), fetchHistorial(0), fetchNoProductivos(), fetchEnBodega()]);
             setLoading(false);
         };
         loadData();
@@ -139,7 +155,7 @@ const AssetComponentHistory = () => {
     const handleRefresh = async () => {
         setLoading(true);
         setError(null);
-        await Promise.all([fetchStats(), fetchHistorial(0), fetchNoProductivos()]);
+        await Promise.all([fetchStats(), fetchHistorial(0), fetchNoProductivos(), fetchEnBodega()]);
         setLoading(false);
     };
 
@@ -474,6 +490,89 @@ const AssetComponentHistory = () => {
                                                             </button>
                                                         )}
                                                     </div>
+                                                </td>
+                                            </tr>
+                                        ))}
+                                    </tbody>
+                                </table>
+                            </div>
+                        )}
+                    </div>
+                )}
+            </div>
+
+            {/* Activos en Bodega */}
+            <div className="bg-white rounded-xl shadow-sm border border-gray-200">
+                <button
+                    onClick={() => setShowEnBodega(!showEnBodega)}
+                    className="w-full flex items-center justify-between px-5 py-4 text-sm font-medium text-gray-700 hover:bg-gray-50 rounded-xl"
+                >
+                    <div className="flex items-center gap-2">
+                        <Archive className="h-5 w-5 text-indigo-500" />
+                        <span className="text-base font-semibold">Activos en Bodega</span>
+                        {enBodega.length > 0 && (
+                            <span className="bg-indigo-100 text-indigo-700 text-xs font-semibold px-2 py-0.5 rounded-full">
+                                {enBodega.length}
+                            </span>
+                        )}
+                    </div>
+                    <ChevronDown className={`h-4 w-4 transition-transform ${showEnBodega ? 'rotate-180' : ''}`} />
+                </button>
+                {showEnBodega && (
+                    <div className="border-t border-gray-100">
+                        {loadingEnBodega ? (
+                            <div className="flex items-center justify-center py-8">
+                                <RefreshCw className="h-5 w-5 text-gray-400 animate-spin" />
+                                <span className="ml-2 text-gray-500 text-sm">Cargando...</span>
+                            </div>
+                        ) : enBodega.length === 0 ? (
+                            <div className="text-center py-8">
+                                <Archive className="h-10 w-10 mx-auto text-gray-300 mb-2" />
+                                <p className="text-gray-500 text-sm">No hay activos en bodega</p>
+                            </div>
+                        ) : (
+                            <div className="overflow-x-auto">
+                                <table className="min-w-full divide-y divide-gray-200">
+                                    <thead className="bg-gray-50">
+                                        <tr>
+                                            <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Placa</th>
+                                            <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Tipo</th>
+                                            <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Ubicación</th>
+                                            <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Marca / Modelo</th>
+                                            <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Enviado por</th>
+                                            <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Fecha</th>
+                                            <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Acciones</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody className="bg-white divide-y divide-gray-200">
+                                        {enBodega.map((activo) => (
+                                            <tr key={activo.id} className="hover:bg-gray-50 transition-colors">
+                                                <td className="px-4 py-3 whitespace-nowrap text-sm font-medium text-gray-900">
+                                                    {activo.numeroPlaca}
+                                                </td>
+                                                <td className="px-4 py-3 whitespace-nowrap text-sm text-gray-600">
+                                                    {activo.tipoActivo}
+                                                </td>
+                                                <td className="px-4 py-3 whitespace-nowrap text-sm text-gray-600">
+                                                    {activo.ubicacion || '—'}
+                                                </td>
+                                                <td className="px-4 py-3 text-sm text-gray-600 max-w-[200px] truncate" title={activo.marcaModelo}>
+                                                    {activo.marcaModelo || '—'}
+                                                </td>
+                                                <td className="px-4 py-3 whitespace-nowrap text-sm text-gray-600">
+                                                    {activo.enviadoPor || '—'}
+                                                </td>
+                                                <td className="px-4 py-3 whitespace-nowrap text-sm text-gray-600">
+                                                    {activo.fechaBodega ? formatDate(activo.fechaBodega) : '—'}
+                                                </td>
+                                                <td className="px-4 py-3 whitespace-nowrap">
+                                                    <button
+                                                        onClick={() => handleOpenAssetModal(activo.id, activo.numeroPlaca, activo.tipoActivo)}
+                                                        className="inline-flex items-center px-3 py-1.5 border border-blue-300 rounded-lg text-xs font-medium text-blue-700 bg-white hover:bg-blue-50 transition-colors"
+                                                    >
+                                                        <History className="h-3.5 w-3.5 mr-1" />
+                                                        Ver Historial
+                                                    </button>
                                                 </td>
                                             </tr>
                                         ))}

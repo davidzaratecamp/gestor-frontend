@@ -42,6 +42,7 @@ const TecnicoInventarioEdicion = () => {
     const [observaciones, setObservaciones] = useState([]);
     const [showObservaciones, setShowObservaciones] = useState(false);
     const [loadingObservaciones, setLoadingObservaciones] = useState(false);
+    const [updatingEstado, setUpdatingEstado] = useState(false);
 
     // Cargar activos editables
     const fetchActivos = async (search = '') => {
@@ -243,6 +244,46 @@ const TecnicoInventarioEdicion = () => {
         }
     };
 
+    // Cambia el estado del activo (mantenimiento, bodega, funcional)
+    const handleCambiarEstado = async (nuevoEstado) => {
+        try {
+            setUpdatingEstado(true);
+            await assetHistoryService.actualizarEstadoMantenimiento(selectedActivo.id, nuevoEstado);
+            setSelectedActivo(prev => ({ ...prev, estado: nuevoEstado }));
+            const mensajes = {
+                en_mantenimiento: 'Activo puesto en mantenimiento',
+                funcional: 'Activo marcado como funcional',
+                bodega: 'Activo enviado a bodega'
+            };
+            setMessage({ type: 'success', text: mensajes[nuevoEstado] });
+        } catch (error) {
+            setMessage({ type: 'error', text: error.response?.data?.msg || 'Error al actualizar estado' });
+        } finally {
+            setUpdatingEstado(false);
+        }
+    };
+
+    // Finalizar mantenimiento: guarda observaciones y cambia estado a funcional
+    const handleFinalizarMantenimiento = async () => {
+        if (!observacionesText.trim()) {
+            setMessage({ type: 'error', text: 'Debe agregar observaciones antes de finalizar el mantenimiento' });
+            return;
+        }
+        try {
+            setSavingObservacion(true);
+            await assetHistoryService.crearObservacion(selectedActivo.id, observacionesText.trim());
+            await handleCambiarEstado('funcional');
+            setShowInventarioModal(false);
+            setObservacionesText('');
+            fetchObservaciones(selectedActivo.id);
+            setShowObservaciones(true);
+        } catch (error) {
+            setMessage({ type: 'error', text: error.response?.data?.msg || 'Error al finalizar mantenimiento' });
+        } finally {
+            setSavingObservacion(false);
+        }
+    };
+
     // Formatear fecha
     const formatFecha = (fecha) => {
         return new Date(fecha).toLocaleString('es-CR', {
@@ -377,6 +418,19 @@ const TecnicoInventarioEdicion = () => {
                                     {selectedActivo.asignado && (
                                         <p><strong>Asignado a:</strong> {selectedActivo.asignado}</p>
                                     )}
+                                    <p>
+                                        <strong>Estado:</strong>{' '}
+                                        <span className={`inline-block px-2 py-0.5 rounded text-xs font-medium ${
+                                            selectedActivo.estado === 'funcional' ? 'bg-green-100 text-green-800' :
+                                            selectedActivo.estado === 'en_mantenimiento' ? 'bg-yellow-100 text-yellow-800' :
+                                            selectedActivo.estado === 'en_reparacion' ? 'bg-orange-100 text-orange-800' :
+                                            selectedActivo.estado === 'bodega' ? 'bg-indigo-100 text-indigo-800' :
+                                            selectedActivo.estado === 'dado_de_baja' ? 'bg-red-100 text-red-800' :
+                                            'bg-gray-100 text-gray-800'
+                                        }`}>
+                                            {selectedActivo.estado || 'funcional'}
+                                        </span>
+                                    </p>
                                     {componentes.find(c => c.campo === 'clasificacion') && (
                                         <p>
                                             <strong>Clasificación:</strong>{' '}
@@ -392,17 +446,53 @@ const TecnicoInventarioEdicion = () => {
                                 </div>
                             </div>
 
-                            {/* Botón Iniciar Inventario */}
-                            <button
-                                onClick={() => {
-                                    setObservacionesText('');
-                                    setShowInventarioModal(true);
-                                }}
-                                className="w-full mb-4 flex items-center justify-center px-4 py-3 bg-emerald-600 text-white rounded-lg hover:bg-emerald-700 transition-colors font-medium"
-                            >
-                                <ClipboardList className="h-5 w-5 mr-2" />
-                                Iniciar Mantenimiento
-                            </button>
+                            {/* Botones de mantenimiento */}
+                            {selectedActivo.estado === 'en_mantenimiento' ? (
+                                <button
+                                    onClick={() => {
+                                        setObservacionesText('');
+                                        setShowInventarioModal(true);
+                                    }}
+                                    className="w-full mb-4 flex items-center justify-center px-4 py-3 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors font-medium"
+                                >
+                                    <ClipboardList className="h-5 w-5 mr-2" />
+                                    Finalizar Mantenimiento
+                                </button>
+                            ) : (
+                                <button
+                                    onClick={() => handleCambiarEstado('en_mantenimiento')}
+                                    disabled={updatingEstado || selectedActivo.estado === 'dado_de_baja' || selectedActivo.estado === 'bodega'}
+                                    className="w-full mb-4 flex items-center justify-center px-4 py-3 bg-emerald-600 text-white rounded-lg hover:bg-emerald-700 disabled:opacity-50 transition-colors font-medium"
+                                >
+                                    {updatingEstado ? (
+                                        <RefreshCw className="h-5 w-5 mr-2 animate-spin" />
+                                    ) : (
+                                        <ClipboardList className="h-5 w-5 mr-2" />
+                                    )}
+                                    Iniciar Mantenimiento
+                                </button>
+                            )}
+
+                            {/* Botón de Bodega */}
+                            {selectedActivo.estado === 'bodega' ? (
+                                <button
+                                    onClick={() => handleCambiarEstado('funcional')}
+                                    disabled={updatingEstado}
+                                    className="w-full mb-4 flex items-center justify-center px-4 py-2 border border-indigo-300 text-indigo-700 bg-white rounded-lg hover:bg-indigo-50 disabled:opacity-50 transition-colors text-sm font-medium"
+                                >
+                                    {updatingEstado ? <RefreshCw className="h-4 w-4 mr-2 animate-spin" /> : <Tag className="h-4 w-4 mr-2" />}
+                                    Sacar de Bodega
+                                </button>
+                            ) : selectedActivo.estado !== 'dado_de_baja' && selectedActivo.estado !== 'en_mantenimiento' && (
+                                <button
+                                    onClick={() => handleCambiarEstado('bodega')}
+                                    disabled={updatingEstado}
+                                    className="w-full mb-4 flex items-center justify-center px-4 py-2 border border-indigo-300 text-indigo-700 bg-white rounded-lg hover:bg-indigo-50 disabled:opacity-50 transition-colors text-sm font-medium"
+                                >
+                                    {updatingEstado ? <RefreshCw className="h-4 w-4 mr-2 animate-spin" /> : <Tag className="h-4 w-4 mr-2" />}
+                                    Enviar a Bodega
+                                </button>
+                            )}
 
                             {/* Historial de observaciones */}
                             {observaciones.length > 0 && (
@@ -526,7 +616,7 @@ const TecnicoInventarioEdicion = () => {
                     <div className="bg-white rounded-lg shadow-xl max-w-lg w-full p-6">
                         <div className="flex items-center justify-between mb-4">
                             <h3 className="text-lg font-semibold text-gray-900">
-                                Mantenimiento - {selectedActivo.numero_placa}
+                                Finalizar Mantenimiento - {selectedActivo.numero_placa}
                             </h3>
                             <button
                                 onClick={() => setShowInventarioModal(false)}
@@ -537,7 +627,7 @@ const TecnicoInventarioEdicion = () => {
                         </div>
 
                         <p className="text-sm text-gray-600 mb-3">
-                            Describa las observaciones del mantenimiento realizado a este equipo.
+                            Describa el trabajo realizado. Al guardar, el activo regresará a estado <strong>funcional</strong>.
                         </p>
 
                         <textarea
@@ -551,9 +641,9 @@ const TecnicoInventarioEdicion = () => {
 
                         <div className="flex space-x-3 mt-4">
                             <button
-                                onClick={saveObservacion}
+                                onClick={handleFinalizarMantenimiento}
                                 disabled={savingObservacion || !observacionesText.trim()}
-                                className="flex-1 flex items-center justify-center px-4 py-2 bg-emerald-600 text-white rounded-lg hover:bg-emerald-700 disabled:opacity-50"
+                                className="flex-1 flex items-center justify-center px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 disabled:opacity-50"
                             >
                                 {savingObservacion ? (
                                     <>
@@ -563,7 +653,7 @@ const TecnicoInventarioEdicion = () => {
                                 ) : (
                                     <>
                                         <Save className="h-4 w-4 mr-2" />
-                                        Guardar Observaciones
+                                        Guardar y Finalizar
                                     </>
                                 )}
                             </button>
