@@ -83,6 +83,15 @@ const AssetComponentHistory = () => {
     const [enBodega, setEnBodega] = useState([]);
     const [loadingEnBodega, setLoadingEnBodega] = useState(false);
     const [showEnBodega, setShowEnBodega] = useState(true);
+    const [bodegaFilters, setBodegaFilters] = useState({
+        numeroPlaca: '',
+        tipoActivo: '',
+        ubicacion: '',
+        fechaInicio: '',
+        fechaFin: '',
+        enviadoPor: ''
+    });
+    const [showBodegaFilters, setShowBodegaFilters] = useState(false);
 
     const fetchStats = useCallback(async () => {
         try {
@@ -502,87 +511,193 @@ const AssetComponentHistory = () => {
             </div>
 
             {/* Activos en Bodega */}
-            <div className="bg-white rounded-xl shadow-sm border border-gray-200">
-                <button
-                    onClick={() => setShowEnBodega(!showEnBodega)}
-                    className="w-full flex items-center justify-between px-5 py-4 text-sm font-medium text-gray-700 hover:bg-gray-50 rounded-xl"
-                >
-                    <div className="flex items-center gap-2">
-                        <Archive className="h-5 w-5 text-indigo-500" />
-                        <span className="text-base font-semibold">Activos en Bodega</span>
-                        {enBodega.length > 0 && (
-                            <span className="bg-indigo-100 text-indigo-700 text-xs font-semibold px-2 py-0.5 rounded-full">
-                                {enBodega.length}
-                            </span>
-                        )}
-                    </div>
-                    <ChevronDown className={`h-4 w-4 transition-transform ${showEnBodega ? 'rotate-180' : ''}`} />
-                </button>
-                {showEnBodega && (
-                    <div className="border-t border-gray-100">
-                        {loadingEnBodega ? (
-                            <div className="flex items-center justify-center py-8">
-                                <RefreshCw className="h-5 w-5 text-gray-400 animate-spin" />
-                                <span className="ml-2 text-gray-500 text-sm">Cargando...</span>
+            {(() => {
+                const ubicacionesBodega = [...new Set(enBodega.map(a => a.ubicacion).filter(Boolean))].sort();
+                const tecnicosBodega = [...new Set(enBodega.map(a => a.enviadoPor).filter(Boolean))].sort();
+                const hasActiveBodegaFilters = Object.values(bodegaFilters).some(v => v !== '');
+
+                const bodegaFiltrada = enBodega.filter(a => {
+                    if (bodegaFilters.numeroPlaca && !a.numeroPlaca?.toLowerCase().includes(bodegaFilters.numeroPlaca.toLowerCase())) return false;
+                    if (bodegaFilters.tipoActivo && a.tipoActivo !== bodegaFilters.tipoActivo) return false;
+                    if (bodegaFilters.ubicacion && a.ubicacion !== bodegaFilters.ubicacion) return false;
+                    if (bodegaFilters.enviadoPor && a.enviadoPor !== bodegaFilters.enviadoPor) return false;
+                    if (bodegaFilters.fechaInicio && a.fechaBodega && new Date(a.fechaBodega) < new Date(bodegaFilters.fechaInicio)) return false;
+                    if (bodegaFilters.fechaFin && a.fechaBodega && new Date(a.fechaBodega) > new Date(bodegaFilters.fechaFin + 'T23:59:59')) return false;
+                    return true;
+                });
+
+                return (
+                    <div className="bg-white rounded-xl shadow-sm border border-gray-200">
+                        <button
+                            onClick={() => setShowEnBodega(!showEnBodega)}
+                            className="w-full flex items-center justify-between px-5 py-4 text-sm font-medium text-gray-700 hover:bg-gray-50 rounded-xl"
+                        >
+                            <div className="flex items-center gap-2">
+                                <Archive className="h-5 w-5 text-indigo-500" />
+                                <span className="text-base font-semibold">Activos en Bodega</span>
+                                {enBodega.length > 0 && (
+                                    <span className="bg-indigo-100 text-indigo-700 text-xs font-semibold px-2 py-0.5 rounded-full">
+                                        {hasActiveBodegaFilters ? `${bodegaFiltrada.length} / ${enBodega.length}` : enBodega.length}
+                                    </span>
+                                )}
                             </div>
-                        ) : enBodega.length === 0 ? (
-                            <div className="text-center py-8">
-                                <Archive className="h-10 w-10 mx-auto text-gray-300 mb-2" />
-                                <p className="text-gray-500 text-sm">No hay activos en bodega</p>
-                            </div>
-                        ) : (
-                            <div className="overflow-x-auto">
-                                <table className="min-w-full divide-y divide-gray-200">
-                                    <thead className="bg-gray-50">
-                                        <tr>
-                                            <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Placa</th>
-                                            <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Tipo</th>
-                                            <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Ubicación</th>
-                                            <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Marca / Modelo</th>
-                                            <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Enviado por</th>
-                                            <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Fecha</th>
-                                            <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Acciones</th>
-                                        </tr>
-                                    </thead>
-                                    <tbody className="bg-white divide-y divide-gray-200">
-                                        {enBodega.map((activo) => (
-                                            <tr key={activo.id} className="hover:bg-gray-50 transition-colors">
-                                                <td className="px-4 py-3 whitespace-nowrap text-sm font-medium text-gray-900">
-                                                    {activo.numeroPlaca}
-                                                </td>
-                                                <td className="px-4 py-3 whitespace-nowrap text-sm text-gray-600">
-                                                    {activo.tipoActivo}
-                                                </td>
-                                                <td className="px-4 py-3 whitespace-nowrap text-sm text-gray-600">
-                                                    {activo.ubicacion || '—'}
-                                                </td>
-                                                <td className="px-4 py-3 text-sm text-gray-600 max-w-[200px] truncate" title={activo.marcaModelo}>
-                                                    {activo.marcaModelo || '—'}
-                                                </td>
-                                                <td className="px-4 py-3 whitespace-nowrap text-sm text-gray-600">
-                                                    {activo.enviadoPor || '—'}
-                                                </td>
-                                                <td className="px-4 py-3 whitespace-nowrap text-sm text-gray-600">
-                                                    {activo.fechaBodega ? formatDate(activo.fechaBodega) : '—'}
-                                                </td>
-                                                <td className="px-4 py-3 whitespace-nowrap">
+                            <ChevronDown className={`h-4 w-4 transition-transform ${showEnBodega ? 'rotate-180' : ''}`} />
+                        </button>
+
+                        {showEnBodega && (
+                            <div className="border-t border-gray-100">
+                                {/* Filtros */}
+                                <div className="px-5 py-3 border-b border-gray-100">
+                                    <button
+                                        onClick={() => setShowBodegaFilters(!showBodegaFilters)}
+                                        className="inline-flex items-center gap-2 text-sm text-gray-600 hover:text-gray-800"
+                                    >
+                                        <Filter className="h-4 w-4" />
+                                        Filtros
+                                        {hasActiveBodegaFilters && (
+                                            <span className="bg-indigo-100 text-indigo-700 text-xs font-semibold px-2 py-0.5 rounded-full">Activos</span>
+                                        )}
+                                        <ChevronDown className={`h-3.5 w-3.5 transition-transform ${showBodegaFilters ? 'rotate-180' : ''}`} />
+                                    </button>
+
+                                    {showBodegaFilters && (
+                                        <div className="mt-3 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-6 gap-3">
+                                            <div>
+                                                <label className="block text-xs font-medium text-gray-600 mb-1">Placa</label>
+                                                <div className="relative">
+                                                    <Search className="absolute left-2.5 top-1/2 -translate-y-1/2 h-3.5 w-3.5 text-gray-400" />
+                                                    <input
+                                                        type="text"
+                                                        placeholder="Ej: ECC-CPU-001"
+                                                        value={bodegaFilters.numeroPlaca}
+                                                        onChange={e => setBodegaFilters(f => ({ ...f, numeroPlaca: e.target.value }))}
+                                                        className="w-full border border-gray-300 rounded-lg pl-8 pr-3 py-1.5 text-sm focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500"
+                                                    />
+                                                </div>
+                                            </div>
+                                            <div>
+                                                <label className="block text-xs font-medium text-gray-600 mb-1">Tipo</label>
+                                                <select
+                                                    value={bodegaFilters.tipoActivo}
+                                                    onChange={e => setBodegaFilters(f => ({ ...f, tipoActivo: e.target.value }))}
+                                                    className="w-full border border-gray-300 rounded-lg px-3 py-1.5 text-sm focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500"
+                                                >
+                                                    <option value="">Todos</option>
+                                                    <option value="ECC-CPU">ECC-CPU</option>
+                                                    <option value="ECC-POR">ECC-POR</option>
+                                                    <option value="ECC-SER">ECC-SER</option>
+                                                </select>
+                                            </div>
+                                            <div>
+                                                <label className="block text-xs font-medium text-gray-600 mb-1">Ubicación</label>
+                                                <select
+                                                    value={bodegaFilters.ubicacion}
+                                                    onChange={e => setBodegaFilters(f => ({ ...f, ubicacion: e.target.value }))}
+                                                    className="w-full border border-gray-300 rounded-lg px-3 py-1.5 text-sm focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500"
+                                                >
+                                                    <option value="">Todas</option>
+                                                    {ubicacionesBodega.map(u => <option key={u} value={u}>{u}</option>)}
+                                                </select>
+                                            </div>
+                                            <div>
+                                                <label className="block text-xs font-medium text-gray-600 mb-1">Enviado por</label>
+                                                <select
+                                                    value={bodegaFilters.enviadoPor}
+                                                    onChange={e => setBodegaFilters(f => ({ ...f, enviadoPor: e.target.value }))}
+                                                    className="w-full border border-gray-300 rounded-lg px-3 py-1.5 text-sm focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500"
+                                                >
+                                                    <option value="">Todos</option>
+                                                    {tecnicosBodega.map(t => <option key={t} value={t}>{t}</option>)}
+                                                </select>
+                                            </div>
+                                            <div>
+                                                <label className="block text-xs font-medium text-gray-600 mb-1">Fecha desde</label>
+                                                <input
+                                                    type="date"
+                                                    value={bodegaFilters.fechaInicio}
+                                                    onChange={e => setBodegaFilters(f => ({ ...f, fechaInicio: e.target.value }))}
+                                                    className="w-full border border-gray-300 rounded-lg px-3 py-1.5 text-sm focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500"
+                                                />
+                                            </div>
+                                            <div>
+                                                <label className="block text-xs font-medium text-gray-600 mb-1">Fecha hasta</label>
+                                                <input
+                                                    type="date"
+                                                    value={bodegaFilters.fechaFin}
+                                                    onChange={e => setBodegaFilters(f => ({ ...f, fechaFin: e.target.value }))}
+                                                    className="w-full border border-gray-300 rounded-lg px-3 py-1.5 text-sm focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500"
+                                                />
+                                            </div>
+                                            {hasActiveBodegaFilters && (
+                                                <div className="xl:col-span-6">
                                                     <button
-                                                        onClick={() => handleOpenAssetModal(activo.id, activo.numeroPlaca, activo.tipoActivo)}
-                                                        className="inline-flex items-center px-3 py-1.5 border border-blue-300 rounded-lg text-xs font-medium text-blue-700 bg-white hover:bg-blue-50 transition-colors"
+                                                        onClick={() => setBodegaFilters({ numeroPlaca: '', tipoActivo: '', ubicacion: '', fechaInicio: '', fechaFin: '', enviadoPor: '' })}
+                                                        className="inline-flex items-center text-sm text-red-600 hover:text-red-700"
                                                     >
-                                                        <History className="h-3.5 w-3.5 mr-1" />
-                                                        Ver Historial
+                                                        <X className="h-4 w-4 mr-1" />
+                                                        Limpiar filtros
                                                     </button>
-                                                </td>
-                                            </tr>
-                                        ))}
-                                    </tbody>
-                                </table>
+                                                </div>
+                                            )}
+                                        </div>
+                                    )}
+                                </div>
+
+                                {loadingEnBodega ? (
+                                    <div className="flex items-center justify-center py-8">
+                                        <RefreshCw className="h-5 w-5 text-gray-400 animate-spin" />
+                                        <span className="ml-2 text-gray-500 text-sm">Cargando...</span>
+                                    </div>
+                                ) : bodegaFiltrada.length === 0 ? (
+                                    <div className="text-center py-8">
+                                        <Archive className="h-10 w-10 mx-auto text-gray-300 mb-2" />
+                                        <p className="text-gray-500 text-sm">
+                                            {hasActiveBodegaFilters ? 'No hay resultados con los filtros aplicados' : 'No hay activos en bodega'}
+                                        </p>
+                                    </div>
+                                ) : (
+                                    <div className="overflow-x-auto">
+                                        <table className="min-w-full divide-y divide-gray-200">
+                                            <thead className="bg-gray-50">
+                                                <tr>
+                                                    <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Placa</th>
+                                                    <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Tipo</th>
+                                                    <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Ubicación</th>
+                                                    <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Marca / Modelo</th>
+                                                    <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Enviado por</th>
+                                                    <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Fecha</th>
+                                                    <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Acciones</th>
+                                                </tr>
+                                            </thead>
+                                            <tbody className="bg-white divide-y divide-gray-200">
+                                                {bodegaFiltrada.map((activo) => (
+                                                    <tr key={activo.id} className="hover:bg-gray-50 transition-colors">
+                                                        <td className="px-4 py-3 whitespace-nowrap text-sm font-medium text-gray-900">{activo.numeroPlaca}</td>
+                                                        <td className="px-4 py-3 whitespace-nowrap text-sm text-gray-600">{activo.tipoActivo}</td>
+                                                        <td className="px-4 py-3 whitespace-nowrap text-sm text-gray-600">{activo.ubicacion || '—'}</td>
+                                                        <td className="px-4 py-3 text-sm text-gray-600 max-w-[200px] truncate" title={activo.marcaModelo}>{activo.marcaModelo || '—'}</td>
+                                                        <td className="px-4 py-3 whitespace-nowrap text-sm text-gray-600">{activo.enviadoPor || '—'}</td>
+                                                        <td className="px-4 py-3 whitespace-nowrap text-sm text-gray-600">{activo.fechaBodega ? formatDate(activo.fechaBodega) : '—'}</td>
+                                                        <td className="px-4 py-3 whitespace-nowrap">
+                                                            <button
+                                                                onClick={() => handleOpenAssetModal(activo.id, activo.numeroPlaca, activo.tipoActivo)}
+                                                                className="inline-flex items-center px-3 py-1.5 border border-blue-300 rounded-lg text-xs font-medium text-blue-700 bg-white hover:bg-blue-50 transition-colors"
+                                                            >
+                                                                <History className="h-3.5 w-3.5 mr-1" />
+                                                                Ver Historial
+                                                            </button>
+                                                        </td>
+                                                    </tr>
+                                                ))}
+                                            </tbody>
+                                        </table>
+                                    </div>
+                                )}
                             </div>
                         )}
                     </div>
-                )}
-            </div>
+                );
+            })()}
 
             {/* Filter Bar */}
             <div className="bg-white rounded-xl shadow-sm border border-gray-200">
