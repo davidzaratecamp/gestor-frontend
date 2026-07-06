@@ -81,25 +81,26 @@ export const formatElapsedTime = (createdAt) => {
 };
 
 // Obtener mensaje de alerta apropiado
-export const getAlertMessage = (createdAt, failureType = '') => {
-    const elapsed = calculateTimeElapsed(createdAt);
+export const getAlertMessage = (createdAt, failureType = '', status = 'pendiente') => {
     const alert = getAlertLevel(createdAt, failureType);
     const timeStr = formatElapsedTime(createdAt);
-    
+
     if (!alert) return null;
-    
+
     const failureTypeLabel = failureType === 'internet' ? 'Internet' :
                             failureType === 'software' ? 'Software' :
                             failureType === 'pantalla' ? 'Pantalla' :
                             failureType === 'perifericos' ? 'Periféricos' : 'Incidencia';
-    
+
+    const stateLabel = status === 'en_proceso' ? 'en proceso' : 'sin asignar';
+
     switch (alert.level) {
         case 'urgent':
-            return `🚨 URGENTE: ${failureTypeLabel} sin asignar por ${timeStr}`;
+            return `🚨 URGENTE: ${failureTypeLabel} ${stateLabel} por ${timeStr}`;
         case 'critical':
-            return `⚠️ CRÍTICO: ${failureTypeLabel} sin asignar por ${timeStr}`;
+            return `⚠️ CRÍTICO: ${failureTypeLabel} ${stateLabel} por ${timeStr}`;
         case 'warning':
-            return `⚡ ATENCIÓN: ${failureTypeLabel} sin asignar por ${timeStr}`;
+            return `⚡ ATENCIÓN: ${failureTypeLabel} ${stateLabel} por ${timeStr}`;
         default:
             return null;
     }

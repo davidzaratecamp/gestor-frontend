@@ -667,7 +667,7 @@ const PendingIncidents = () => {
                             {incidents.map((incident, index) => {
                                 const alertInfo = getAlertLevel(incident.created_at, incident.failure_type);
                                 const timeElapsed = formatElapsedTime(incident.created_at);
-                                const alertMessage = getAlertMessage(incident.created_at, incident.failure_type);
+                                const alertMessage = getAlertMessage(incident.created_at, incident.failure_type, incident.status);
                                 const isHighlighted = highlightedIncident === incident.id;
                                 const isInTop3 = showTop3Only || isInTop3Delayed(incident, originalIncidents);
                                 

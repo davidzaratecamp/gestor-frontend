@@ -48,6 +48,8 @@ export const userService = {
 // === SERVICIOS DE ESTACIONES DE TRABAJO ===
 export const workstationService = {
     getAll: () => api.get('/workstations'),
+    getStats: () => api.get('/workstations/stats'),
+    getHistory: (id) => api.get(`/workstations/${id}/history`),
     getById: (id) => api.get(`/workstations/${id}`),
     create: (stationData) => api.post('/workstations', stationData),
     update: (id, stationData) => api.put(`/workstations/${id}`, stationData),
