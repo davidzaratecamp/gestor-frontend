@@ -757,6 +757,11 @@ const ApprovedIncidents = () => {
                                         <strong>Cédula del Agente:</strong> <span className="font-mono">{selectedIncident.advisor_cedula}</span>
                                     </p>
                                 )}
+                                {selectedIncident?.anydesk_password && (
+                                    <p className="text-sm text-gray-600">
+                                        <strong>Contraseña AnyDesk:</strong> <span className="font-mono text-blue-600">{selectedIncident.anydesk_password}</span>
+                                    </p>
+                                )}
                                 <p className="text-sm text-gray-600">
                                     <strong>Técnico Asignado:</strong> {selectedIncident?.technician_name}
                                 </p>

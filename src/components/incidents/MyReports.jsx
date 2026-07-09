@@ -437,8 +437,8 @@ const MyReports = () => {
                                 </div>
                             </div>
 
-                            {/* Información específica de Barranquilla */}
-                            {selectedReport.sede === 'barranquilla' && (selectedReport.anydesk_address || selectedReport.advisor_cedula) && (
+                            {/* Información de trabajo remoto (Barranquilla o teletrabajo) */}
+                            {(selectedReport.anydesk_address || selectedReport.advisor_cedula) && (
                                 <div className="mb-6">
                                     <h4 className="text-sm font-medium text-gray-700 mb-3">Información de trabajo remoto:</h4>
                                     <div className="bg-blue-50 p-3 rounded-lg border border-blue-200">
@@ -453,6 +453,12 @@ const MyReports = () => {
                                                 <div className="text-sm">
                                                     <span className="font-medium text-blue-800">Cédula del asesor:</span>
                                                     <span className="ml-2 font-mono text-blue-700">{selectedReport.advisor_cedula}</span>
+                                                </div>
+                                            )}
+                                            {selectedReport.anydesk_password && (
+                                                <div className="text-sm">
+                                                    <span className="font-medium text-blue-800">Contraseña AnyDesk:</span>
+                                                    <span className="ml-2 font-mono text-blue-700">{selectedReport.anydesk_password}</span>
                                                 </div>
                                             )}
                                         </div>

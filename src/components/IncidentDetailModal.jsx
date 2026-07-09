@@ -18,7 +18,8 @@ import {
     CreditCard,
     History,
     ChevronDown,
-    ChevronUp
+    ChevronUp,
+    Lock
 } from 'lucide-react';
 import { 
     getAlertLevel, 
@@ -227,6 +228,17 @@ const IncidentDetailModal = ({
                                 <span className="font-semibold text-gray-900">Cédula del Agente</span>
                             </div>
                             <p className="text-lg font-mono text-gray-800">{incident.advisor_cedula}</p>
+                        </div>
+                    )}
+
+                    {/* Contraseña de AnyDesk (teletrabajo) */}
+                    {incident.anydesk_password && (
+                        <div className="bg-gray-50 p-4 rounded-lg">
+                            <div className="flex items-center space-x-2 mb-2">
+                                <Lock className="h-5 w-5 text-gray-600" />
+                                <span className="font-semibold text-gray-900">Contraseña AnyDesk</span>
+                            </div>
+                            <p className="text-lg font-mono text-blue-600">{incident.anydesk_password}</p>
                         </div>
                     )}
 

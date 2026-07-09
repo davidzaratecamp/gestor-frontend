@@ -18,7 +18,9 @@ const CreateIncident = () => {
         description: '',
         anydesk_address: '',
         advisor_cedula: '',
-        advisor_contact: '' // Nuevo campo
+        advisor_contact: '', // Nuevo campo
+        es_teletrabajo: false,
+        anydesk_password: ''
     });
     const [attachments, setAttachments] = useState([]);
     const [loading, setLoading] = useState(false);
@@ -111,8 +113,8 @@ const CreateIncident = () => {
     };
 
     const handleChange = (e) => {
-        const { name, value } = e.target;
-        
+        const { name, value, type, checked } = e.target;
+
         // Si cambia la sede, resetear datos dependientes
         if (name === 'sede') {
             setFormData({
@@ -123,7 +125,9 @@ const CreateIncident = () => {
                 puesto_numero: '',
                 anydesk_address: '',
                 advisor_cedula: '',
-                advisor_contact: ''
+                advisor_contact: '',
+                es_teletrabajo: false,
+                anydesk_password: ''
             });
         }
         // Si cambia el departamento, limpiar el número de puesto
@@ -134,9 +138,21 @@ const CreateIncident = () => {
                 puesto_numero: '',
                 anydesk_address: '',
                 advisor_cedula: '',
-                advisor_contact: ''
+                advisor_contact: '',
+                es_teletrabajo: false,
+                anydesk_password: ''
             });
-        } 
+        }
+        // Toggle de teletrabajo: limpiar los campos que dependen de la modalidad
+        else if (name === 'es_teletrabajo') {
+            setFormData({
+                ...formData,
+                es_teletrabajo: checked,
+                puesto_numero: '',
+                anydesk_address: '',
+                anydesk_password: ''
+            });
+        }
         // Si cambia el tipo de falla y no es periféricos, limpiar el tipo de periférico
         else if (name === 'failure_type' && value !== 'perifericos') {
             setFormData({
@@ -233,8 +249,9 @@ const CreateIncident = () => {
         e.preventDefault();
         
         const isBarranquilla = formData.sede === 'barranquilla';
+        const isTeletrabajo = !isBarranquilla && !isAdministrativo && formData.es_teletrabajo;
 
-        if (!formData.sede || !formData.departamento || (!isBarranquilla && !isAdministrativo && !formData.puesto_numero) || !formData.failure_type || !formData.description.trim()) {
+        if (!formData.sede || !formData.departamento || (!isBarranquilla && !isAdministrativo && !isTeletrabajo && !formData.puesto_numero) || !formData.failure_type || !formData.description.trim()) {
             setError('Todos los campos marcados con * son requeridos');
             return;
         }
@@ -260,7 +277,19 @@ const CreateIncident = () => {
             }
         }
 
-        if (!isBarranquilla) {
+        // Validaciones especiales para teletrabajo
+        if (isTeletrabajo) {
+            if (!formData.anydesk_address) {
+                setError('El usuario de AnyDesk es requerido para incidencias en teletrabajo');
+                return;
+            }
+            if (!formData.anydesk_password) {
+                setError('La contraseña de AnyDesk es requerida para incidencias en teletrabajo');
+                return;
+            }
+        }
+
+        if (!isBarranquilla && !isTeletrabajo && !isAdministrativo) {
             const puestoNum = parseInt(formData.puesto_numero);
             if (puestoNum < 1 || puestoNum > 300) {
                 setError('El número de puesto debe estar entre 1 y 300');
@@ -285,7 +314,7 @@ const CreateIncident = () => {
             // Agregar datos del formulario
             formDataToSend.append('sede', formData.sede);
             formDataToSend.append('departamento', formData.departamento);
-            formDataToSend.append('puesto_numero', isBarranquilla ? 1 : isAdministrativo ? 0 : parseInt(formData.puesto_numero));
+            formDataToSend.append('puesto_numero', isBarranquilla ? 1 : isAdministrativo ? 0 : isTeletrabajo ? 1 : parseInt(formData.puesto_numero));
             formDataToSend.append('failure_type', formData.failure_type);
             formDataToSend.append('description', description);
 
@@ -294,6 +323,13 @@ const CreateIncident = () => {
                 formDataToSend.append('anydesk_address', formData.anydesk_address);
                 formDataToSend.append('advisor_cedula', formData.advisor_cedula);
                 formDataToSend.append('advisor_contact', formData.advisor_contact);
+            }
+
+            // Agregar campos de teletrabajo (Bogotá / Villavicencio)
+            formDataToSend.append('es_teletrabajo', isTeletrabajo);
+            if (isTeletrabajo) {
+                formDataToSend.append('anydesk_address', formData.anydesk_address);
+                formDataToSend.append('anydesk_password', formData.anydesk_password);
             }
 
             // Agregar archivos adjuntos (para coordinadores y administrativos)
@@ -317,7 +353,9 @@ const CreateIncident = () => {
                 description: '',
                 anydesk_address: '',
                 advisor_cedula: '',
-                advisor_contact: ''
+                advisor_contact: '',
+                es_teletrabajo: false,
+                anydesk_password: ''
             });
             setAttachments([]);
 
@@ -434,8 +472,25 @@ const CreateIncident = () => {
                         )}
                     </div>
 
-                    {/* Número de puesto (oculto para Barranquilla y administrativos) */}
+                    {/* Toggle de teletrabajo (oculto para Barranquilla y administrativos, que ya tienen su propio flujo) */}
                     {formData.sede !== 'barranquilla' && !isAdministrativo && (
+                        <div className="flex items-center">
+                            <input
+                                id="es_teletrabajo"
+                                name="es_teletrabajo"
+                                type="checkbox"
+                                checked={formData.es_teletrabajo}
+                                onChange={handleChange}
+                                className={`h-4 w-4 rounded focus:ring-2 ${isIronManTheme ? 'text-cyan-500 border-cyan-500/30 focus:ring-cyan-500/50' : 'text-blue-600 border-gray-300 focus:ring-blue-500'}`}
+                            />
+                            <label htmlFor="es_teletrabajo" className={`ml-2 block text-sm font-medium ${isIronManTheme ? 'text-[#E5E7EB]' : 'text-gray-700'}`}>
+                                Este usuario está en teletrabajo
+                            </label>
+                        </div>
+                    )}
+
+                    {/* Número de puesto (oculto para Barranquilla, administrativos y teletrabajo) */}
+                    {formData.sede !== 'barranquilla' && !isAdministrativo && !formData.es_teletrabajo && (
                         <div>
                             <label htmlFor="puesto_numero" className={`block text-sm font-medium mb-2 ${isIronManTheme ? 'text-[#E5E7EB]' : 'text-gray-700'}`}>
                                 Número de Puesto *
@@ -458,6 +513,50 @@ const CreateIncident = () => {
                                 {formData.departamento === 'claro' && `${sedes.find(s => s.value === formData.sede)?.label}: Claro - Puestos 1-300`}
                                 {!formData.departamento && 'Selecciona un departamento primero'}
                             </p>
+                        </div>
+                    )}
+
+                    {/* Campos de teletrabajo (Bogotá / Villavicencio) */}
+                    {formData.sede !== 'barranquilla' && !isAdministrativo && formData.es_teletrabajo && (
+                        <div className={`rounded-lg p-4 space-y-4 ${isIronManTheme ? 'bg-cyan-500/10 border border-cyan-500/30' : 'bg-blue-50 border border-blue-200'}`}>
+                            <h4 className={`text-sm font-semibold flex items-center ${isIronManTheme ? 'text-[#00E5FF]' : 'text-blue-900'}`}>
+                                <Monitor className="h-4 w-4 mr-2" />
+                                Información de Teletrabajo
+                            </h4>
+
+                            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                                <div>
+                                    <label htmlFor="anydesk_address" className={`block text-sm font-medium mb-2 ${isIronManTheme ? 'text-[#E5E7EB]' : 'text-gray-700'}`}>
+                                        Usuario de AnyDesk *
+                                    </label>
+                                    <input
+                                        id="anydesk_address"
+                                        name="anydesk_address"
+                                        type="text"
+                                        required
+                                        value={formData.anydesk_address}
+                                        onChange={handleChange}
+                                        placeholder="ej: 900123456"
+                                        className={`w-full border rounded-md px-3 py-2 focus:outline-none focus:ring-2 ${isIronManTheme ? 'border-cyan-500/30 bg-[#0B0F14] text-[#E5E7EB] focus:ring-cyan-500/50 focus:border-cyan-500' : 'border-gray-300 focus:ring-blue-500 focus:border-blue-500'}`}
+                                    />
+                                </div>
+
+                                <div>
+                                    <label htmlFor="anydesk_password" className={`block text-sm font-medium mb-2 ${isIronManTheme ? 'text-[#E5E7EB]' : 'text-gray-700'}`}>
+                                        Contraseña *
+                                    </label>
+                                    <input
+                                        id="anydesk_password"
+                                        name="anydesk_password"
+                                        type="text"
+                                        required
+                                        value={formData.anydesk_password}
+                                        onChange={handleChange}
+                                        placeholder="Contraseña de la sesión AnyDesk"
+                                        className={`w-full border rounded-md px-3 py-2 focus:outline-none focus:ring-2 ${isIronManTheme ? 'border-cyan-500/30 bg-[#0B0F14] text-[#E5E7EB] focus:ring-cyan-500/50 focus:border-cyan-500' : 'border-gray-300 focus:ring-blue-500 focus:border-blue-500'}`}
+                                    />
+                                </div>
+                            </div>
                         </div>
                     )}
 

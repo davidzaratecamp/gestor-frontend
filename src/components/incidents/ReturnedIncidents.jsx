@@ -532,8 +532,8 @@ const ReturnedIncidents = () => {
                                 </div>
                             </div>
 
-                            {/* Información adicional para Barranquilla */}
-                            {selectedIncident.sede === 'barranquilla' && (selectedIncident.anydesk_address || selectedIncident.advisor_cedula) && (
+                            {/* Información adicional para trabajo remoto (Barranquilla o teletrabajo) */}
+                            {(selectedIncident.anydesk_address || selectedIncident.advisor_cedula) && (
                                 <div className="mb-6">
                                     <h4 className={`text-sm font-medium mb-3 ${isIronManTheme ? 'text-[#E5E7EB]' : 'text-gray-700'}`}>Información de trabajo remoto:</h4>
                                     <div className={`p-3 rounded-lg border ${isIronManTheme ? 'bg-cyan-500/10 border-cyan-500/30' : 'bg-blue-50 border-blue-200'}`}>
@@ -548,6 +548,12 @@ const ReturnedIncidents = () => {
                                                 <div className="text-sm">
                                                     <span className="font-medium text-blue-800">Cédula del asesor:</span>
                                                     <span className="ml-2 font-mono text-blue-700">{selectedIncident.advisor_cedula}</span>
+                                                </div>
+                                            )}
+                                            {selectedIncident.anydesk_password && (
+                                                <div className="text-sm">
+                                                    <span className="font-medium text-blue-800">Contraseña AnyDesk:</span>
+                                                    <span className="ml-2 font-mono text-blue-700">{selectedIncident.anydesk_password}</span>
                                                 </div>
                                             )}
                                         </div>
