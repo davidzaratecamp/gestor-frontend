@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { incidentService, workstationService } from '../../services/api';
 import { useAuth } from '../../context/AuthContext';
-import { AlertTriangle, Save, ArrowLeft, Monitor, Upload, X, FileImage, FileText, Search } from 'lucide-react';
+import { AlertTriangle, Save, ArrowLeft, Monitor, Search } from 'lucide-react';
 
 const SITES = [
     { value: 'site1', label: 'Site 1' },
@@ -51,7 +51,6 @@ const CreateIncident = () => {
         es_teletrabajo: false,
         anydesk_password: ''
     });
-    const [attachments, setAttachments] = useState([]);
     const [loading, setLoading] = useState(false);
     const [error, setError] = useState('');
     const [success, setSuccess] = useState('');
@@ -235,57 +234,6 @@ const CreateIncident = () => {
         setStationDropdownOpen(false);
     };
 
-    const handleFileChange = (e) => {
-        const files = Array.from(e.target.files);
-        const validFiles = [];
-        const maxSize = 10 * 1024 * 1024; // 10MB
-        const allowedTypes = [
-            'image/jpeg', 'image/png', 'image/gif', 'image/webp',
-            'application/pdf'
-        ];
-
-        files.forEach(file => {
-            if (!allowedTypes.includes(file.type)) {
-                setError(`El archivo ${file.name} no es un tipo válido. Solo se permiten imágenes (JPG, PNG, GIF, WebP) y PDFs.`);
-                return;
-            }
-            if (file.size > maxSize) {
-                setError(`El archivo ${file.name} es muy grande. Máximo 10MB por archivo.`);
-                return;
-            }
-            validFiles.push(file);
-        });
-
-        if (validFiles.length > 0) {
-            setAttachments(prev => [...prev, ...validFiles]);
-            setError('');
-        }
-
-        // Limpiar el input
-        e.target.value = '';
-    };
-
-    const removeAttachment = (index) => {
-        setAttachments(prev => prev.filter((_, i) => i !== index));
-    };
-
-    const getFileIcon = (fileType) => {
-        if (fileType.startsWith('image/')) {
-            return <FileImage className="h-4 w-4 text-blue-500" />;
-        } else if (fileType === 'application/pdf') {
-            return <FileText className="h-4 w-4 text-red-500" />;
-        }
-        return <FileText className="h-4 w-4 text-gray-500" />;
-    };
-
-    const formatFileSize = (bytes) => {
-        if (bytes === 0) return '0 Bytes';
-        const k = 1024;
-        const sizes = ['Bytes', 'KB', 'MB'];
-        const i = Math.floor(Math.log(bytes) / Math.log(k));
-        return parseFloat((bytes / Math.pow(k, i)).toFixed(2)) + ' ' + sizes[i];
-    };
-
     const handleSubmit = async (e) => {
         e.preventDefault();
 
@@ -382,13 +330,6 @@ const CreateIncident = () => {
                 }
             }
 
-            // Agregar archivos adjuntos (para coordinadores y administrativos)
-            if ((user?.role === 'coordinador' || user?.role === 'administrativo') && attachments.length > 0) {
-                attachments.forEach((file) => {
-                    formDataToSend.append(`attachments`, file);
-                });
-            }
-
             await incidentService.createWithFiles(formDataToSend);
 
             setSuccess('Incidencia creada exitosamente');
@@ -409,7 +350,6 @@ const CreateIncident = () => {
                 anydesk_password: ''
             });
             setStationSearch('');
-            setAttachments([]);
 
             // Redirigir después de 2 segundos
             setTimeout(() => {
@@ -788,91 +728,6 @@ const CreateIncident = () => {
                                     className={`w-full border rounded-md px-3 py-2 focus:outline-none focus:ring-2 ${isIronManTheme ? 'border-cyan-500/30 bg-[#0B0F14] text-[#E5E7EB] focus:ring-cyan-500/50 focus:border-cyan-500' : 'border-gray-300 focus:ring-blue-500 focus:border-blue-500'}`}
                                 />
                             </div>
-                        </div>
-                    )}
-
-                    {/* Archivos adjuntos - Para coordinadores y administrativos */}
-                    {(user?.role === 'coordinador' || user?.role === 'administrativo') && (
-                        <div>
-                            <label htmlFor="attachments" className={`block text-sm font-medium mb-2 ${isIronManTheme ? 'text-[#E5E7EB]' : 'text-gray-700'}`}>
-                                Archivos Adjuntos <span className={`text-sm ${isIronManTheme ? 'text-[#94A3B8]' : 'text-gray-500'}`}>(Opcional)</span>
-                            </label>
-
-                            {/* Mensaje de mantenimiento */}
-                            <div className="mb-4 p-3 bg-yellow-50 border border-yellow-200 rounded-md">
-                                <div className="flex items-center">
-                                    <div className="flex-shrink-0">
-                                        <svg className="h-5 w-5 text-yellow-400" fill="currentColor" viewBox="0 0 20 20">
-                                            <path fillRule="evenodd" d="M8.257 3.099c.765-1.36 2.722-1.36 3.486 0l5.58 9.92c.75 1.334-.213 2.98-1.742 2.98H4.42c-1.53 0-2.493-1.646-1.743-2.98l5.58-9.92zM11 13a1 1 0 11-2 0 1 1 0 012 0zm-1-8a1 1 0 00-1 1v3a1 1 0 002 0V6a1 1 0 00-1-1z" clipRule="evenodd" />
-                                        </svg>
-                                    </div>
-                                    <div className="ml-3">
-                                        <p className="text-sm text-yellow-800">
-                                            <strong>La sección de adjuntos está en mantenimiento.</strong>
-                                        </p>
-                                        <p className="text-xs text-yellow-700 mt-1">
-                                            Temporalmente no se pueden subir archivos. Puedes crear la incidencia sin adjuntos.
-                                        </p>
-                                    </div>
-                                </div>
-                            </div>
-
-                            {/* Input de archivos - DESHABILITADO POR MANTENIMIENTO */}
-                            <div className="mb-3">
-                                <label
-                                    className="inline-flex items-center px-4 py-2 border border-gray-300 rounded-md shadow-sm text-sm font-medium text-gray-400 bg-gray-100 cursor-not-allowed opacity-50"
-                                >
-                                    <Upload className="h-4 w-4 mr-2" />
-                                    Seleccionar Archivos (Deshabilitado)
-                                </label>
-                                <input
-                                    id="file-upload"
-                                    name="file-upload"
-                                    type="file"
-                                    multiple
-                                    accept="image/*,.pdf"
-                                    onChange={handleFileChange}
-                                    className="sr-only"
-                                    disabled
-                                />
-                            </div>
-
-                            <p className="text-xs text-gray-500 mb-3">
-                                Puedes subir imágenes (JPG, PNG, GIF, WebP) y archivos PDF. Máximo 10MB por archivo.
-                            </p>
-
-                            {/* Lista de archivos adjuntos */}
-                            {attachments.length > 0 && (
-                                <div className="space-y-2 mb-3">
-                                    <p className="text-sm font-medium text-gray-700">
-                                        Archivos seleccionados ({attachments.length}):
-                                    </p>
-                                    <div className="space-y-2">
-                                        {attachments.map((file, index) => (
-                                            <div key={index} className="flex items-center justify-between p-2 bg-gray-50 rounded-md">
-                                                <div className="flex items-center space-x-2">
-                                                    {getFileIcon(file.type)}
-                                                    <div>
-                                                        <p className="text-sm font-medium text-gray-900 truncate max-w-xs">
-                                                            {file.name}
-                                                        </p>
-                                                        <p className="text-xs text-gray-500">
-                                                            {formatFileSize(file.size)}
-                                                        </p>
-                                                    </div>
-                                                </div>
-                                                <button
-                                                    type="button"
-                                                    onClick={() => removeAttachment(index)}
-                                                    className="text-red-500 hover:text-red-700 p-1"
-                                                >
-                                                    <X className="h-4 w-4" />
-                                                </button>
-                                            </div>
-                                        ))}
-                                    </div>
-                                </div>
-                            )}
                         </div>
                     )}
 
