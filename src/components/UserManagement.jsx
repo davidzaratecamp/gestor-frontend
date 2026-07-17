@@ -54,22 +54,29 @@ const UserManagement = () => {
 
     const sedes = [
         { value: 'bogota', label: 'Bogotá' },
-        { value: 'barranquilla', label: 'Barranquilla' },
-        { value: 'villavicencio', label: 'Villavicencio' }
+        { value: 'barranquilla', label: 'Barranquilla' }
     ];
 
     const getDepartamentosBySede = (sede) => {
-        const baseDepartamentos = [
+        if (sede === 'bogota') {
+            return [
+                { value: 'claro', label: 'Claro' },
+                { value: 'obama', label: 'Obama' },
+                { value: 'vital', label: 'Vital' },
+                { value: 'tecnologia', label: 'Tecnología' },
+                { value: 'reclutamiento', label: 'Reclutamiento' },
+                { value: 'rrhh', label: 'Recursos Humanos' },
+                { value: 'formacion_claro', label: 'Sala Formación Claro' },
+                { value: 'formacion_obama', label: 'Sala Formación Obama' },
+                { value: 'recepcion', label: 'Recepción' },
+                { value: 'area_financiera', label: 'Área Financiera' }
+            ];
+        }
+        // Barranquilla solo tiene claro/obama (remoto por AnyDesk)
+        return [
             { value: 'obama', label: 'Obama' },
             { value: 'claro', label: 'Claro' }
         ];
-        
-        // Majority solo existe en Bogotá
-        if (sede === 'bogota') {
-            baseDepartamentos.splice(1, 0, { value: 'majority', label: 'Majority' }); // Insertar entre Obama y Claro
-        }
-        
-        return baseDepartamentos;
     };
 
     const departamentos = getDepartamentosBySede(formData.sede);

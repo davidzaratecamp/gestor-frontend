@@ -61,15 +61,21 @@ const PendingIncidents = () => {
     const [coordinators, setCoordinators] = useState([]); // Track current status
     
     const allDepartamentos = [
+        { value: 'claro', label: 'Claro' },
         { value: 'obama', label: 'Obama' },
-        { value: 'majority', label: 'Majority' },
-        { value: 'claro', label: 'Claro' }
+        { value: 'vital', label: 'Vital' },
+        { value: 'tecnologia', label: 'Tecnología' },
+        { value: 'reclutamiento', label: 'Reclutamiento' },
+        { value: 'rrhh', label: 'Recursos Humanos' },
+        { value: 'formacion_claro', label: 'Sala Formación Claro' },
+        { value: 'formacion_obama', label: 'Sala Formación Obama' },
+        { value: 'recepcion', label: 'Recepción' },
+        { value: 'area_financiera', label: 'Área Financiera' }
     ];
-    
+
     const allSedes = [
         { value: 'bogota', label: 'Bogotá' },
-        { value: 'barranquilla', label: 'Barranquilla' },
-        { value: 'villavicencio', label: 'Villavicencio' }
+        { value: 'barranquilla', label: 'Barranquilla' }
     ];
     
     const dateFilters = [
@@ -86,8 +92,6 @@ const PendingIncidents = () => {
         } else if (isTechnician) {
             if (user?.sede === 'bogota') {
                 return allSedes.filter(sede => sede.value === 'bogota' || sede.value === 'barranquilla');
-            } else if (user?.sede === 'villavicencio') {
-                return allSedes.filter(sede => sede.value === 'villavicencio' || sede.value === 'barranquilla');
             } else {
                 return allSedes.filter(sede => sede.value === user?.sede);
             }
@@ -101,10 +105,10 @@ const PendingIncidents = () => {
     // Obtener departamentos disponibles según la sede seleccionada
     const getAvailableDepartments = (sedeSelected) => {
         if (sedeSelected === 'bogota' || !sedeSelected) {
-            return allDepartamentos; // Bogotá tiene todos los departamentos
+            return allDepartamentos; // Bogotá tiene todas las áreas
         } else {
-            // Villavicencio y Barranquilla no tienen Majority
-            return allDepartamentos.filter(dept => dept.value !== 'majority');
+            // Barranquilla solo tiene claro/obama
+            return allDepartamentos.filter(dept => dept.value === 'claro' || dept.value === 'obama');
         }
     };
 
@@ -320,15 +324,12 @@ const PendingIncidents = () => {
         const parts = [];
         if (fromDashboard) {
             if (filters.sede) {
-                const sedeLabel = filters.sede === 'bogota' ? 'Bogotá' : 
-                                 filters.sede === 'barranquilla' ? 'Barranquilla' : 
-                                 filters.sede === 'villavicencio' ? 'Villavicencio' : filters.sede;
+                const sedeLabel = filters.sede === 'bogota' ? 'Bogotá' :
+                                 filters.sede === 'barranquilla' ? 'Barranquilla' : filters.sede;
                 parts.push(`Ciudad: ${sedeLabel}`);
             }
             if (filters.departamento) {
-                const deptLabel = filters.departamento === 'obama' ? 'Obama' :
-                                 filters.departamento === 'majority' ? 'Majority' :
-                                 filters.departamento === 'claro' ? 'Claro' : filters.departamento;
+                const deptLabel = allDepartamentos.find(d => d.value === filters.departamento)?.label || filters.departamento;
                 parts.push(`Departamento: ${deptLabel}`);
             }
         }
@@ -634,8 +635,7 @@ const PendingIncidents = () => {
                             <div className={`text-xs ${isIronManTheme ? 'text-[#94A3B8]' : 'text-gray-500'}`}>
                                 {isTechnician && (
                                     <span>
-                                        Visible: {user?.sede === 'bogota' ? 'Bogotá + Barranquilla' : 
-                                                 user?.sede === 'villavicencio' ? 'Villavicencio + Barranquilla' : 
+                                        Visible: {user?.sede === 'bogota' ? 'Bogotá + Barranquilla' :
                                                  user?.sede?.toUpperCase()}
                                     </span>
                                 )}

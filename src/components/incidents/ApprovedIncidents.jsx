@@ -100,15 +100,18 @@ const ApprovedIncidents = () => {
         
         const parts = [];
         if (urlFilters.sede) {
-            const sedeLabel = urlFilters.sede === 'bogota' ? 'Bogotá' : 
-                             urlFilters.sede === 'barranquilla' ? 'Barranquilla' : 
-                             urlFilters.sede === 'villavicencio' ? 'Villavicencio' : urlFilters.sede;
+            const sedeLabel = urlFilters.sede === 'bogota' ? 'Bogotá' :
+                             urlFilters.sede === 'barranquilla' ? 'Barranquilla' : urlFilters.sede;
             parts.push(`Ciudad: ${sedeLabel}`);
         }
         if (urlFilters.departamento) {
-            const deptLabel = urlFilters.departamento === 'obama' ? 'Obama' :
-                             urlFilters.departamento === 'majority' ? 'Majority' :
-                             urlFilters.departamento === 'claro' ? 'Claro' : urlFilters.departamento;
+            const deptLabels = {
+                claro: 'Claro', obama: 'Obama', vital: 'Vital', tecnologia: 'Tecnología',
+                reclutamiento: 'Reclutamiento', rrhh: 'Recursos Humanos',
+                formacion_claro: 'Sala Formación Claro', formacion_obama: 'Sala Formación Obama',
+                recepcion: 'Recepción', area_financiera: 'Área Financiera'
+            };
+            const deptLabel = deptLabels[urlFilters.departamento] || urlFilters.departamento;
             parts.push(`Departamento: ${deptLabel}`);
         }
         

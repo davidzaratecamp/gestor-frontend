@@ -89,9 +89,8 @@ const Dashboard = () => {
     const groupIncidentsByCiudad = (incidents) => {
         return incidents.reduce((acc, incident) => {
             const ciudad = incident.sede || 'sin_sede';
-            const ciudadLabel = ciudad === 'bogota' ? 'Bogotá' : 
-                               ciudad === 'barranquilla' ? 'Barranquilla' : 
-                               ciudad === 'villavicencio' ? 'Villavicencio' : 'Sin Sede';
+            const ciudadLabel = ciudad === 'bogota' ? 'Bogotá' :
+                               ciudad === 'barranquilla' ? 'Barranquilla' : 'Sin Sede';
             
             if (!acc[ciudad]) {
                 acc[ciudad] = { 
@@ -105,12 +104,16 @@ const Dashboard = () => {
             // Agrupar también por departamento
             const departamento = incident.departamento || 'sin_departamento';
             const deptLabel = departamento === 'obama' ? 'Obama' :
-                             departamento === 'majority' ? 'Majority' :
                              departamento === 'claro' ? 'Claro' :
-                             departamento === 'contratacion' ? 'Contratación' :
-                             departamento === 'seleccion' ? 'Selección' :
+                             departamento === 'vital' ? 'Vital' :
+                             departamento === 'tecnologia' ? 'Tecnología' :
                              departamento === 'reclutamiento' ? 'Reclutamiento' :
-                             departamento === 'area_financiera' ? 'Área Financiera' : 'Sin Departamento';
+                             departamento === 'rrhh' ? 'Recursos Humanos' :
+                             departamento === 'formacion_claro' ? 'Sala Formación Claro' :
+                             departamento === 'formacion_obama' ? 'Sala Formación Obama' :
+                             departamento === 'recepcion' ? 'Recepción' :
+                             departamento === 'area_financiera' ? 'Área Financiera' :
+                             departamento === 'majority' ? 'Majority (histórico)' : 'Sin Departamento';
             
             if (!acc[ciudad].departamentos[departamento]) {
                 acc[ciudad].departamentos[departamento] = {
@@ -920,8 +923,7 @@ const Dashboard = () => {
                                             <Building className={`h-5 w-5 mr-2 ${isIronManTheme ? 'text-[#00E5FF]' : 'text-gray-400'}`} />
                                             <h4 className={`text-base font-medium ${textPrimaryClass} capitalize`}>
                                                 {sedeStats.sede === 'bogota' ? 'Bogotá' :
-                                                 sedeStats.sede === 'barranquilla' ? 'Barranquilla' :
-                                                 sedeStats.sede === 'villavicencio' ? 'Villavicencio' : sedeStats.sede}
+                                                 sedeStats.sede === 'barranquilla' ? 'Barranquilla' : sedeStats.sede}
                                             </h4>
                                         </div>
                                         <span className={`text-sm ${textSecondaryClass}`}>

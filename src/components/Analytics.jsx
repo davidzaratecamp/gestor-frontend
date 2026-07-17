@@ -224,8 +224,7 @@ const Analytics = () => {
         labels: incidentsBySede.map(item => {
             const labels = {
                 'bogota': 'Bogotá',
-                'barranquilla': 'Barranquilla',
-                'villavicencio': 'Villavicencio'
+                'barranquilla': 'Barranquilla'
             };
             return labels[item.sede] || item.sede;
         }),

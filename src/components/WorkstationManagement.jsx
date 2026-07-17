@@ -26,17 +26,19 @@ import {
 const SEDES = [
     { value: 'bogota',         label: 'Bogotá' },
     { value: 'barranquilla',   label: 'Barranquilla' },
-    { value: 'villavicencio',  label: 'Villavicencio' },
 ];
 
 const DEPARTAMENTOS = [
-    { value: 'obama',           label: 'Obama' },
-    { value: 'majority',        label: 'Majority' },
-    { value: 'claro',           label: 'Claro' },
-    { value: 'contratacion',    label: 'Contratación' },
-    { value: 'seleccion',       label: 'Selección' },
-    { value: 'reclutamiento',   label: 'Reclutamiento' },
-    { value: 'area_financiera', label: 'Área Financiera' },
+    { value: 'claro',            label: 'Claro' },
+    { value: 'obama',            label: 'Obama' },
+    { value: 'vital',            label: 'Vital' },
+    { value: 'tecnologia',       label: 'Tecnología' },
+    { value: 'reclutamiento',    label: 'Reclutamiento' },
+    { value: 'rrhh',             label: 'Recursos Humanos' },
+    { value: 'formacion_claro',  label: 'Sala Formación Claro' },
+    { value: 'formacion_obama',  label: 'Sala Formación Obama' },
+    { value: 'recepcion',        label: 'Recepción' },
+    { value: 'area_financiera',  label: 'Área Financiera' },
 ];
 
 const FAILURE_LABELS = {

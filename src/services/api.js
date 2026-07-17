@@ -48,6 +48,7 @@ export const userService = {
 // === SERVICIOS DE ESTACIONES DE TRABAJO ===
 export const workstationService = {
     getAll: () => api.get('/workstations'),
+    getCatalog: (params = {}) => api.get('/workstations/catalog', { params }),
     getStats: () => api.get('/workstations/stats'),
     getHistory: (id) => api.get(`/workstations/${id}/history`),
     getById: (id) => api.get(`/workstations/${id}`),

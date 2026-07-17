@@ -220,20 +220,18 @@ const IncidentsSupervision = () => {
         
         const parts = [];
         if (filters.sede) {
-            const sedeLabel = filters.sede === 'bogota' ? 'Bogotá' : 
-                             filters.sede === 'barranquilla' ? 'Barranquilla' : 
-                             filters.sede === 'villavicencio' ? 'Villavicencio' : filters.sede;
+            const sedeLabel = filters.sede === 'bogota' ? 'Bogotá' :
+                             filters.sede === 'barranquilla' ? 'Barranquilla' : filters.sede;
             parts.push(`Ciudad: ${sedeLabel}`);
         }
         if (filters.departamento) {
-            const deptLabel = filters.departamento === 'obama' ? 'Obama' :
-                             filters.departamento === 'majority' ? 'Majority' :
-                             filters.departamento === 'claro' ? 'Claro' :
-                             filters.departamento === 'contratacion' ? 'Contratación' :
-                             filters.departamento === 'seleccion' ? 'Selección' :
-                             filters.departamento === 'reclutamiento' ? 'Reclutamiento' :
-                             filters.departamento === 'area_financiera' ? 'Área Financiera' :
-                             filters.departamento === 'administrativo' ? 'Administrativo' : filters.departamento;
+            const deptLabels = {
+                claro: 'Claro', obama: 'Obama', vital: 'Vital', tecnologia: 'Tecnología',
+                reclutamiento: 'Reclutamiento', rrhh: 'Recursos Humanos',
+                formacion_claro: 'Sala Formación Claro', formacion_obama: 'Sala Formación Obama',
+                recepcion: 'Recepción', area_financiera: 'Área Financiera', administrativo: 'Administrativo'
+            };
+            const deptLabel = deptLabels[filters.departamento] || filters.departamento;
             parts.push(`Departamento: ${deptLabel}`);
         }
         
@@ -542,7 +540,6 @@ const IncidentsSupervision = () => {
                                 <option value="">Todas las sedes</option>
                                 <option value="bogota">Bogotá</option>
                                 <option value="barranquilla">Barranquilla</option>
-                                <option value="villavicencio">Villavicencio</option>
                             </select>
                         </div>
 
@@ -557,12 +554,15 @@ const IncidentsSupervision = () => {
                                 className="w-full border border-gray-300 rounded-md px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
                             >
                                 <option value="">Todos los departamentos</option>
-                                <option value="obama">Obama</option>
-                                <option value="majority">Majority</option>
                                 <option value="claro">Claro</option>
-                                <option value="contratacion">Contratación</option>
-                                <option value="seleccion">Selección</option>
+                                <option value="obama">Obama</option>
+                                <option value="vital">Vital</option>
+                                <option value="tecnologia">Tecnología</option>
                                 <option value="reclutamiento">Reclutamiento</option>
+                                <option value="rrhh">Recursos Humanos</option>
+                                <option value="formacion_claro">Sala Formación Claro</option>
+                                <option value="formacion_obama">Sala Formación Obama</option>
+                                <option value="recepcion">Recepción</option>
                                 <option value="area_financiera">Área Financiera</option>
                                 <option value="administrativo">Administrativo (General)</option>
                             </select>

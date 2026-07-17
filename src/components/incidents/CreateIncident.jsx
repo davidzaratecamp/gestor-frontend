@@ -2,23 +2,52 @@ import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { incidentService, workstationService } from '../../services/api';
 import { useAuth } from '../../context/AuthContext';
-import { AlertTriangle, Save, ArrowLeft, Monitor, Upload, X, FileImage, FileText } from 'lucide-react';
+import { AlertTriangle, Save, ArrowLeft, Monitor, Upload, X, FileImage, FileText, Search } from 'lucide-react';
+
+const SITES = [
+    { value: 'site1', label: 'Site 1' },
+    { value: 'site2', label: 'Site 2' }
+];
+
+const SITE_AREAS = {
+    site1: [
+        { value: 'claro', label: 'Claro' },
+        { value: 'formacion_claro', label: 'Sala Formación Claro' },
+        { value: 'rrhh', label: 'Recursos Humanos' },
+        { value: 'tecnologia', label: 'Tecnología' },
+        { value: 'recepcion', label: 'Recepción' }
+    ],
+    site2: [
+        { value: 'claro', label: 'Claro' },
+        { value: 'obama', label: 'Obama' },
+        { value: 'vital', label: 'Vital' },
+        { value: 'tecnologia', label: 'Tecnología' },
+        { value: 'reclutamiento', label: 'Reclutamiento' },
+        { value: 'formacion_obama', label: 'Sala Formación Obama' },
+        { value: 'recepcion', label: 'Recepción' }
+    ]
+};
+
+const BARRANQUILLA_DEPARTAMENTOS = [
+    { value: 'obama', label: 'Obama' },
+    { value: 'claro', label: 'Claro' }
+];
 
 const CreateIncident = () => {
     const navigate = useNavigate();
-    const { user, isAdministrativo, isJefeOperaciones } = useAuth();
+    const { user, isDirectivoFinanciero } = useAuth();
     const isIronManTheme = user?.username === 'davidlopez10';
     const [formData, setFormData] = useState({
-        sede: user?.sede || 'bogota',
-        // Solo pre-seleccionar departamento para no-admins y no-administrativos, jefes de operaciones usan su departamento
-        departamento: (user?.role === 'admin' || user?.role === 'administrativo') ? '' : (user?.departamento || ''),
-        puesto_numero: '',
+        sede: isDirectivoFinanciero ? 'bogota' : (user?.sede || 'bogota'),
+        site: '',
+        departamento: '',
+        station_code: '',
         failure_type: '',
         peripheral_type: '',
         description: '',
         anydesk_address: '',
         advisor_cedula: '',
-        advisor_contact: '', // Nuevo campo
+        advisor_contact: '',
         es_teletrabajo: false,
         anydesk_password: ''
     });
@@ -27,7 +56,17 @@ const CreateIncident = () => {
     const [error, setError] = useState('');
     const [success, setSuccess] = useState('');
     const [workstations, setWorkstations] = useState([]);
-    
+
+    // Catálogo de puestos (Site 1 / Site 2 / Área Financiera)
+    const [stationOptions, setStationOptions] = useState([]);
+    const [loadingStations, setLoadingStations] = useState(false);
+    const [stationSearch, setStationSearch] = useState('');
+    const [stationDropdownOpen, setStationDropdownOpen] = useState(false);
+
+    const isBarranquilla = formData.sede === 'barranquilla';
+    const isTeletrabajo = !isBarranquilla && !isDirectivoFinanciero && formData.es_teletrabajo;
+    const needsStationPicker = isDirectivoFinanciero || (!isBarranquilla && !isTeletrabajo && formData.site && formData.departamento);
+
     // Obtener workstations de Barranquilla si el usuario puede crear incidencias allí
     useEffect(() => {
         if (user && (user.role === 'admin' || user.sede === 'barranquilla')) {
@@ -38,9 +77,9 @@ const CreateIncident = () => {
     const loadWorkstations = async () => {
         try {
             const response = await workstationService.getAll();
-            const barranquillaStations = response.data.filter(station => 
-                station.sede === 'barranquilla' && 
-                station.anydesk_address && 
+            const barranquillaStations = response.data.filter(station =>
+                station.sede === 'barranquilla' &&
+                station.anydesk_address &&
                 station.advisor_cedula
             );
             setWorkstations(barranquillaStations);
@@ -49,50 +88,43 @@ const CreateIncident = () => {
         }
     };
 
+    // Cargar catálogo de puestos fijos cuando corresponda (Site+Área elegidos, o Área Financiera)
+    useEffect(() => {
+        const loadCatalog = async () => {
+            if (isDirectivoFinanciero) {
+                setLoadingStations(true);
+                try {
+                    const res = await workstationService.getCatalog({ departamento: 'area_financiera' });
+                    setStationOptions(res.data);
+                } catch (err) {
+                    console.error('Error cargando catálogo de Área Financiera:', err);
+                } finally {
+                    setLoadingStations(false);
+                }
+                return;
+            }
+
+            if (!isBarranquilla && !isTeletrabajo && formData.site && formData.departamento) {
+                setLoadingStations(true);
+                try {
+                    const res = await workstationService.getCatalog({ site: formData.site, departamento: formData.departamento });
+                    setStationOptions(res.data);
+                } catch (err) {
+                    console.error('Error cargando catálogo de puestos:', err);
+                } finally {
+                    setLoadingStations(false);
+                }
+            } else {
+                setStationOptions([]);
+            }
+        };
+        loadCatalog();
+    }, [isDirectivoFinanciero, isBarranquilla, isTeletrabajo, formData.site, formData.departamento]);
+
     const sedes = [
         { value: 'bogota', label: 'Bogotá' },
-        { value: 'barranquilla', label: 'Barranquilla' },
-        { value: 'villavicencio', label: 'Villavicencio' }
+        { value: 'barranquilla', label: 'Barranquilla' }
     ];
-
-    const departamentos = [
-        { value: 'obama', label: 'Obama' },
-        { value: 'majority', label: 'Majority' },
-        { value: 'claro', label: 'Claro' }
-    ];
-
-    const departamentosAdministrativo = [
-        { value: 'contratacion', label: 'Contratación' },
-        { value: 'seleccion', label: 'Selección' },
-        { value: 'reclutamiento', label: 'Reclutamiento' },
-        { value: 'area_financiera', label: 'Área Financiera' }
-    ];
-
-    // Verificar si el usuario puede elegir departamento
-    const canChooseDepartment = () => {
-        // Administrativos y admins siempre pueden elegir departamento
-        if (user?.role === 'admin' || user?.role === 'administrativo') {
-            return true;
-        }
-        // Jefes de operaciones NO pueden elegir departamento (solo el suyo)
-        if (user?.role === 'jefe_operaciones') {
-            return false;
-        }
-        // Para otros roles, si no tienen departamento específico pueden elegir
-        return !user?.departamento;
-    };
-
-    // Filtrar departamentos según la sede y rol
-    const getAvailableDepartments = (sede) => {
-        if (isAdministrativo) {
-            return departamentosAdministrativo; // Administrativos tienen sus propios departamentos
-        }
-        if (sede === 'bogota') {
-            return departamentos; // Bogotá tiene todos
-        } else {
-            return departamentos.filter(dept => dept.value !== 'majority'); // Villavicencio y Barranquilla no tienen Majority
-        }
-    };
 
     const failureTypes = [
         { value: 'pantalla', label: 'Pantalla' },
@@ -108,21 +140,23 @@ const CreateIncident = () => {
         { value: 'teclado', label: 'Teclado' }
     ];
 
-    const getMaxPuestos = (departamento) => {
-        return 300; // Todos los departamentos permiten puestos del 1-300
+    const resetStationSelection = (overrides = {}) => {
+        setStationSearch('');
+        setStationDropdownOpen(false);
+        return { station_code: '', ...overrides };
     };
 
     const handleChange = (e) => {
-        const { name, value, type, checked } = e.target;
+        const { name, value, checked } = e.target;
 
         // Si cambia la sede, resetear datos dependientes
         if (name === 'sede') {
             setFormData({
                 ...formData,
                 [name]: value,
-                // Mantener el departamento del usuario solo si no es admin ni administrativo
-                departamento: (user?.role === 'admin' || user?.role === 'administrativo') ? '' : (user?.departamento || ''),
-                puesto_numero: '',
+                site: '',
+                departamento: '',
+                ...resetStationSelection(),
                 anydesk_address: '',
                 advisor_cedula: '',
                 advisor_contact: '',
@@ -130,17 +164,24 @@ const CreateIncident = () => {
                 anydesk_password: ''
             });
         }
-        // Si cambia el departamento, limpiar el número de puesto
+        // Si cambia el site, limpiar área y puesto
+        else if (name === 'site') {
+            setFormData({
+                ...formData,
+                [name]: value,
+                departamento: '',
+                ...resetStationSelection()
+            });
+        }
+        // Si cambia el departamento/área, limpiar el puesto elegido
         else if (name === 'departamento') {
             setFormData({
                 ...formData,
                 [name]: value,
-                puesto_numero: '',
+                ...resetStationSelection(),
                 anydesk_address: '',
                 advisor_cedula: '',
-                advisor_contact: '',
-                es_teletrabajo: false,
-                anydesk_password: ''
+                advisor_contact: ''
             });
         }
         // Toggle de teletrabajo: limpiar los campos que dependen de la modalidad
@@ -148,7 +189,7 @@ const CreateIncident = () => {
             setFormData({
                 ...formData,
                 es_teletrabajo: checked,
-                puesto_numero: '',
+                ...resetStationSelection(),
                 anydesk_address: '',
                 anydesk_password: ''
             });
@@ -160,17 +201,7 @@ const CreateIncident = () => {
                 [name]: value,
                 peripheral_type: ''
             });
-        } 
-        // Validar número de puesto
-        else if (name === 'puesto_numero') {
-            const numero = parseInt(value);
-            if (value === '' || (numero >= 1 && numero <= 300)) {
-                setFormData({
-                    ...formData,
-                    [name]: value
-                });
-            }
-        } 
+        }
         // Manejar selección de workstation para Barranquilla
         else if (name === 'workstation_selection' && formData.sede === 'barranquilla') {
             const selectedStation = workstations.find(ws => ws.id == value);
@@ -189,9 +220,19 @@ const CreateIncident = () => {
                 [name]: value
             });
         }
-        
+
         if (error) setError('');
         if (success) setSuccess('');
+    };
+
+    const filteredStations = stationOptions.filter(s =>
+        s.station_code.toLowerCase().includes(stationSearch.toLowerCase())
+    );
+
+    const selectStation = (station) => {
+        setFormData(prev => ({ ...prev, station_code: station.station_code }));
+        setStationSearch(station.station_code);
+        setStationDropdownOpen(false);
     };
 
     const handleFileChange = (e) => {
@@ -247,11 +288,8 @@ const CreateIncident = () => {
 
     const handleSubmit = async (e) => {
         e.preventDefault();
-        
-        const isBarranquilla = formData.sede === 'barranquilla';
-        const isTeletrabajo = !isBarranquilla && !isAdministrativo && formData.es_teletrabajo;
 
-        if (!formData.sede || !formData.departamento || (!isBarranquilla && !isAdministrativo && !isTeletrabajo && !formData.puesto_numero) || !formData.failure_type || !formData.description.trim()) {
+        if (!formData.failure_type || !formData.description.trim()) {
             setError('Todos los campos marcados con * son requeridos');
             return;
         }
@@ -261,8 +299,11 @@ const CreateIncident = () => {
             return;
         }
 
-        // Validaciones especiales para Barranquilla
         if (isBarranquilla) {
+            if (!formData.departamento) {
+                setError('Debes seleccionar el departamento (Obama o Claro)');
+                return;
+            }
             if (!formData.anydesk_address) {
                 setError('La dirección AnyDesk es requerida para incidencias en Barranquilla');
                 return;
@@ -275,24 +316,31 @@ const CreateIncident = () => {
                 setError('El número de contacto del asesor es requerido para incidencias en Barranquilla');
                 return;
             }
-        }
-
-        // Validaciones especiales para teletrabajo
-        if (isTeletrabajo) {
-            if (!formData.anydesk_address) {
-                setError('El usuario de AnyDesk es requerido para incidencias en teletrabajo');
+        } else if (isDirectivoFinanciero) {
+            if (!formData.station_code) {
+                setError('Debes elegir un puesto de Área Financiera');
                 return;
             }
-            if (!formData.anydesk_password) {
-                setError('La contraseña de AnyDesk es requerida para incidencias en teletrabajo');
+        } else {
+            if (!formData.site) {
+                setError('Debes elegir Site 1 o Site 2');
                 return;
             }
-        }
-
-        if (!isBarranquilla && !isTeletrabajo && !isAdministrativo) {
-            const puestoNum = parseInt(formData.puesto_numero);
-            if (puestoNum < 1 || puestoNum > 300) {
-                setError('El número de puesto debe estar entre 1 y 300');
+            if (!formData.departamento) {
+                setError('Debes elegir un área');
+                return;
+            }
+            if (isTeletrabajo) {
+                if (!formData.anydesk_address) {
+                    setError('El usuario de AnyDesk es requerido para incidencias en teletrabajo');
+                    return;
+                }
+                if (!formData.anydesk_password) {
+                    setError('La contraseña de AnyDesk es requerida para incidencias en teletrabajo');
+                    return;
+                }
+            } else if (!formData.station_code) {
+                setError('Debes elegir un puesto del catálogo');
                 return;
             }
         }
@@ -310,31 +358,33 @@ const CreateIncident = () => {
 
             // Crear FormData para envío de archivos
             const formDataToSend = new FormData();
-            
-            // Agregar datos del formulario
+
             formDataToSend.append('sede', formData.sede);
-            formDataToSend.append('departamento', formData.departamento);
-            formDataToSend.append('puesto_numero', isBarranquilla ? 1 : isAdministrativo ? 0 : isTeletrabajo ? 1 : parseInt(formData.puesto_numero));
             formDataToSend.append('failure_type', formData.failure_type);
             formDataToSend.append('description', description);
+            formDataToSend.append('es_teletrabajo', isTeletrabajo);
 
-            // Agregar campos de trabajo remoto para Barranquilla
             if (isBarranquilla) {
+                formDataToSend.append('departamento', formData.departamento);
                 formDataToSend.append('anydesk_address', formData.anydesk_address);
                 formDataToSend.append('advisor_cedula', formData.advisor_cedula);
                 formDataToSend.append('advisor_contact', formData.advisor_contact);
-            }
-
-            // Agregar campos de teletrabajo (Bogotá / Villavicencio)
-            formDataToSend.append('es_teletrabajo', isTeletrabajo);
-            if (isTeletrabajo) {
-                formDataToSend.append('anydesk_address', formData.anydesk_address);
-                formDataToSend.append('anydesk_password', formData.anydesk_password);
+            } else if (isDirectivoFinanciero) {
+                formDataToSend.append('station_code', formData.station_code);
+            } else {
+                formDataToSend.append('site', formData.site);
+                formDataToSend.append('departamento', formData.departamento);
+                if (isTeletrabajo) {
+                    formDataToSend.append('anydesk_address', formData.anydesk_address);
+                    formDataToSend.append('anydesk_password', formData.anydesk_password);
+                } else {
+                    formDataToSend.append('station_code', formData.station_code);
+                }
             }
 
             // Agregar archivos adjuntos (para coordinadores y administrativos)
             if ((user?.role === 'coordinador' || user?.role === 'administrativo') && attachments.length > 0) {
-                attachments.forEach((file, index) => {
+                attachments.forEach((file) => {
                     formDataToSend.append(`attachments`, file);
                 });
             }
@@ -342,12 +392,13 @@ const CreateIncident = () => {
             await incidentService.createWithFiles(formDataToSend);
 
             setSuccess('Incidencia creada exitosamente');
-            
+
             // Limpiar formulario
             setFormData({
-                sede: user?.sede || 'bogota',
+                sede: isDirectivoFinanciero ? 'bogota' : (user?.sede || 'bogota'),
+                site: '',
                 departamento: '',
-                puesto_numero: '',
+                station_code: '',
                 failure_type: '',
                 peripheral_type: '',
                 description: '',
@@ -357,6 +408,7 @@ const CreateIncident = () => {
                 es_teletrabajo: false,
                 anydesk_password: ''
             });
+            setStationSearch('');
             setAttachments([]);
 
             // Redirigir después de 2 segundos
@@ -382,7 +434,7 @@ const CreateIncident = () => {
                     <ArrowLeft className="h-5 w-5 mr-1" />
                     Volver
                 </button>
-                
+
                 <div className="flex items-start sm:items-center">
                     <AlertTriangle className={`h-6 w-6 sm:h-8 sm:w-8 mr-3 mt-1 sm:mt-0 flex-shrink-0 ${isIronManTheme ? 'text-[#FF6A00]' : 'text-orange-500'}`} />
                     <div>
@@ -405,9 +457,17 @@ const CreateIncident = () => {
                     </div>
                 )}
 
+                {isDirectivoFinanciero ? (
+                    <div className={`mb-4 rounded-md p-3 ${isIronManTheme ? 'bg-cyan-500/10 border border-cyan-500/30' : 'bg-blue-50 border border-blue-200'}`}>
+                        <p className={`text-sm ${isIronManTheme ? 'text-[#00E5FF]' : 'text-blue-800'}`}>
+                            Reportas incidencias únicamente para los puestos de <strong>Área Financiera</strong>.
+                        </p>
+                    </div>
+                ) : null}
+
                 <form onSubmit={handleSubmit} className="space-y-4 sm:space-y-6">
-                    {/* Sede (solo visible para admin) */}
-                    {user?.role === 'admin' && (
+                    {/* Sede (solo visible para admin, y no aplica para directivoFinanciero) */}
+                    {user?.role === 'admin' && !isDirectivoFinanciero && (
                         <div>
                             <label htmlFor="sede" className={`block text-sm font-medium mb-2 ${isIronManTheme ? 'text-[#E5E7EB]' : 'text-gray-700'}`}>
                                 Sede *
@@ -441,12 +501,12 @@ const CreateIncident = () => {
                         </div>
                     )}
 
-                    {/* Departamento */}
-                    <div>
-                        <label htmlFor="departamento" className={`block text-sm font-medium mb-2 ${isIronManTheme ? 'text-[#E5E7EB]' : 'text-gray-700'}`}>
-                            Departamento *
-                        </label>
-                        {canChooseDepartment() ? (
+                    {/* Flujo Barranquilla: departamento + AnyDesk (sin cambios) */}
+                    {isBarranquilla && (
+                        <div>
+                            <label htmlFor="departamento" className={`block text-sm font-medium mb-2 ${isIronManTheme ? 'text-[#E5E7EB]' : 'text-gray-700'}`}>
+                                Departamento *
+                            </label>
                             <select
                                 id="departamento"
                                 name="departamento"
@@ -456,24 +516,62 @@ const CreateIncident = () => {
                                 className={`w-full border rounded-md px-3 py-3 sm:py-2 focus:outline-none focus:ring-2 text-base sm:text-sm ${isIronManTheme ? 'border-cyan-500/30 bg-[#0B0F14] text-[#E5E7EB] focus:ring-cyan-500/50 focus:border-cyan-500' : 'border-gray-300 focus:ring-blue-500 focus:border-blue-500'}`}
                             >
                                 <option value="">Seleccionar departamento...</option>
-                                {getAvailableDepartments(formData.sede).map((dept) => (
+                                {BARRANQUILLA_DEPARTAMENTOS.map((dept) => (
                                     <option key={dept.value} value={dept.value}>
                                         {dept.label}
                                     </option>
                                 ))}
                             </select>
-                        ) : (
-                            <div className={`w-full border rounded-md px-3 py-3 sm:py-2 text-base sm:text-sm ${isIronManTheme ? 'bg-[#0B0F14] text-[#E5E7EB] border-cyan-500/20' : 'bg-gray-50 text-gray-900 border-gray-200'}`}>
-                                {getAvailableDepartments(formData.sede).find(dept => dept.value === formData.departamento)?.label || 
-                                 departamentos.find(dept => dept.value === formData.departamento)?.label ||
-                                 departamentosAdministrativo.find(dept => dept.value === formData.departamento)?.label ||
-                                 formData.departamento}
-                            </div>
-                        )}
-                    </div>
+                        </div>
+                    )}
 
-                    {/* Toggle de teletrabajo (oculto para Barranquilla y administrativos, que ya tienen su propio flujo) */}
-                    {formData.sede !== 'barranquilla' && !isAdministrativo && (
+                    {/* Flujo Bogotá (no directivoFinanciero): Site -> Área */}
+                    {!isBarranquilla && !isDirectivoFinanciero && (
+                        <>
+                            <div>
+                                <label htmlFor="site" className={`block text-sm font-medium mb-2 ${isIronManTheme ? 'text-[#E5E7EB]' : 'text-gray-700'}`}>
+                                    Site *
+                                </label>
+                                <select
+                                    id="site"
+                                    name="site"
+                                    required
+                                    value={formData.site}
+                                    onChange={handleChange}
+                                    className={`w-full border rounded-md px-3 py-3 sm:py-2 focus:outline-none focus:ring-2 text-base sm:text-sm ${isIronManTheme ? 'border-cyan-500/30 bg-[#0B0F14] text-[#E5E7EB] focus:ring-cyan-500/50 focus:border-cyan-500' : 'border-gray-300 focus:ring-blue-500 focus:border-blue-500'}`}
+                                >
+                                    <option value="">Seleccionar site...</option>
+                                    {SITES.map((s) => (
+                                        <option key={s.value} value={s.value}>{s.label}</option>
+                                    ))}
+                                </select>
+                            </div>
+
+                            {formData.site && (
+                                <div>
+                                    <label htmlFor="departamento" className={`block text-sm font-medium mb-2 ${isIronManTheme ? 'text-[#E5E7EB]' : 'text-gray-700'}`}>
+                                        Área *
+                                    </label>
+                                    <select
+                                        id="departamento"
+                                        name="departamento"
+                                        required
+                                        value={formData.departamento}
+                                        onChange={handleChange}
+                                        className={`w-full border rounded-md px-3 py-3 sm:py-2 focus:outline-none focus:ring-2 text-base sm:text-sm ${isIronManTheme ? 'border-cyan-500/30 bg-[#0B0F14] text-[#E5E7EB] focus:ring-cyan-500/50 focus:border-cyan-500' : 'border-gray-300 focus:ring-blue-500 focus:border-blue-500'}`}
+                                    >
+                                        <option value="">Seleccionar área...</option>
+                                        {SITE_AREAS[formData.site].map((a) => (
+                                            <option key={a.value} value={a.value}>{a.label}</option>
+                                        ))}
+                                    </select>
+                                </div>
+                            )}
+                        </>
+                    )}
+
+                    {/* Toggle de teletrabajo (solo Bogotá, no aplica a Barranquilla ni directivoFinanciero) */}
+                    {!isBarranquilla && !isDirectivoFinanciero && (
                         <div className="flex items-center">
                             <input
                                 id="es_teletrabajo"
@@ -489,35 +587,62 @@ const CreateIncident = () => {
                         </div>
                     )}
 
-                    {/* Número de puesto (oculto para Barranquilla, administrativos y teletrabajo) */}
-                    {formData.sede !== 'barranquilla' && !isAdministrativo && !formData.es_teletrabajo && (
-                        <div>
-                            <label htmlFor="puesto_numero" className={`block text-sm font-medium mb-2 ${isIronManTheme ? 'text-[#E5E7EB]' : 'text-gray-700'}`}>
-                                Número de Puesto *
+                    {/* Selector de puesto (catálogo fijo con buscador): Site+Área en Bogotá, o Área Financiera */}
+                    {needsStationPicker && (
+                        <div className="relative">
+                            <label htmlFor="station_search" className={`block text-sm font-medium mb-2 ${isIronManTheme ? 'text-[#E5E7EB]' : 'text-gray-700'}`}>
+                                Puesto *
                             </label>
-                            <input
-                                id="puesto_numero"
-                                name="puesto_numero"
-                                type="number"
-                                min="1"
-                                max="300"
-                                required
-                                value={formData.puesto_numero}
-                                onChange={handleChange}
-                                placeholder="Ingrese número del 1 al 300"
-                                className={`w-full border rounded-md px-3 py-3 sm:py-2 focus:outline-none focus:ring-2 text-base sm:text-sm ${isIronManTheme ? 'border-cyan-500/30 bg-[#0B0F14] text-[#E5E7EB] focus:ring-cyan-500/50 focus:border-cyan-500' : 'border-gray-300 focus:ring-blue-500 focus:border-blue-500'}`}
-                            />
-                            <p className={`mt-1 text-sm ${isIronManTheme ? 'text-[#94A3B8]' : 'text-gray-500'}`}>
-                                {formData.departamento === 'obama' && `${sedes.find(s => s.value === formData.sede)?.label}: Obama - Puestos 1-300`}
-                                {formData.departamento === 'majority' && `${sedes.find(s => s.value === formData.sede)?.label}: Majority - Puestos 1-300`}
-                                {formData.departamento === 'claro' && `${sedes.find(s => s.value === formData.sede)?.label}: Claro - Puestos 1-300`}
-                                {!formData.departamento && 'Selecciona un departamento primero'}
-                            </p>
+                            <div className="relative">
+                                <Search className={`absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 ${isIronManTheme ? 'text-[#94A3B8]' : 'text-gray-400'}`} />
+                                <input
+                                    id="station_search"
+                                    type="text"
+                                    value={stationSearch}
+                                    onChange={(e) => {
+                                        setStationSearch(e.target.value);
+                                        setStationDropdownOpen(true);
+                                        if (formData.station_code) {
+                                            setFormData(prev => ({ ...prev, station_code: '' }));
+                                        }
+                                    }}
+                                    onFocus={() => setStationDropdownOpen(true)}
+                                    onBlur={() => setTimeout(() => setStationDropdownOpen(false), 150)}
+                                    placeholder="Buscar puesto por código..."
+                                    autoComplete="off"
+                                    className={`w-full border rounded-md pl-9 pr-3 py-3 sm:py-2 focus:outline-none focus:ring-2 text-base sm:text-sm ${isIronManTheme ? 'border-cyan-500/30 bg-[#0B0F14] text-[#E5E7EB] focus:ring-cyan-500/50 focus:border-cyan-500' : 'border-gray-300 focus:ring-blue-500 focus:border-blue-500'}`}
+                                />
+                            </div>
+                            {stationDropdownOpen && (
+                                <div className={`absolute z-10 mt-1 w-full max-h-56 overflow-y-auto rounded-md border shadow-lg ${isIronManTheme ? 'bg-[#0B0F14] border-cyan-500/30' : 'bg-white border-gray-200'}`}>
+                                    {loadingStations && (
+                                        <div className={`px-3 py-2 text-sm ${isIronManTheme ? 'text-[#94A3B8]' : 'text-gray-500'}`}>Cargando puestos...</div>
+                                    )}
+                                    {!loadingStations && filteredStations.length === 0 && (
+                                        <div className={`px-3 py-2 text-sm ${isIronManTheme ? 'text-[#94A3B8]' : 'text-gray-500'}`}>No se encontraron puestos</div>
+                                    )}
+                                    {!loadingStations && filteredStations.map((station) => (
+                                        <button
+                                            type="button"
+                                            key={station.id}
+                                            onMouseDown={() => selectStation(station)}
+                                            className={`w-full text-left px-3 py-2 text-sm ${isIronManTheme ? 'text-[#E5E7EB] hover:bg-cyan-500/10' : 'text-gray-900 hover:bg-gray-100'}`}
+                                        >
+                                            {station.station_code}
+                                        </button>
+                                    ))}
+                                </div>
+                            )}
+                            {formData.station_code && (
+                                <p className={`mt-1 text-sm ${isIronManTheme ? 'text-[#00E5FF]' : 'text-green-700'}`}>
+                                    Puesto seleccionado: {formData.station_code}
+                                </p>
+                            )}
                         </div>
                     )}
 
-                    {/* Campos de teletrabajo (Bogotá / Villavicencio) */}
-                    {formData.sede !== 'barranquilla' && !isAdministrativo && formData.es_teletrabajo && (
+                    {/* Campos de teletrabajo (Bogotá) */}
+                    {isTeletrabajo && (
                         <div className={`rounded-lg p-4 space-y-4 ${isIronManTheme ? 'bg-cyan-500/10 border border-cyan-500/30' : 'bg-blue-50 border border-blue-200'}`}>
                             <h4 className={`text-sm font-semibold flex items-center ${isIronManTheme ? 'text-[#00E5FF]' : 'text-blue-900'}`}>
                                 <Monitor className="h-4 w-4 mr-2" />
@@ -607,14 +732,14 @@ const CreateIncident = () => {
                     )}
 
                     {/* Campos de trabajo remoto para Barranquilla */}
-                    {formData.sede === 'barranquilla' && (
+                    {isBarranquilla && (
                         <div className={`rounded-lg p-4 space-y-4 ${isIronManTheme ? 'bg-cyan-500/10 border border-cyan-500/30' : 'bg-blue-50 border border-blue-200'}`}>
                             <h4 className={`text-sm font-semibold flex items-center ${isIronManTheme ? 'text-[#00E5FF]' : 'text-blue-900'}`}>
                                 <Monitor className="h-4 w-4 mr-2" />
                                 Información de Trabajo Remoto
                             </h4>
-                            
-                            
+
+
                             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                                 <div>
                                     <label htmlFor="anydesk_address" className={`block text-sm font-medium mb-2 ${isIronManTheme ? 'text-[#E5E7EB]' : 'text-gray-700'}`}>
@@ -672,7 +797,7 @@ const CreateIncident = () => {
                             <label htmlFor="attachments" className={`block text-sm font-medium mb-2 ${isIronManTheme ? 'text-[#E5E7EB]' : 'text-gray-700'}`}>
                                 Archivos Adjuntos <span className={`text-sm ${isIronManTheme ? 'text-[#94A3B8]' : 'text-gray-500'}`}>(Opcional)</span>
                             </label>
-                            
+
                             {/* Mensaje de mantenimiento */}
                             <div className="mb-4 p-3 bg-yellow-50 border border-yellow-200 rounded-md">
                                 <div className="flex items-center">
@@ -691,7 +816,7 @@ const CreateIncident = () => {
                                     </div>
                                 </div>
                             </div>
-                            
+
                             {/* Input de archivos - DESHABILITADO POR MANTENIMIENTO */}
                             <div className="mb-3">
                                 <label
@@ -711,7 +836,7 @@ const CreateIncident = () => {
                                     disabled
                                 />
                             </div>
-                            
+
                             <p className="text-xs text-gray-500 mb-3">
                                 Puedes subir imágenes (JPG, PNG, GIF, WebP) y archivos PDF. Máximo 10MB por archivo.
                             </p>
