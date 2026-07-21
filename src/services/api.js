@@ -154,6 +154,33 @@ export const userCompanyService = {
     unassignActivo: (id, activoId) => api.delete(`/users-company/${id}/activos/${activoId}`)
 };
 
+// === SERVICIOS DE NOVEDADES RRHH ===
+export const novedadRrhhService = {
+    getAll: (params = {}) => api.get('/users-company/novedades', { params }),
+    getById: (id) => api.get(`/users-company/novedades/${id}`),
+    create: (data) => api.post('/users-company/novedades', data),
+    update: (id, data) => api.put(`/users-company/novedades/${id}`, data),
+    delete: (id) => api.delete(`/users-company/novedades/${id}`)
+};
+
+// === SERVICIOS DE TRASPASOS ===
+export const traspasoService = {
+    getAll: (params = {}) => api.get('/users-company/traspasos', { params }),
+    getById: (id) => api.get(`/users-company/traspasos/${id}`),
+    create: (data) => api.post('/users-company/traspasos', data),
+    update: (id, data) => api.put(`/users-company/traspasos/${id}`, data),
+    delete: (id) => api.delete(`/users-company/traspasos/${id}`)
+};
+
+// === SERVICIOS DE PASIVO VACACIONAL ===
+export const vacacionesService = {
+    getAll: (params = {}) => api.get('/users-company/vacaciones', { params }),
+    getById: (id) => api.get(`/users-company/vacaciones/${id}`),
+    create: (data) => api.post('/users-company/vacaciones', data),
+    update: (id, data) => api.put(`/users-company/vacaciones/${id}`, data),
+    delete: (id) => api.delete(`/users-company/vacaciones/${id}`)
+};
+
 // === SERVICIOS DE DISEÑOS ===
 export const disenoService = {
     getAll: (params = {}) => api.get('/disenos', { params }),

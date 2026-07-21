@@ -50,7 +50,8 @@ const UserManagement = () => {
         { value: 'administrativo', label: 'Administrativo', color: 'bg-orange-100 text-orange-800' },
         { value: 'gestorActivos', label: 'Gestor de Activos', color: 'bg-indigo-100 text-indigo-800' },
         { value: 'tecnicoInventario', label: 'Técnico Inventario', color: 'bg-teal-100 text-teal-800' },
-        { value: 'disenador', label: 'Diseñador', color: 'bg-purple-100 text-purple-800' }
+        { value: 'disenador', label: 'Diseñador', color: 'bg-purple-100 text-purple-800' },
+        { value: 'recursosHumanos', label: 'Recursos Humanos', color: 'bg-pink-100 text-pink-800' }
     ];
 
     const sedes = [
@@ -204,7 +205,7 @@ const UserManagement = () => {
             }
             
             // Para gestores de activos y técnicos de inventario, no asignar sede ni departamento
-            if (submitData.role === 'gestorActivos' || submitData.role === 'tecnicoInventario' || submitData.role === 'disenador') {
+            if (submitData.role === 'gestorActivos' || submitData.role === 'tecnicoInventario' || submitData.role === 'disenador' || submitData.role === 'recursosHumanos') {
                 submitData.sede = null;
                 submitData.departamento = null;
             }
@@ -334,6 +335,7 @@ const UserManagement = () => {
                             <option value="gestorActivos">Gestores de Activos</option>
                             <option value="tecnicoInventario">Técnicos Inventario</option>
                             <option value="disenador">Diseñadores</option>
+                            <option value="recursosHumanos">Recursos Humanos</option>
                         </select>
                     </div>
 
@@ -401,8 +403,8 @@ const UserManagement = () => {
                                                 <div className="flex items-center">
                                                     <MapPin className="h-4 w-4 mr-1" />
                                                     <span>
-                                                        {(user.role === 'gestorActivos' || user.role === 'tecnicoInventario' || user.role === 'disenador')
-                                                            ? (user.role === 'gestorActivos' ? 'Gestión de Activos - Sin sede específica' : user.role === 'disenador' ? 'Diseñador - Sin sede específica' : 'Técnico Inventario - Sin sede específica')
+                                                        {(user.role === 'gestorActivos' || user.role === 'tecnicoInventario' || user.role === 'disenador' || user.role === 'recursosHumanos')
+                                                            ? (user.role === 'gestorActivos' ? 'Gestión de Activos - Sin sede específica' : user.role === 'disenador' ? 'Diseñador - Sin sede específica' : user.role === 'recursosHumanos' ? 'Recursos Humanos - Sin sede específica' : 'Técnico Inventario - Sin sede específica')
                                                             : `${sedes.find(s => s.value === user.sede)?.label || user.sede}${user.departamento ? ` - ${departamentos.find(d => d.value === user.departamento)?.label || user.departamento}` : ''}`
                                                         }
                                                     </span>
@@ -536,7 +538,7 @@ const UserManagement = () => {
                                 </div>
 
                                 {/* Sede - Solo mostrar si NO es gestorActivos */}
-                                {formData.role !== 'gestorActivos' && formData.role !== 'tecnicoInventario' && formData.role !== 'disenador' && (
+                                {formData.role !== 'gestorActivos' && formData.role !== 'tecnicoInventario' && formData.role !== 'disenador' && formData.role !== 'recursosHumanos' && (
                                     <div>
                                         <label className="block text-sm font-medium text-gray-700 mb-1">
                                             Sede *
@@ -602,6 +604,16 @@ const UserManagement = () => {
                                     <div className="bg-purple-50 border border-purple-200 rounded-md p-3">
                                         <p className="text-sm text-purple-700">
                                             Los diseñadores gestionan solicitudes de diseño. No requieren sede ni departamento específico.
+                                        </p>
+                                    </div>
+                                )}
+
+                                {/* Mensaje informativo para recursos humanos */}
+                                {formData.role === 'recursosHumanos' && (
+                                    <div className="bg-pink-50 border border-pink-200 rounded-md p-3">
+                                        <p className="text-sm text-pink-700">
+                                            <strong>Nota:</strong> Recursos Humanos tiene acceso exclusivo al módulo de gestión de empleados.
+                                            No requiere sede ni departamento específico.
                                         </p>
                                     </div>
                                 )}
