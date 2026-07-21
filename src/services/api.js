@@ -144,4 +144,66 @@ export const assetHistoryService = {
     actualizarEstadoMantenimiento: (id, nuevoEstado) => api.put(`/activos-tecnico/${id}/estado-mantenimiento`, { nuevoEstado })
 };
 
+// === SERVICIOS DE EMPLEADOS (users_company) ===
+export const userCompanyService = {
+    getAll: () => api.get('/users-company'),
+    getById: (id) => api.get(`/users-company/${id}`),
+    create: (data) => api.post('/users-company', data),
+    update: (id, data) => api.put(`/users-company/${id}`, data),
+    delete: (id) => api.delete(`/users-company/${id}`),
+    getGastoTotal: () => api.get('/users-company/gasto-total'),
+    getActivos: (id) => api.get(`/users-company/${id}/activos`),
+    assignActivo: (id, activoId) => api.put(`/users-company/${id}/activos/${activoId}`),
+    unassignActivo: (id, activoId) => api.delete(`/users-company/${id}/activos/${activoId}`)
+};
+
+// === SERVICIOS DE NOVEDADES RRHH ===
+export const novedadRrhhService = {
+    getAll: (params = {}) => api.get('/users-company/novedades', { params }),
+    getById: (id) => api.get(`/users-company/novedades/${id}`),
+    create: (data) => api.post('/users-company/novedades', data),
+    update: (id, data) => api.put(`/users-company/novedades/${id}`, data),
+    delete: (id) => api.delete(`/users-company/novedades/${id}`)
+};
+
+// === SERVICIOS DE TRASPASOS ===
+export const traspasoService = {
+    getAll: (params = {}) => api.get('/users-company/traspasos', { params }),
+    getById: (id) => api.get(`/users-company/traspasos/${id}`),
+    create: (data) => api.post('/users-company/traspasos', data),
+    update: (id, data) => api.put(`/users-company/traspasos/${id}`, data),
+    delete: (id) => api.delete(`/users-company/traspasos/${id}`)
+};
+
+// === SERVICIOS DE PASIVO VACACIONAL ===
+export const vacacionesService = {
+    getAll: (params = {}) => api.get('/users-company/vacaciones', { params }),
+    getById: (id) => api.get(`/users-company/vacaciones/${id}`),
+    create: (data) => api.post('/users-company/vacaciones', data),
+    update: (id, data) => api.put(`/users-company/vacaciones/${id}`, data),
+    delete: (id) => api.delete(`/users-company/vacaciones/${id}`)
+};
+
+// === SERVICIOS DE DISEÑOS ===
+export const disenoService = {
+    getAll: (params = {}) => api.get('/disenos', { params }),
+    getById: (id) => api.get(`/disenos/${id}`),
+    getDisenadores: () => api.get('/disenos/disenadores'),
+    create: (formData) => api.post('/disenos', formData, { headers: { 'Content-Type': 'multipart/form-data' } }),
+    update: (id, formData) => api.put(`/disenos/${id}`, formData, { headers: { 'Content-Type': 'multipart/form-data' } }),
+    assign: (id, disenador_id) => api.put(`/disenos/${id}/assign`, { disenador_id }),
+    setFechaEstimada: (id, fecha_estimada) => api.put(`/disenos/${id}/fecha-estimada`, { fecha_estimada }),
+    complete: (id, nota) => api.put(`/disenos/${id}/complete`, { nota_completado: nota || null }),
+    toggleEspera: (id) => api.put(`/disenos/${id}/espera`),
+    return: (id, formData) => api.put(`/disenos/${id}/return`, formData, { headers: { 'Content-Type': 'multipart/form-data' } }),
+    getDevoluciones: (id) => api.get(`/disenos/${id}/devoluciones`),
+    deleteImagen: (id, imagenId) => api.delete(`/disenos/${id}/imagenes/${imagenId}`),
+    downloadImagenes: (id) => api.get(`/disenos/${id}/imagenes/download`, { responseType: 'blob' }),
+    downloadEntregas: (id) => api.get(`/disenos/${id}/entregas/download`, { responseType: 'blob' }),
+    uploadEntrega: (id, formData) => api.post(`/disenos/${id}/entregas`, formData, { headers: { 'Content-Type': 'multipart/form-data' } }),
+    replaceEntregas: (id, formData) => api.put(`/disenos/${id}/entregas/replace`, formData, { headers: { 'Content-Type': 'multipart/form-data' } }),
+    deleteEntrega: (id, archivoId) => api.delete(`/disenos/${id}/entregas/${archivoId}`),
+    delete: (id) => api.delete(`/disenos/${id}`)
+};
+
 export default api;

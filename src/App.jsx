@@ -29,6 +29,12 @@ import TecnicoInventarioEdicion from './components/TecnicoInventarioEdicion';
 import AssetComponentHistory from './components/AssetComponentHistory';
 import DirectivoFinancieroLayout from './components/DirectivoFinancieroLayout';
 import DirectivoDashboard from './components/DirectivoDashboard';
+import AgentManagement from './components/AgentManagement';
+import Disenos from './components/Disenos';
+import RecursosHumanosLayout from './components/RecursosHumanosLayout';
+import NovedadesRRHH from './components/NovedadesRRHH';
+import Traspasos from './components/Traspasos';
+import PasivoVacacional from './components/PasivoVacacional';
 
 // Componente para determinar el layout según el rol
 const LayoutWrapper = ({ children }) => {
@@ -48,6 +54,10 @@ const LayoutWrapper = ({ children }) => {
 
   if (user?.role === 'directivoFinanciero') {
     return <DirectivoFinancieroLayout>{children}</DirectivoFinancieroLayout>;
+  }
+
+  if (user?.role === 'recursosHumanos') {
+    return <RecursosHumanosLayout>{children}</RecursosHumanosLayout>;
   }
 
   return <Layout>{children}</Layout>;
@@ -72,8 +82,6 @@ const AnonymousRoute = ({ children }) => {
 const RedirectByRole = () => {
   const { user, loading } = useAuth();
   
-  console.log('RedirectByRole - user:', user, 'loading:', loading);
-  
   if (loading) {
     return (
       <div className="min-h-screen flex items-center justify-center">
@@ -96,6 +104,14 @@ const RedirectByRole = () => {
 
   if (user?.role === 'directivoFinanciero') {
     return <Navigate to="/directivo" replace />;
+  }
+
+  if (user?.role === 'disenador') {
+    return <Navigate to="/disenos" replace />;
+  }
+
+  if (user?.role === 'recursosHumanos') {
+    return <Navigate to="/recursos-humanos" replace />;
   }
 
   return <Navigate to="/dashboard" replace />;
@@ -105,8 +121,6 @@ const RedirectByRole = () => {
 const DashboardRoute = () => {
   const { user, loading } = useAuth();
   
-  console.log('DashboardRoute - user:', user, 'loading:', loading);
-  
   if (loading) {
     return (
       <div className="min-h-screen flex items-center justify-center">
@@ -129,6 +143,14 @@ const DashboardRoute = () => {
 
   if (user?.role === 'directivoFinanciero') {
     return <Navigate to="/directivo" replace />;
+  }
+
+  if (user?.role === 'disenador') {
+    return <Navigate to="/disenos" replace />;
+  }
+
+  if (user?.role === 'recursosHumanos') {
+    return <Navigate to="/recursos-humanos" replace />;
   }
 
   return <Dashboard />;
@@ -264,6 +286,30 @@ const DirectivoFinancieroRoute = ({ children }) => {
   return children;
 };
 
+// Componente para rutas que requieren rol de recursosHumanos
+const RecursosHumanosRoute = ({ children }) => {
+  const { isRecursosHumanos, loading } = useAuth();
+
+  if (loading) {
+    return (
+      <div className="min-h-screen flex items-center justify-center">
+        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600"></div>
+      </div>
+    );
+  }
+
+  if (!isRecursosHumanos) {
+    return (
+      <div className="text-center py-12">
+        <h1 className="text-2xl font-bold text-gray-900 mb-4">Acceso Denegado</h1>
+        <p className="text-gray-600">Solo Recursos Humanos puede acceder a esta sección.</p>
+      </div>
+    );
+  }
+
+  return children;
+};
+
 // Componente placeholder para rutas que aún no están implementadas
 const ComingSoon = ({ title }) => (
   <div className="text-center py-12">
@@ -275,7 +321,7 @@ const ComingSoon = ({ title }) => (
 function App() {
   return (
     <AuthProvider>
-      <Router>
+      <Router future={{ v7_startTransition: true, v7_relativeSplatPath: true }}>
         <div className="min-h-screen bg-gray-50">
           <Routes>
             <Route path="/login" element={<Login />} />
@@ -324,8 +370,18 @@ function App() {
               <Route path="activos/inventario" element={<GestorActivosRoute><AssetInventory /></GestorActivosRoute>} />
               <Route path="activos/charts" element={<GestorActivosRoute><AssetCharts /></GestorActivosRoute>} />
 
+              {/* Rutas de recursos humanos */}
+              <Route path="recursos-humanos" element={<RecursosHumanosRoute><AgentManagement /></RecursosHumanosRoute>} />
+              <Route path="recursos-humanos/novedades" element={<RecursosHumanosRoute><NovedadesRRHH /></RecursosHumanosRoute>} />
+              <Route path="recursos-humanos/traspasos" element={<RecursosHumanosRoute><Traspasos /></RecursosHumanosRoute>} />
+              <Route path="recursos-humanos/vacaciones" element={<RecursosHumanosRoute><PasivoVacacional /></RecursosHumanosRoute>} />
+
               {/* Rutas de técnico de inventario */}
               <Route path="inventario-tecnico" element={<TecnicoInventarioRoute><TecnicoInventarioEdicion /></TecnicoInventarioRoute>} />
+
+              {/* Rutas de diseños */}
+              <Route path="disenos" element={<NonAnonymousRoute><Disenos /></NonAnonymousRoute>} />
+              <Route path="disenos/completados" element={<NonAnonymousRoute><Disenos defaultFiltro="completado" /></NonAnonymousRoute>} />
 
               {/* Rutas de directivo financiero */}
               <Route path="directivo" element={<DirectivoFinancieroRoute><DirectivoDashboard /></DirectivoFinancieroRoute>} />
