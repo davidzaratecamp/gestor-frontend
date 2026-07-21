@@ -2,13 +2,24 @@ import React, { useState, useEffect } from 'react';
 import { useAuth } from '../context/AuthContext';
 import api from '../services/api';
 import AgentForm from './AgentForm';
+import Pagination from './Pagination';
 import {
     Users, Plus, Search, Edit3, Trash2,
-    Package, AlertCircle, UserCheck, X, ClipboardList, DollarSign
+    Package, AlertCircle, UserCheck, X, ClipboardList, DollarSign,
+    ChevronDown, ChevronUp
 } from 'lucide-react';
 
+const PAGE_SIZE = 20;
+
+const DetailField = ({ label, value }) => (
+    <div>
+        <p className="text-xs font-medium text-gray-500 uppercase tracking-wider">{label}</p>
+        <p className="text-sm text-gray-900 mt-0.5">{value ?? '—'}</p>
+    </div>
+);
+
 const AgentManagement = () => {
-    const { isGestorActivos } = useAuth();
+    const { isRecursosHumanos } = useAuth();
     const [empleados, setEmpleados] = useState([]);
     const [gastoTotal, setGastoTotal] = useState(null);
     const [loading, setLoading] = useState(true);
@@ -24,23 +35,29 @@ const AgentManagement = () => {
     const [assignSearch, setAssignSearch] = useState('');
     const [assignLoading, setAssignLoading] = useState(false);
     const [assignError, setAssignError] = useState('');
-
-    if (!isGestorActivos) {
-        return (
-            <div className="min-h-screen bg-gray-50 flex items-center justify-center">
-                <div className="bg-white p-8 rounded-lg shadow-md text-center">
-                    <AlertCircle className="mx-auto h-16 w-16 text-red-500 mb-4" />
-                    <h2 className="text-2xl font-bold text-gray-800 mb-2">Acceso Denegado</h2>
-                    <p className="text-gray-600">Solo los gestores de activos pueden acceder a esta sección.</p>
-                </div>
-            </div>
-        );
-    }
+    const [expandedIds, setExpandedIds] = useState(new Set());
+    const [page, setPage] = useState(1);
 
     useEffect(() => {
         fetchEmpleados();
         fetchGastoTotal();
     }, []);
+
+    useEffect(() => {
+        setPage(1);
+    }, [searchTerm]);
+
+    if (!isRecursosHumanos) {
+        return (
+            <div className="min-h-screen bg-gray-50 flex items-center justify-center">
+                <div className="bg-white p-8 rounded-lg shadow-md text-center">
+                    <AlertCircle className="mx-auto h-16 w-16 text-red-500 mb-4" />
+                    <h2 className="text-2xl font-bold text-gray-800 mb-2">Acceso Denegado</h2>
+                    <p className="text-gray-600">Solo Recursos Humanos puede acceder a esta sección.</p>
+                </div>
+            </div>
+        );
+    }
 
     const fetchEmpleados = async () => {
         try {
@@ -164,6 +181,17 @@ const AgentManagement = () => {
         a.tipo_activo?.toLowerCase().includes(assignSearch.toLowerCase())
     );
 
+    const totalPages = Math.max(1, Math.ceil(filteredEmpleados.length / PAGE_SIZE));
+    const paginatedEmpleados = filteredEmpleados.slice((page - 1) * PAGE_SIZE, page * PAGE_SIZE);
+
+    const toggleExpand = (id) => {
+        setExpandedIds(prev => {
+            const next = new Set(prev);
+            if (next.has(id)) next.delete(id); else next.add(id);
+            return next;
+        });
+    };
+
     if (loading) {
         return (
             <div className="min-h-screen bg-gray-50 flex items-center justify-center">
@@ -263,6 +291,7 @@ const AgentManagement = () => {
                     <table className="min-w-full divide-y divide-gray-200">
                         <thead className="bg-gray-50">
                             <tr>
+                                <th className="px-4 py-3 w-10"></th>
                                 <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Empleado</th>
                                 <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Identificación</th>
                                 <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Campaña</th>
@@ -276,8 +305,18 @@ const AgentManagement = () => {
                             </tr>
                         </thead>
                         <tbody className="bg-white divide-y divide-gray-200">
-                            {filteredEmpleados.map((empleado) => (
-                                <tr key={empleado.id} className="hover:bg-gray-50">
+                            {paginatedEmpleados.map((empleado) => (
+                                <React.Fragment key={empleado.id}>
+                                <tr className="hover:bg-gray-50">
+                                    <td className="px-4 py-4">
+                                        <button
+                                            onClick={() => toggleExpand(empleado.id)}
+                                            className="text-gray-400 hover:text-gray-700"
+                                            title={expandedIds.has(empleado.id) ? 'Ocultar detalle' : 'Ver detalle'}
+                                        >
+                                            {expandedIds.has(empleado.id) ? <ChevronUp className="h-4 w-4" /> : <ChevronDown className="h-4 w-4" />}
+                                        </button>
+                                    </td>
                                     <td className="px-6 py-4 whitespace-nowrap">
                                         <div className="text-sm font-medium text-gray-900">
                                             {empleado.nombre_completo}
@@ -359,6 +398,27 @@ const AgentManagement = () => {
                                         </div>
                                     </td>
                                 </tr>
+                                {expandedIds.has(empleado.id) && (
+                                    <tr>
+                                        <td colSpan={10} className="bg-gray-50 px-8 py-5 border-t border-gray-100">
+                                            <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+                                                <DetailField label="Fecha de nacimiento" value={empleado.fecha_nacimiento ? new Date(empleado.fecha_nacimiento).toLocaleDateString('es-CO') : null} />
+                                                <DetailField label="Género" value={empleado.genero_nombre} />
+                                                <DetailField label="Estado civil" value={empleado.estado_civil_nombre} />
+                                                <DetailField label="Grupo sanguíneo" value={empleado.grupo_sanguineo_nombre} />
+                                                <DetailField label="Número de hijos" value={empleado.numero_hijos} />
+                                                <DetailField label="RUT" value={empleado.rut} />
+                                                <DetailField label="Ciudad de nacimiento" value={empleado.ciudad_nacimiento_nombre} />
+                                                <DetailField label="Ciudad de expedición" value={empleado.ciudad_expedicion_nombre} />
+                                                <DetailField label="Fecha de expedición" value={empleado.fecha_expedicion ? new Date(empleado.fecha_expedicion).toLocaleDateString('es-CO') : null} />
+                                                <DetailField label="Área" value={empleado.area_nombre} />
+                                                <DetailField label="Tipo de contrato" value={empleado.tipo_contrato_nombre} />
+                                                <DetailField label="Usuario SSFF" value={empleado.usuario_ssff} />
+                                            </div>
+                                        </td>
+                                    </tr>
+                                )}
+                                </React.Fragment>
                             ))}
                         </tbody>
                     </table>
@@ -371,6 +431,8 @@ const AgentManagement = () => {
                         <p className="mt-1 text-sm text-gray-500">Comience registrando un nuevo empleado.</p>
                     </div>
                 )}
+
+                <Pagination page={page} totalPages={totalPages} totalItems={filteredEmpleados.length} pageSize={PAGE_SIZE} onPageChange={setPage} />
             </div>
 
             {showCreateForm && (

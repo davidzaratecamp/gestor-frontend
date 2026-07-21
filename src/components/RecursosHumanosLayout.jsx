@@ -4,16 +4,15 @@ import { useAuth } from '../context/AuthContext';
 import {
     Menu,
     X,
-    Package,
-    Plus,
-    ClipboardList,
-    BarChart3,
-    FileText,
+    Users,
     LogOut,
-    User
+    User,
+    ClipboardList,
+    ArrowLeftRight,
+    CalendarClock
 } from 'lucide-react';
 
-const AssetLayout = () => {
+const RecursosHumanosLayout = () => {
     const [sidebarOpen, setSidebarOpen] = useState(false);
     const { user, logout } = useAuth();
     const location = useLocation();
@@ -26,28 +25,28 @@ const AssetLayout = () => {
 
     const navigationItems = [
         {
-            name: 'Ingresar Activos',
-            href: '/activos',
-            icon: Plus,
-            current: location.pathname === '/activos'
+            name: 'Empleados',
+            href: '/recursos-humanos',
+            icon: Users,
+            current: location.pathname === '/recursos-humanos'
         },
         {
-            name: 'Crear desde Script',
-            href: '/activos/script-parser',
-            icon: FileText,
-            current: location.pathname === '/activos/script-parser'
-        },
-        {
-            name: 'Inventario',
-            href: '/activos/inventario',
+            name: 'Consolidado Novedades',
+            href: '/recursos-humanos/novedades',
             icon: ClipboardList,
-            current: location.pathname === '/activos/inventario'
+            current: location.pathname === '/recursos-humanos/novedades'
         },
         {
-            name: 'Análisis y Gráficos',
-            href: '/activos/charts',
-            icon: BarChart3,
-            current: location.pathname === '/activos/charts'
+            name: 'Traspasos',
+            href: '/recursos-humanos/traspasos',
+            icon: ArrowLeftRight,
+            current: location.pathname === '/recursos-humanos/traspasos'
+        },
+        {
+            name: 'Pasivo Vacacional',
+            href: '/recursos-humanos/vacaciones',
+            icon: CalendarClock,
+            current: location.pathname === '/recursos-humanos/vacaciones'
         }
     ];
 
@@ -66,13 +65,13 @@ const AssetLayout = () => {
                             <X className="h-6 w-6 text-white" />
                         </button>
                     </div>
-                    
+
                     {/* Mobile sidebar content */}
                     <div className="flex-shrink-0 flex items-center px-4">
-                        <Package className="h-8 w-8 text-indigo-600" />
-                        <span className="ml-2 text-xl font-bold text-gray-900">Gestión de Activos</span>
+                        <Users className="h-8 w-8 text-indigo-600" />
+                        <span className="ml-2 text-xl font-bold text-gray-900">Recursos Humanos</span>
                     </div>
-                    
+
                     <div className="mt-5 flex-1 h-0 overflow-y-auto">
                         <nav className="px-2 space-y-1">
                             {navigationItems.map((item) => (
@@ -103,10 +102,10 @@ const AssetLayout = () => {
             <div className="hidden md:flex md:w-64 md:flex-col md:fixed md:inset-y-0">
                 <div className="flex flex-col flex-grow pt-5 bg-white overflow-y-auto border-r border-gray-200">
                     <div className="flex items-center flex-shrink-0 px-4">
-                        <Package className="h-8 w-8 text-indigo-600" />
-                        <span className="ml-2 text-xl font-bold text-gray-900">Gestión de Activos</span>
+                        <Users className="h-8 w-8 text-indigo-600" />
+                        <span className="ml-2 text-xl font-bold text-gray-900">Recursos Humanos</span>
                     </div>
-                    
+
                     <div className="mt-5 flex-grow flex flex-col">
                         <nav className="flex-1 px-2 pb-4 space-y-1">
                             {navigationItems.map((item) => (
@@ -143,12 +142,12 @@ const AssetLayout = () => {
                     >
                         <Menu className="h-6 w-6" />
                     </button>
-                    
+
                     <div className="flex-1 px-4 flex justify-between">
                         <div className="flex-1 flex">
                             {/* Breadcrumb or page title can go here */}
                         </div>
-                        
+
                         <div className="ml-4 flex items-center md:ml-6">
                             {/* User menu */}
                             <div className="relative">
@@ -157,10 +156,10 @@ const AssetLayout = () => {
                                         <User className="h-8 w-8 text-gray-400" />
                                         <div className="ml-3">
                                             <div className="text-sm font-medium text-gray-700">{user?.full_name || user?.fullName}</div>
-                                            <div className="text-xs text-gray-500">Gestor de Activos</div>
+                                            <div className="text-xs text-gray-500">Recursos Humanos</div>
                                         </div>
                                     </div>
-                                    
+
                                     <button
                                         onClick={handleLogout}
                                         className="inline-flex items-center px-3 py-2 border border-transparent text-sm leading-4 font-medium rounded-md text-gray-500 hover:text-gray-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500"
@@ -183,4 +182,4 @@ const AssetLayout = () => {
     );
 };
 
-export default AssetLayout;
+export default RecursosHumanosLayout;

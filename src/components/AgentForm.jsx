@@ -362,7 +362,7 @@ const AgentForm = ({ isOpen, onClose, agente = null, onSuccess }) => {
                             <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
                                 {selectField('EPS', 'eps_id', segSocial.eps_id, onChange(setSegSocial), catalogos.entidades_eps)}
                                 {selectField('ARL', 'arl_id', segSocial.arl_id, onChange(setSegSocial), catalogos.entidades_arl)}
-                                {textField('Tarifa ARL (%)', 'tarifa_arl', segSocial.tarifa_arl, onChange(setSegSocial), { type: 'number', min: 0, step: '0.00001', placeholder: 'Ej: 0.522' })}
+                                {textField('Tarifa ARL (%)', 'tarifa_arl', segSocial.tarifa_arl, onChange(setSegSocial), { type: 'number', min: 0, max: 100, step: '0.00001', placeholder: 'Ej: 0.522' })}
                                 {selectField('Fondo de pensiones (AFP)', 'afp_id', segSocial.afp_id, onChange(setSegSocial), catalogos.entidades_afp)}
                                 {selectField('Fondo de cesantías', 'cesantias_id', segSocial.cesantias_id, onChange(setSegSocial), catalogos.entidades_cesantias)}
                                 {selectField('Caja de compensación', 'caja_id', segSocial.caja_id, onChange(setSegSocial), catalogos.entidades_caja)}
