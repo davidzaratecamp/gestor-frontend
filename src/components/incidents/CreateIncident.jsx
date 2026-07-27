@@ -6,7 +6,8 @@ import { AlertTriangle, Save, ArrowLeft, Monitor, Search } from 'lucide-react';
 
 const SITES = [
     { value: 'site1', label: 'Site 1' },
-    { value: 'site2', label: 'Site 2' }
+    { value: 'site2', label: 'Site 2' },
+    { value: 'area_financiera', label: 'Área Financiera' }
 ];
 
 const SITE_AREAS = {
@@ -63,8 +64,10 @@ const CreateIncident = () => {
     const [stationDropdownOpen, setStationDropdownOpen] = useState(false);
 
     const isBarranquilla = formData.sede === 'barranquilla';
-    const isTeletrabajo = !isBarranquilla && !isDirectivoFinanciero && formData.es_teletrabajo;
-    const needsStationPicker = isDirectivoFinanciero || (!isBarranquilla && !isTeletrabajo && formData.site && formData.departamento);
+    // Cualquier usuario puede elegir "Área Financiera" desde el selector de Site, no solo el rol directivoFinanciero
+    const isAreaFinanciera = isDirectivoFinanciero || formData.site === 'area_financiera';
+    const isTeletrabajo = !isBarranquilla && !isAreaFinanciera && formData.es_teletrabajo;
+    const needsStationPicker = isAreaFinanciera || (!isBarranquilla && !isTeletrabajo && formData.site && formData.departamento);
 
     // Obtener workstations de Barranquilla si el usuario puede crear incidencias allí
     useEffect(() => {
@@ -90,7 +93,7 @@ const CreateIncident = () => {
     // Cargar catálogo de puestos fijos cuando corresponda (Site+Área elegidos, o Área Financiera)
     useEffect(() => {
         const loadCatalog = async () => {
-            if (isDirectivoFinanciero) {
+            if (isAreaFinanciera) {
                 setLoadingStations(true);
                 try {
                     const res = await workstationService.getCatalog({ departamento: 'area_financiera' });
@@ -118,7 +121,7 @@ const CreateIncident = () => {
             }
         };
         loadCatalog();
-    }, [isDirectivoFinanciero, isBarranquilla, isTeletrabajo, formData.site, formData.departamento]);
+    }, [isAreaFinanciera, isBarranquilla, isTeletrabajo, formData.site, formData.departamento]);
 
     const sedes = [
         { value: 'bogota', label: 'Bogotá' },
@@ -163,13 +166,16 @@ const CreateIncident = () => {
                 anydesk_password: ''
             });
         }
-        // Si cambia el site, limpiar área y puesto
+        // Si cambia el site, limpiar área y puesto (Área Financiera no requiere elegir área aparte)
         else if (name === 'site') {
             setFormData({
                 ...formData,
                 [name]: value,
-                departamento: '',
-                ...resetStationSelection()
+                departamento: value === 'area_financiera' ? 'area_financiera' : '',
+                ...resetStationSelection(),
+                es_teletrabajo: false,
+                anydesk_address: '',
+                anydesk_password: ''
             });
         }
         // Si cambia el departamento/área, limpiar el puesto elegido
@@ -264,7 +270,7 @@ const CreateIncident = () => {
                 setError('El número de contacto del asesor es requerido para incidencias en Barranquilla');
                 return;
             }
-        } else if (isDirectivoFinanciero) {
+        } else if (isAreaFinanciera) {
             if (!formData.station_code) {
                 setError('Debes elegir un puesto de Área Financiera');
                 return;
@@ -317,7 +323,8 @@ const CreateIncident = () => {
                 formDataToSend.append('anydesk_address', formData.anydesk_address);
                 formDataToSend.append('advisor_cedula', formData.advisor_cedula);
                 formDataToSend.append('advisor_contact', formData.advisor_contact);
-            } else if (isDirectivoFinanciero) {
+            } else if (isAreaFinanciera) {
+                formDataToSend.append('departamento', 'area_financiera');
                 formDataToSend.append('station_code', formData.station_code);
             } else {
                 formDataToSend.append('site', formData.site);
@@ -487,7 +494,7 @@ const CreateIncident = () => {
                                 </select>
                             </div>
 
-                            {formData.site && (
+                            {formData.site && formData.site !== 'area_financiera' && (
                                 <div>
                                     <label htmlFor="departamento" className={`block text-sm font-medium mb-2 ${isIronManTheme ? 'text-[#E5E7EB]' : 'text-gray-700'}`}>
                                         Área *
@@ -510,8 +517,8 @@ const CreateIncident = () => {
                         </>
                     )}
 
-                    {/* Toggle de teletrabajo (solo Bogotá, no aplica a Barranquilla ni directivoFinanciero) */}
-                    {!isBarranquilla && !isDirectivoFinanciero && (
+                    {/* Toggle de teletrabajo (solo Bogotá, no aplica a Barranquilla, directivoFinanciero ni Área Financiera) */}
+                    {!isBarranquilla && !isAreaFinanciera && (
                         <div className="flex items-center">
                             <input
                                 id="es_teletrabajo"
